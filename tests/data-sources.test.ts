@@ -103,4 +103,48 @@ describe("AA_BENCHMARKS", () => {
     }
   });
 });
+
+describe("변형 통합", () => {
+  it("추론 강도 변형을 모델 하나로 접고, 가장 높은 설정을 대표로 쓴다", () => {
+    const variants = {
+      data: [
+        { id:"a", name:"Claude Fable 5.1 (Adaptive Reasoning, Low Effort)", slug:"cf-low",
+          model_creator:{name:"Anthropic",slug:"anthropic"},
+          evaluations:{artificial_analysis_intelligence_index:48, gpqa:80} },
+        { id:"b", name:"Claude Fable 5.1 (Adaptive Reasoning, Max Effort)", slug:"cf-max",
+          model_creator:{name:"Anthropic",slug:"anthropic"},
+          evaluations:{artificial_analysis_intelligence_index:57, gpqa:91} },
+        { id:"c", name:"Claude Fable 5.1 (Adaptive Reasoning, High Effort)", slug:"cf-high",
+          model_creator:{name:"Anthropic",slug:"anthropic"},
+          evaluations:{artificial_analysis_intelligence_index:54, gpqa:87} },
+      ],
+    };
+    const out = transform(variants, AT);
+    expect(out.models).toHaveLength(1);
+    expect(out.models[0].name).toBe("Claude Fable 5.1"); // 괄호가 떨어진 깔끔한 이름
+    expect(out.models[0].slug).toBe("claude-fable-5-1");
+    expect(out.models[0].variantLabel).toContain("Max Effort");
+    // 채택된 설정의 값만 들어간다
+    expect(out.results.find((r) => r.benchmarkSlug === "gpqa-diamond")?.value).toBe(91);
+  });
+
+  it("같은 이름이라도 개발사가 다르면 따로 센다", () => {
+    const out = transform({ data: [
+      { id:"1", name:"Nova (max)", slug:"n1", model_creator:{name:"OpenAI",slug:"openai"},
+        evaluations:{artificial_analysis_intelligence_index:50} },
+      { id:"2", name:"Nova (max)", slug:"n2", model_creator:{name:"Upstage",slug:"upstage"},
+        evaluations:{artificial_analysis_intelligence_index:40} },
+    ]}, AT);
+    expect(out.models).toHaveLength(2);
+  });
+
+  it("괄호가 없는 이름은 그대로 둔다", () => {
+    const out = transform({ data: [
+      { id:"1", name:"Solar Pro 4", slug:"sp4", model_creator:{name:"Upstage",slug:"upstage"},
+        evaluations:{artificial_analysis_intelligence_index:42} },
+    ]}, AT);
+    expect(out.models[0].name).toBe("Solar Pro 4");
+    expect(out.models[0].variantLabel).toBeNull();
+  });
+});
 /* Footer: tests/data-sources.test.ts */

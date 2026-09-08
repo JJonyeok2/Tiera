@@ -151,6 +151,29 @@ export interface CuratedModel {
   creator: CuratedCreator;
   inputPricePerM: string | null;
   outputPricePerM: string | null;
+  /** 어떤 설정의 값을 채택했는지 (예: "Max Effort"). 투명성용. */
+  variantLabel: string | null;
+}
+
+/**
+ * AA는 같은 모델을 추론 강도별로 따로 싣는다
+ * (예: "Claude Fable 5.1 (Adaptive Reasoning, Max Effort, Default Fallback)").
+ * 그대로 실으면 랭킹 상위가 같은 모델의 설정 변형으로 도배된다.
+ * 그래서 괄호 뒤를 떼어 기본 이름으로 묶고, 그 중 하나만 대표로 고른다.
+ */
+export function baseName(name: string): { base: string; variant: string | null } {
+  const m = name.match(/^(.*?)\s*\(([^()]*)\)\s*$/);
+  if (!m) return { base: name.trim(), variant: null };
+  const base = m[1].trim();
+  // 괄호를 떼면 이름이 사라지는 경우(드묾)는 원본을 쓴다
+  return base ? { base, variant: m[2].trim() } : { base: name.trim(), variant: null };
+}
+
+export function slugify(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 export interface AASyncPayload {
@@ -162,9 +185,14 @@ export interface AASyncPayload {
 
 /** 원시 응답 → Tiera가 쓰는 형태. 네트워크를 모르는 순수 함수라 테스트가 쉽다. */
 export function transform(raw: AAResponse, measuredAt: Date): AASyncPayload {
-  const models: CuratedModel[] = [];
   const results: RawBenchmarkResult[] = [];
   const skipped = new Set<string>();
+
+  /** (개발사 + 기본 이름) → 대표로 채택한 변형 */
+  const chosen = new Map<
+    string,
+    { model: CuratedModel; source: AAModel; rank: number }
+  >();
 
   for (const m of raw.data ?? []) {
     const creatorSlug = m.model_creator?.slug ?? "";
@@ -180,24 +208,46 @@ export function transform(raw: AAResponse, measuredAt: Date): AASyncPayload {
     const price = (v: number | null | undefined) =>
       typeof v === "number" && Number.isFinite(v) ? v.toFixed(4) : null;
 
-    models.push({
-      slug: m.slug,
-      name: m.name,
-      creator,
-      inputPricePerM: price(m.pricing?.price_1m_input_tokens),
-      outputPricePerM: price(m.pricing?.price_1m_output_tokens),
-    });
+    const { base, variant } = baseName(m.name);
+    const key = `${creator.name}|${base.toLowerCase()}`;
 
+    // 대표 선정 기준: 종합 지능 지수가 가장 높은 설정.
+    // "그 모델이 낼 수 있는 성능"을 보여주는 쪽이 티어표의 목적에 맞고,
+    // 어떤 설정을 골랐는지는 화면에 밝힌다.
+    const rank = typeof m.evaluations?.artificial_analysis_intelligence_index === "number"
+      ? m.evaluations.artificial_analysis_intelligence_index
+      : -1;
+
+    const prev = chosen.get(key);
+    if (prev && prev.rank >= rank) continue;
+
+    chosen.set(key, {
+      rank,
+      source: m,
+      model: {
+        slug: slugify(base),
+        name: base,
+        creator,
+        inputPricePerM: price(m.pricing?.price_1m_input_tokens),
+        outputPricePerM: price(m.pricing?.price_1m_output_tokens),
+        variantLabel: variant,
+      },
+    });
+  }
+
+  const models: CuratedModel[] = [];
+  for (const { model, source } of chosen.values()) {
+    models.push(model);
     for (const b of AA_BENCHMARKS) {
-      const value = m.evaluations?.[b.key];
+      const value = source.evaluations?.[b.key];
       // null·undefined·NaN은 "측정 안 됨"이다. 0으로 채우면 실제로 0점 받은 것과 구분이 안 된다.
       if (typeof value !== "number" || !Number.isFinite(value)) continue;
       results.push({
-        modelSlug: m.slug,
+        modelSlug: model.slug,
         benchmarkSlug: b.slug,
         value,
         measuredAt,
-        sourceUrl: `${SOURCE_URL}/models/${m.slug}`,
+        sourceUrl: `${SOURCE_URL}/models/${source.slug}`,
       });
     }
   }

@@ -136,6 +136,12 @@ export default function AboutPage() {
           수록 범위는 개발사 국적 기준 미국·중국·한국입니다. 어떤 개발사를 실을지는 저희가 고르고,
           그 모델의 숫자는 위 출처에서 그대로 가져옵니다.
         </p>
+        <p className="text-xs text-[var(--color-text-mute)]">
+          출처는 같은 모델을 추론 강도별로 나눠 싣습니다(Max / High / Medium / Low).
+          Tiera는 이를 <strong>모델 하나로 묶고, 가장 높은 설정의 값</strong>을 씁니다 —
+          그 모델이 낼 수 있는 성능을 보는 것이 티어표의 목적이기 때문입니다.
+          같은 모델이 설정만 바꿔 순위를 여러 칸 차지하는 것도 막습니다.
+        </p>
       </section>
 
       <p className="text-xs text-[var(--color-text-mute)]">

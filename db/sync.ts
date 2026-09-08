@@ -33,6 +33,7 @@ async function main() {
 모델     ${r.modelsUpserted}
 벤치마크 ${r.benchmarksUpserted}종
 측정값   ${r.resultsUpserted}건
+정리     ${r.orphanModelsRemoved}개 (데이터 없는 모델 행)
 `);
 
   if (r.skippedCreators.length > 0) {

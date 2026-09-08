@@ -12,9 +12,9 @@
  *    API가 주지 않는 필드는 손대지 않는다.
  * ------------------------------------------------------------------------- */
 
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { benchmarkResults, benchmarks, developers, models } from "@/db/schema";
+import { benchmarkResults, benchmarks, developers, modelScores, models } from "@/db/schema";
 import { recomputeBenchmarks, recomputeCommunity } from "@/lib/scoring/recompute";
 import { ArtificialAnalysisSource, type AASyncPayload } from "./artificial-analysis";
 
@@ -25,6 +25,8 @@ export interface SyncReport {
   modelsUpserted: number;
   benchmarksUpserted: number;
   resultsUpserted: number;
+  /** 변형 통합 후 남은, 아무 데이터도 없는 모델 행 정리 수 */
+  orphanModelsRemoved: number;
   skippedCreators: string[];
 }
 
@@ -121,6 +123,19 @@ export async function applySync(payload: AASyncPayload, defs: Awaited<ReturnType
     resultsUpserted += 1;
   }
 
+  // 변형 통합으로 더 이상 쓰이지 않게 된 모델 행을 정리한다.
+  // 벤치마크 결과도 리뷰도 없는 행만 지운다 — 둘 중 하나라도 있으면 남긴다.
+  const orphans = await db.execute<{ id: string }>(sql`
+    SELECT m.id FROM model m
+    WHERE NOT EXISTS (SELECT 1 FROM benchmark_result br WHERE br.model_id = m.id)
+      AND NOT EXISTS (SELECT 1 FROM review r WHERE r.model_id = m.id)
+  `);
+  const orphanIds = (orphans.rows ?? []).map((o) => o.id);
+  if (orphanIds.length > 0) {
+    await db.delete(modelScores).where(inArray(modelScores.modelId, orphanIds));
+    await db.delete(models).where(inArray(models.id, orphanIds));
+  }
+
   // 벤치마크 점수는 min-max 정규화라 값 하나만 바뀌어도 전 모델이 흔들린다. 전체 재계산.
   await recomputeBenchmarks();
   // 커뮤니티 쪽은 모델이 새로 생겼을 수 있으니 같이 돌린다.
@@ -131,6 +146,7 @@ export async function applySync(payload: AASyncPayload, defs: Awaited<ReturnType
     modelsUpserted: payload.models.length,
     benchmarksUpserted: defs.length,
     resultsUpserted,
+    orphanModelsRemoved: orphanIds.length,
     skippedCreators: payload.skippedCreators,
   };
 }
