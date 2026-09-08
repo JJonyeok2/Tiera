@@ -170,6 +170,7 @@ export interface BenchmarkRow {
 }
 
 export interface ModelDetail {
+  id: string;
   slug: string;
   name: string;
   description: string | null;
@@ -193,33 +194,69 @@ export interface ModelDetail {
 }
 
 export async function getModelDetail(slug: string): Promise<ModelDetail | null> {
-  const base = await db.execute<{
-    slug: string; name: string; description: string | null;
+  // 네 쿼리는 서로 의존하지 않는다. 순차로 돌리면 왕복이 네 번이라,
+  // 함수와 DB가 멀리 떨어져 있을 때 그대로 지연으로 쌓인다.
+  const [base, scores, ranks, bench] = await Promise.all([
+    db.execute<{
+    id: string; slug: string; name: string; description: string | null;
     developer_name: string; developer_slug: string; developer_site_url: string | null;
     country: Country; status: "CERTIFIED" | "PROVISIONAL";
     released_at: string | null; context_window: number | null;
     input_price_per_m: string | null; output_price_per_m: string | null;
     modalities: string[] | string; is_open_weight: boolean;
   }>(sql`
-    SELECT m.slug, m.name, m.description, m.status, m.released_at, m.context_window,
+    SELECT m.id, m.slug, m.name, m.description, m.status, m.released_at, m.context_window,
            m.input_price_per_m, m.output_price_per_m, m.modalities, m.is_open_weight,
            d.name AS developer_name, d.slug AS developer_slug, d.site_url AS developer_site_url,
            d.country
     FROM model m JOIN developer d ON d.id = m.developer_id
     WHERE m.slug = ${slug} AND m.is_published
     LIMIT 1
-  `);
-  const m = base.rows?.[0];
-  if (!m) return null;
+  `),
 
-  const scores = await db.execute<{
+    db.execute<{
     score_type: ScoreType; scope: ScoreScope;
     score: number; raw: number; tier: TierName; sample_count: number;
   }>(sql`
     SELECT ms.score_type, ms.scope, ms.score, ms.raw, ms.tier, ms.sample_count
     FROM model_score ms JOIN model mm ON mm.id = ms.model_id
     WHERE mm.slug = ${slug}
-  `);
+  `),
+
+    db.execute<{ score_type: ScoreType; rank: number }>(sql`
+      WITH r AS (
+        SELECT ms.model_id, ms.score_type,
+               RANK() OVER (PARTITION BY ms.score_type ORDER BY ms.score DESC) AS rank
+        FROM model_score ms
+        JOIN model mm ON mm.id = ms.model_id AND mm.is_published
+        WHERE ms.scope = 'OVERALL'
+      )
+      SELECT r.score_type, r.rank FROM r
+      JOIN model mm ON mm.id = r.model_id WHERE mm.slug = ${slug}
+    `),
+
+    db.execute<{
+      name: string; category: ScoreScope | null; unit: string; value: number;
+      measured_at: string; source_name: string; source_url: string;
+      min_v: number; max_v: number; cnt: number; higher_is_better: boolean;
+    }>(sql`
+      SELECT b.name, b.category::text AS category, b.unit, br.value,
+             br.measured_at, b.source_name, b.source_url, b.higher_is_better,
+             agg.min_v, agg.max_v, agg.cnt
+      FROM benchmark_result br
+      JOIN benchmark b ON b.id = br.benchmark_id
+      JOIN model mm ON mm.id = br.model_id
+      JOIN (
+        SELECT benchmark_id, MIN(value) min_v, MAX(value) max_v, COUNT(*) cnt
+        FROM benchmark_result GROUP BY benchmark_id
+      ) agg ON agg.benchmark_id = br.benchmark_id
+      WHERE mm.slug = ${slug}
+      ORDER BY b.category NULLS LAST, b.name
+    `),
+  ]);
+
+  const m = base.rows?.[0];
+  if (!m) return null;
 
   const community: Partial<Record<ScoreScope, ScoreCell>> = {};
   const benchmark: Partial<Record<ScoreScope, ScoreCell>> = {};
@@ -230,42 +267,12 @@ export async function getModelDetail(slug: string): Promise<ModelDetail | null> 
     (s.score_type === "COMMUNITY" ? community : benchmark)[s.scope] = cell;
   }
 
-  const ranks = await db.execute<{ score_type: ScoreType; rank: number }>(sql`
-    WITH r AS (
-      SELECT ms.model_id, ms.score_type,
-             RANK() OVER (PARTITION BY ms.score_type ORDER BY ms.score DESC) AS rank
-      FROM model_score ms
-      JOIN model mm ON mm.id = ms.model_id AND mm.is_published
-      WHERE ms.scope = 'OVERALL'
-    )
-    SELECT r.score_type, r.rank FROM r
-    JOIN model mm ON mm.id = r.model_id WHERE mm.slug = ${slug}
-  `);
   let communityRank: number | null = null;
   let benchmarkRank: number | null = null;
   for (const r of ranks.rows ?? []) {
     if (r.score_type === "COMMUNITY") communityRank = Number(r.rank);
     else benchmarkRank = Number(r.rank);
   }
-
-  const bench = await db.execute<{
-    name: string; category: ScoreScope | null; unit: string; value: number;
-    measured_at: string; source_name: string; source_url: string;
-    min_v: number; max_v: number; cnt: number; higher_is_better: boolean;
-  }>(sql`
-    SELECT b.name, b.category::text AS category, b.unit, br.value,
-           br.measured_at, b.source_name, b.source_url, b.higher_is_better,
-           agg.min_v, agg.max_v, agg.cnt
-    FROM benchmark_result br
-    JOIN benchmark b ON b.id = br.benchmark_id
-    JOIN model mm ON mm.id = br.model_id
-    JOIN (
-      SELECT benchmark_id, MIN(value) min_v, MAX(value) max_v, COUNT(*) cnt
-      FROM benchmark_result GROUP BY benchmark_id
-    ) agg ON agg.benchmark_id = br.benchmark_id
-    WHERE mm.slug = ${slug}
-    ORDER BY b.category NULLS LAST, b.name
-  `);
 
   const benchmarks: BenchmarkRow[] = (bench.rows ?? []).map((b) => ({
     name: b.name,
@@ -284,7 +291,7 @@ export async function getModelDetail(slug: string): Promise<ModelDetail | null> 
   }));
 
   return {
-    slug: m.slug, name: m.name, description: m.description,
+    id: m.id, slug: m.slug, name: m.name, description: m.description,
     developerName: m.developer_name, developerSlug: m.developer_slug,
     developerSiteUrl: m.developer_site_url, country: m.country, status: m.status,
     releasedAt: m.released_at ? String(m.released_at).slice(0, 10) : null,

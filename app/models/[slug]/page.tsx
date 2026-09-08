@@ -34,11 +34,13 @@ export default async function ModelPage({ params }: { params: Promise<{ slug: st
   const model = await getModelDetail(slug);
   if (!model) notFound();
 
+  // 모델 id를 이미 알고 있으므로 slug→id 재조회를 넘긴다.
+  // 이 페이지는 왕복 횟수가 곧 체감 속도라, 한 번이라도 줄이는 게 눈에 띈다.
   const session = await auth();
   const viewerId = session?.user?.id;
   const [{ items, total }, myReview] = await Promise.all([
-    listReviews(slug, { sort: "recent", limit: 10, viewerId }),
-    viewerId ? getMyReview(viewerId, slug) : Promise.resolve(null),
+    listReviews(slug, { sort: "recent", limit: 10, viewerId, modelId: model.id }),
+    viewerId ? getMyReview(viewerId, slug, model.id) : Promise.resolve(null),
   ]);
 
   return (

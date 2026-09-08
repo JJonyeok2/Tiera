@@ -13,7 +13,6 @@ import {
   MIN_MODELS_FOR_NORMALIZATION,
 } from "@/lib/scoring/constants";
 import { CATEGORY_LABEL } from "@/lib/labels";
-import { SEED_SOURCE_NAME } from "@/db/seed-data";
 
 export const metadata: Metadata = {
   title: "점수 산정 방식 — Tiera",
@@ -113,12 +112,29 @@ export default function AboutPage() {
         </p>
       </section>
 
-      <section className="space-y-2 rounded-xl border border-amber-500/25 bg-amber-500/[0.06] p-4">
-        <h2 className="text-sm font-semibold text-amber-300">현재 데이터에 대한 고지</h2>
-        <p className="text-xs">
-          지금 이 사이트에 올라와 있는 벤치마크 수치는 출처가 &ldquo;{SEED_SOURCE_NAME}&rdquo;로
-          표시된 <strong>예시 값</strong>입니다. 실제 측정치가 아니며, UI와 점수 계산을 검증하기
-          위해 넣어둔 개발용 데이터입니다. 리뷰 역시 개발용으로 생성된 것입니다.
+      <section className="space-y-3">
+        <h2 className="text-base font-semibold text-[var(--color-text)]">데이터 출처</h2>
+        <p>
+          벤치마크 점수는{" "}
+          <a
+            className="underline hover:text-[var(--color-text)]"
+            href="https://artificialanalysis.ai"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Artificial Analysis
+          </a>
+          의 공개 데이터를 하루 한 번 받아옵니다. 각 모델 상세 페이지의 벤치마크 표에서
+          지표별 원점수와 출처 링크를 확인할 수 있습니다.
+        </p>
+        <p className="text-xs text-[var(--color-text-mute)]">
+          이 API가 제공하지 않는 항목(글쓰기·멀티모달)은 <strong>비워 둡니다.</strong>
+          없는 값을 0으로 채우면 &ldquo;실제로 0점&rdquo;과 구분되지 않기 때문입니다.
+          해당 카테고리는 종합 점수 계산에서도 통째로 빠집니다.
+        </p>
+        <p className="text-xs text-[var(--color-text-mute)]">
+          수록 범위는 개발사 국적 기준 미국·중국·한국입니다. 어떤 개발사를 실을지는 저희가 고르고,
+          그 모델의 숫자는 위 출처에서 그대로 가져옵니다.
         </p>
       </section>
 

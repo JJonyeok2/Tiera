@@ -80,7 +80,24 @@ Neon 또는 Supabase에서 Postgres를 만들고 **연결 문자열 두 개**를
 pooled를 쓰는 이유는 서버리스이기 때문이다. 람다 인스턴스마다 커넥션 풀이 따로 생기므로,
 직결로 붙이면 동시 요청 몇십 개에 DB 커넥션 상한을 넘긴다.
 
-### 2. 스키마 + 데이터
+### 2. 스키마 + 실데이터
+
+```bash
+DATABASE_URL_UNPOOLED="<주소>" npm run db:migrate
+
+# Artificial Analysis에서 실제 벤치마크 데이터 수집
+ARTIFICIAL_ANALYSIS_API_KEY="<키>" DATABASE_URL="<주소>" npm run data:sync -- --purge
+```
+
+`--purge`는 초기 시드로 넣었던 **예시 벤치마크**를 걷어낸다. 최초 1회만 붙이면 된다.
+
+키는 https://artificialanalysis.ai 에서 무료로 발급받는다 (하루 1,000회).
+**이용 약관상 출처 표기가 필수**라 푸터와 `/about`에 링크가 박혀 있다 — 지우지 말 것.
+
+이 API가 주지 않는 항목(글쓰기·멀티모달)은 비워 둔다. 없는 값을 0으로 채우면
+"실제로 0점"과 구분되지 않고, 스코어링이 값 없는 카테고리를 가중치에서 빼도록 돼 있다.
+
+### (참고) 예시 데이터로만 띄우기
 
 ```bash
 DATABASE_URL_UNPOOLED="<직결 주소>" npm run db:migrate
@@ -119,5 +136,7 @@ Vercel이 `CRON_SECRET`을 `Authorization: Bearer`로 자동 첨부한다.
 
 - [ ] `.env`가 커밋되지 않았는지 (`git status`에 안 보여야 한다)
 - [ ] `AUTH_SECRET`이 예제값이 아닌 새로 생성한 값인지
-- [ ] 벤치마크 수치가 예시 값이라는 고지가 유효한지 (`/about`)
+- [ ] 벤치마크가 실데이터인지 (`npm run data:sync` 실행 여부)
+- [ ] Artificial Analysis 출처 표기가 살아 있는지 (푸터 / `/about`)
+- [ ] 커뮤니티 리뷰가 개발용 더미인지 실사용자 것인지
 - [ ] 레이트 리미터가 인메모리라 서버리스에서는 사실상 무력하다는 점 인지 (`lib/rate-limit.ts`)

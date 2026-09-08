@@ -38,6 +38,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             여기
           </a>
           에서 볼 수 있습니다.
+          <br />
+          {/* Artificial Analysis 데이터 이용 약관상 출처 표기는 필수다. 지우지 말 것. */}
+          벤치마크 데이터 제공:{" "}
+          <a
+            className="underline hover:text-[var(--color-text-dim)]"
+            href="https://artificialanalysis.ai"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Artificial Analysis
+          </a>
         </footer>
         </ThemeProvider>
       </body>

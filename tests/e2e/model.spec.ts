@@ -23,6 +23,8 @@ test("점수 산정 방식 페이지가 상수를 실제 구현에서 읽어 보
   await page.goto("/about");
   await expect(page.locator("main")).toContainText("S = (v·R + 30·C) / (v + 30)");
   await expect(page.locator("main")).toContainText("3계단 이상");
-  await expect(page.locator("main")).toContainText("예시 값");
+  // Artificial Analysis 약관상 출처 표기는 필수다. 사라지면 테스트가 잡아야 한다.
+  await expect(page.locator("main")).toContainText("Artificial Analysis");
+  await expect(page.locator("main")).toContainText("비워 둡니다");
 });
 /* Footer: tests/e2e/model.spec.ts */

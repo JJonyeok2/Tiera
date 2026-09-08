@@ -4,7 +4,7 @@
  * 이걸 빼먹으면 랭킹이 조용히 낡는다 — 에러가 안 나기 때문에 더 위험하다.
  * ------------------------------------------------------------------------- */
 
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { models, reviewRatings, reviews, users } from "@/db/schema";
 import { recomputeCommunity } from "@/lib/scoring/recompute";
@@ -104,10 +104,12 @@ export interface ReviewListItem {
 
 export async function listReviews(
   slug: string,
-  { sort = "recent", limit = 10, offset = 0, viewerId }:
-  { sort?: ReviewSort; limit?: number; offset?: number; viewerId?: string } = {}
+  { sort = "recent", limit = 10, offset = 0, viewerId, modelId: knownId }:
+  { sort?: ReviewSort; limit?: number; offset?: number; viewerId?: string; modelId?: string } = {}
 ) {
-  const modelId = await modelIdBySlug(slug);
+  // 호출자가 이미 id를 알고 있으면 slug→id 조회를 건너뛴다.
+  // 상세 페이지에서 이 한 번이 왕복 한 번이라 그대로 지연이 된다.
+  const modelId = knownId ?? (await modelIdBySlug(slug));
 
   // 정렬 키는 화이트리스트에서만 고른다. 사용자 입력을 SQL에 직접 넣지 않는다.
   const orderBy =
@@ -152,20 +154,28 @@ export async function listReviews(
   return { items, total: list.length > 0 ? Number(list[0].total) : 0 };
 }
 
-export async function getMyReview(userId: string, slug: string) {
-  const modelId = await modelIdBySlug(slug);
-  const row = await db
-    .select({ id: reviews.id, comment: reviews.comment })
-    .from(reviews)
-    .where(and(eq(reviews.userId, userId), eq(reviews.modelId, modelId)))
-    .limit(1);
-  if (!row[0]) return null;
-  const ratings = await db
-    .select({ category: reviewRatings.category, score: reviewRatings.score })
-    .from(reviewRatings)
-    .where(eq(reviewRatings.reviewId, row[0].id))
-    .orderBy(desc(reviewRatings.category));
-  return { id: row[0].id, comment: row[0].comment, ratings };
+export async function getMyReview(userId: string, slug: string, knownId?: string) {
+  const modelId = knownId ?? (await modelIdBySlug(slug));
+
+  // 리뷰와 평점을 한 번에 가져온다. 두 번 나눠 물으면 왕복이 두 번이다.
+  const rows = await db.execute<{
+    id: string;
+    comment: string | null;
+    ratings: { category: string; score: number }[] | null;
+  }>(sql`
+    SELECT r.id, r.comment,
+           JSON_AGG(JSON_BUILD_OBJECT('category', rr.category, 'score', rr.score)
+                    ORDER BY rr.category) FILTER (WHERE rr.id IS NOT NULL) AS ratings
+    FROM review r
+    LEFT JOIN review_rating rr ON rr.review_id = r.id
+    WHERE r.user_id = ${userId} AND r.model_id = ${modelId}
+    GROUP BY r.id
+    LIMIT 1
+  `);
+
+  const row = rows.rows?.[0];
+  if (!row) return null;
+  return { id: row.id, comment: row.comment, ratings: row.ratings ?? [] };
 }
 
 export { users };

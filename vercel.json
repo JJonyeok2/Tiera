@@ -5,8 +5,15 @@
   "outputDirectory": ".next",
   "crons": [
     {
+      "path": "/api/cron/sync",
+      "schedule": "0 15 * * *"
+    },
+    {
       "path": "/api/cron/snapshot",
-      "schedule": "5 15 * * *"
+      "schedule": "20 15 * * *"
     }
+  ],
+  "regions": [
+    "icn1"
   ]
 }

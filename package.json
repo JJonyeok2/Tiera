@@ -13,7 +13,9 @@
     "db:seed": "tsx db/seed.ts",
     "db:generate": "drizzle-kit generate",
     "db:reset": "tsx db/reset.ts && drizzle-kit push --force && npm run db:seed",
-    "db:migrate": "tsx db/migrate.ts"
+    "db:migrate": "tsx db/migrate.ts",
+    "db:check": "tsx db/check.ts",
+    "data:sync": "tsx db/sync.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.3",
