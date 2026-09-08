@@ -1,12 +1,14 @@
 /* ---------------------------------------------------------------------------
  * Header: 외부 데이터 동기화 CLI
- *   npm run data:sync            실데이터 수집 → DB 반영
- *   npm run data:sync -- --purge 시드로 넣었던 예시 벤치마크를 먼저 걷어낸다
+ *   npm run data:sync   실데이터 수집 → DB 반영
+ *
+ * 수집이 성공하면 초기 시드의 "예시 값" 벤치마크는 자동으로 걷어낸다.
+ * 실측치와 예시가 섞여 있으면 화면에서 구분할 방법이 없기 때문이다.
  *
  * ARTIFICIAL_ANALYSIS_API_KEY 필요. 키는 서버에서만 쓰이며 절대 출력하지 않는다.
  * ------------------------------------------------------------------------- */
 import "dotenv/config";
-import { purgeSeedBenchmarks, syncFromArtificialAnalysis } from "@/lib/data-sources/sync";
+import { syncFromArtificialAnalysis } from "@/lib/data-sources/sync";
 import { explainError } from "./explain-error";
 
 async function main() {
@@ -19,13 +21,12 @@ async function main() {
     process.exit(1);
   }
 
-  if (process.argv.includes("--purge")) {
-    const n = await purgeSeedBenchmarks();
-    console.log(`시드 예시 벤치마크 ${n}종 제거`);
-  }
-
   console.log("Artificial Analysis에서 수집 중…");
   const r = await syncFromArtificialAnalysis(key);
+
+  if (r.seedBenchmarksPurged) {
+    console.log(`시드 예시 벤치마크 ${r.seedBenchmarksPurged}종 제거`);
+  }
 
   console.log(`
 개발사   ${r.developersUpserted}

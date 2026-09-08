@@ -86,10 +86,18 @@ pooled를 쓰는 이유는 서버리스이기 때문이다. 람다 인스턴스�
 DATABASE_URL_UNPOOLED="<주소>" npm run db:migrate
 
 # Artificial Analysis에서 실제 벤치마크 데이터 수집
-ARTIFICIAL_ANALYSIS_API_KEY="<키>" DATABASE_URL="<주소>" npm run data:sync -- --purge
+ARTIFICIAL_ANALYSIS_API_KEY="<키>" DATABASE_URL="<주소>" npm run data:sync
 ```
 
-`--purge`는 초기 시드로 넣었던 **예시 벤치마크**를 걷어낸다. 최초 1회만 붙이면 된다.
+수집이 성공하면 초기 시드의 **예시 벤치마크는 자동으로 걷어낸다.** 실측치와 예시가
+섞여 있으면 화면에서 어느 숫자가 실측인지 구분할 방법이 없기 때문이다.
+수집이 실패하면 아무것도 지우지 않는다.
+
+배포 후에는 로컬에서 돌릴 필요 없이 크론 엔드포인트를 한 번 호출해도 된다:
+
+```bash
+curl -X POST https://<도메인>/api/cron/sync -H "Authorization: Bearer $CRON_SECRET"
+```
 
 키는 https://artificialanalysis.ai 에서 무료로 발급받는다 (하루 1,000회).
 **이용 약관상 출처 표기가 필수**라 푸터와 `/about`에 링크가 박혀 있다 — 지우지 말 것.

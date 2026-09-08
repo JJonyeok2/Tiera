@@ -19,6 +19,8 @@ import { recomputeBenchmarks, recomputeCommunity } from "@/lib/scoring/recompute
 import { ArtificialAnalysisSource, type AASyncPayload } from "./artificial-analysis";
 
 export interface SyncReport {
+  /** 실데이터 반영과 함께 걷어낸 시드 예시 벤치마크 수 */
+  seedBenchmarksPurged?: number;
   developersUpserted: number;
   modelsUpserted: number;
   benchmarksUpserted: number;
@@ -136,7 +138,14 @@ export async function applySync(payload: AASyncPayload, defs: Awaited<ReturnType
 export async function syncFromArtificialAnalysis(apiKey: string): Promise<SyncReport> {
   const source = new ArtificialAnalysisSource(apiKey);
   const [payload, defs] = await Promise.all([source.fetchAll(), source.definitions()]);
-  return applySync(payload, defs);
+
+  // 실데이터가 들어오는 순간 초기 시드의 "예시 값"은 남아 있으면 안 된다.
+  // 둘이 섞이면 화면에서 어떤 숫자가 실측인지 구분할 방법이 없어진다.
+  // 수집이 성공한 뒤에만 지운다 — 실패 시 기존 데이터를 날리지 않기 위해서다.
+  const purged = await purgeSeedBenchmarks();
+
+  const report = await applySync(payload, defs);
+  return { ...report, seedBenchmarksPurged: purged };
 }
 
 /** 시드로 넣었던 예시 벤치마크를 걷어낸다. 실데이터로 전환할 때 한 번만 쓴다. */
