@@ -1,0 +1,13 @@
+node_modules
+.next
+.env
+.env*.local
+*.tsbuildinfo
+next-env.d.ts
+/preview
+/test-results
+/playwright-report
+
+# 작업 과정에서 생긴 산출물 (스크린샷, 배포용 압축본)
+/Claude outputs/
+tiera-source.zip

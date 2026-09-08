@@ -1,0 +1,157 @@
+/* ---------------------------------------------------------------------------
+ * Header: 전역 스타일 + Tiera 디자인 토큰
+ *
+ * 테마는 3상태다: light / dark / system.
+ *   - 사용자가 고르면 <html data-theme="light|dark">가 박힌다.
+ *   - "system"이면 data-theme 속성이 없고 prefers-color-scheme가 결정한다.
+ * 그래서 색은 (1) :root에 라이트를 기본으로 깔고 (2) 미디어 쿼리로 다크를 덮되
+ * data-theme="light"일 때는 덮지 않으며 (3) data-theme="dark"에서 다시 덮는다.
+ * 이 순서를 지켜야 토글이 양방향으로 동작한다.
+ *
+ * 티어 색은 배경 명도에 따라 값이 다르다. 예를 들어 #FFD700은 흰 배경에서
+ * 대비 1.4:1이라 글자로 쓰면 사실상 안 보인다. 라이트 전용 값을 따로 둔 이유다.
+ * ------------------------------------------------------------------------- */
+@import "tailwindcss";
+
+@theme {
+  --color-bg: var(--c-bg);
+  --color-surface: var(--c-surface);
+  --color-surface-2: var(--c-surface-2);
+  --color-line: var(--c-line);
+  --color-line-soft: var(--c-line-soft);
+
+  --color-text: var(--c-text);
+  --color-text-dim: var(--c-text-dim);
+  --color-text-mute: var(--c-text-mute);
+
+  --color-tier-prism: var(--c-prism);
+  --color-tier-gold: var(--c-gold);
+  --color-tier-silver: var(--c-silver);
+  --color-tier-bronze: var(--c-bronze);
+
+  --color-up: var(--c-up);
+  --color-down: var(--c-down);
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Pretendard,
+    "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+
+/* --- 1. 라이트 (기본) ---------------------------------------------------- */
+:root {
+  color-scheme: light;
+
+  --c-bg: #f6f7f9;
+  --c-surface: #ffffff;
+  --c-surface-2: #eceff4;
+  --c-line: #dde1e8;
+  --c-line-soft: #e8ebf0;
+
+  --c-text: #12161e;
+  --c-text-dim: #495265;
+  --c-text-mute: #6f7a8d;
+
+  /* 흰 배경에서 읽히도록 명도를 낮춘 티어 색 */
+  --c-prism: #5b45e0;
+  --c-gold: #96780a;
+  --c-silver: #64708a;
+  --c-bronze: #a05a1c;
+
+  --c-up: #0f9d63;
+  --c-down: #d64545;
+
+  /* 별 마크 뒤 글로우 세기 — 밝은 배경에서는 약하게 */
+  --star-glow: 0.45;
+  /* 흰 배경에서는 별의 밝은 패싯이 배경에 묻힌다. 얇은 외곽선을 깔아 형태를 살린다. */
+  --star-outline: drop-shadow(0 0 0.6px rgba(15, 20, 30, 0.55));
+}
+
+/* --- 2. 시스템이 다크일 때 (사용자가 라이트를 고르지 않았다면) ----------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --c-bg: #12161d;
+    --c-surface: #1a1f28;
+    --c-surface-2: #242a36;
+    --c-line: #2e3542;
+    --c-line-soft: #242a34;
+
+    --c-text: #f0f3f8;
+    --c-text-dim: #b4bdcd;
+    --c-text-mute: #838ea3;
+
+    --c-prism: #8b7aff;
+    --c-gold: #ffd83d;
+    --c-silver: #ccd2df;
+    --c-bronze: #e0913f;
+
+    --c-up: #34d399;
+    --c-down: #f87171;
+
+    --star-glow: 1;
+    --star-outline: none;
+  }
+}
+
+/* --- 3. 사용자가 명시적으로 다크를 골랐을 때 ----------------------------- */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --c-bg: #12161d;
+  --c-surface: #1a1f28;
+  --c-surface-2: #242a36;
+  --c-line: #2e3542;
+  --c-line-soft: #242a34;
+
+  --c-text: #f0f3f8;
+  --c-text-dim: #b4bdcd;
+  --c-text-mute: #838ea3;
+
+  --c-prism: #8b7aff;
+  --c-gold: #ffd83d;
+  --c-silver: #ccd2df;
+  --c-bronze: #e0913f;
+
+  --c-up: #34d399;
+  --c-down: #f87171;
+
+  --star-glow: 1;
+  --star-outline: none;
+}
+
+body {
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 테마 전환 시 색이 툭 바뀌지 않도록. reduced-motion에서는 아래에서 꺼진다. */
+body,
+body * {
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+/* 브랜드 그라데이션 — Figma 브랜드 보드의 PRISM 토큰 (#7B68FF → #FFB868). */
+.brand-gradient-text {
+  background: linear-gradient(90deg, #7b68ff 0%, #ffb868 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+:where(a, button, input, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--c-prism);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+/* Footer: app/globals.css */
