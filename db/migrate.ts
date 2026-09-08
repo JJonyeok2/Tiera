@@ -14,8 +14,14 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Pool } from "pg";
 
-const url = process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL;
-if (!url) throw new Error("DATABASE_URL이 설정되지 않았습니다.");
+import { resolveDirectDatabaseUrl } from "./index";
+
+const url = resolveDirectDatabaseUrl();
+if (!url) {
+  throw new Error(
+    "DB 접속 주소가 없습니다. DATABASE_URL_UNPOOLED / POSTGRES_URL_NON_POOLING / DATABASE_URL 중 하나를 설정하세요."
+  );
+}
 
 const pool = new Pool({ connectionString: url, max: 1 });
 await migrate(drizzle(pool), { migrationsFolder: "./db/migrations" });
