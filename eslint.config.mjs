@@ -6,7 +6,8 @@ const compat = new FlatCompat({ baseDirectory: dirname(fileURLToPath(import.meta
 
 export default [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
-  { ignores: ["preview/**", ".next/**", "node_modules/**"] },
+  // next-env.d.ts는 Next가 생성하고 "편집하지 말 것"이라고 명시한 파일이다.
+  { ignores: ["preview/**", ".next/**", "node_modules/**", "next-env.d.ts"] },
   {
     rules: {
       "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
