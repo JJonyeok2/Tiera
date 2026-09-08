@@ -14,9 +14,15 @@
 
 import { eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { benchmarkResults, benchmarks, developers, modelScores, models } from "@/db/schema";
+import { benchmarkResults, benchmarks, developers, models } from "@/db/schema";
 import { recomputeBenchmarks, recomputeCommunity } from "@/lib/scoring/recompute";
 import { ArtificialAnalysisSource, type AASyncPayload } from "./artificial-analysis";
+
+/**
+ * 이 수 미만이 수집되면 정리를 건너뛴다.
+ * 부분 실패로 목록이 짧게 온 경우에 멀쩡한 데이터를 지우지 않기 위한 하한선이다.
+ */
+const CLEANUP_MIN_MODELS = 50;
 
 export interface SyncReport {
   /** 실데이터 반영과 함께 걷어낸 시드 예시 벤치마크 수 */
@@ -25,7 +31,7 @@ export interface SyncReport {
   modelsUpserted: number;
   benchmarksUpserted: number;
   resultsUpserted: number;
-  /** 변형 통합 후 남은, 아무 데이터도 없는 모델 행 정리 수 */
+  /** 이번 수집 결과에 없어 정리된 모델 행 수 */
   orphanModelsRemoved: number;
   skippedCreators: string[];
 }
@@ -123,17 +129,32 @@ export async function applySync(payload: AASyncPayload, defs: Awaited<ReturnType
     resultsUpserted += 1;
   }
 
-  // 변형 통합으로 더 이상 쓰이지 않게 된 모델 행을 정리한다.
-  // 벤치마크 결과도 리뷰도 없는 행만 지운다 — 둘 중 하나라도 있으면 남긴다.
-  const orphans = await db.execute<{ id: string }>(sql`
-    SELECT m.id FROM model m
-    WHERE NOT EXISTS (SELECT 1 FROM benchmark_result br WHERE br.model_id = m.id)
-      AND NOT EXISTS (SELECT 1 FROM review r WHERE r.model_id = m.id)
-  `);
-  const orphanIds = (orphans.rows ?? []).map((o) => o.id);
-  if (orphanIds.length > 0) {
-    await db.delete(modelScores).where(inArray(modelScores.modelId, orphanIds));
-    await db.delete(models).where(inArray(models.id, orphanIds));
+  // 이번 수집 결과에 없는 모델 행을 정리한다.
+  //
+  // 왜 필요한가: 수집 규칙이 바뀌면(예: 추론 강도 변형을 모델 단위로 통합) 예전 규칙으로
+  // 만든 행이 측정값을 그대로 달고 남는다. 그러면 같은 모델이 랭킹에 두 번 뜬다.
+  // "빈 행만 지우기"로는 안 잡힌다 — 그 행들은 비어 있지 않기 때문이다.
+  //
+  // 안전장치 둘:
+  //  1) 리뷰가 하나라도 달린 모델은 절대 지우지 않는다. 사용자 데이터가 걸려 있다.
+  //  2) 수집 결과가 비정상적으로 적으면(부분 실패로 의심) 정리를 건너뛴다.
+  //     API가 일시적으로 목록을 덜 주는 것과 모델이 사라진 것을 응답만으로 구분할 수 없다.
+  const canonical = new Set(payload.models.map((m) => m.slug));
+  let orphanIds: string[] = [];
+
+  if (payload.models.length >= CLEANUP_MIN_MODELS) {
+    const candidates = await db.execute<{ id: string; slug: string }>(sql`
+      SELECT m.id, m.slug FROM model m
+      WHERE NOT EXISTS (SELECT 1 FROM review r WHERE r.model_id = m.id)
+    `);
+    orphanIds = (candidates.rows ?? [])
+      .filter((c) => !canonical.has(c.slug))
+      .map((c) => c.id);
+
+    if (orphanIds.length > 0) {
+      // model_score / benchmark_result 는 FK가 cascade라 모델 행만 지우면 따라 지워진다.
+      await db.delete(models).where(inArray(models.id, orphanIds));
+    }
   }
 
   // 벤치마크 점수는 min-max 정규화라 값 하나만 바뀌어도 전 모델이 흔들린다. 전체 재계산.
