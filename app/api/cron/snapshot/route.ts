@@ -17,11 +17,25 @@ export const maxDuration = 60;
 
 async function handle(req: Request) {
   const secret = process.env.CRON_SECRET;
-  const provided = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-
-  if (!secret || provided !== secret) {
+  if (!secret) {
+    // "서버에 시크릿이 없음"과 "보낸 값이 틀림"을 구분해 준다.
+    // 둘 다 401로 뭉뚱그리면 설정 실수인지 인증 실패인지 알 방법이 없다.
+    // 시크릿 자체는 노출하지 않으므로 이 구분만으로 추측이 쉬워지지는 않는다.
     return NextResponse.json(
-      { error: { code: "UNAUTHORIZED", message: "권한이 없습니다." } },
+      {
+        error: {
+          code: "CRON_SECRET_NOT_SET",
+          message: "서버에 CRON_SECRET이 설정되어 있지 않습니다. Vercel 환경변수와 재배포 여부를 확인하세요.",
+        },
+      },
+      { status: 503 }
+    );
+  }
+
+  const provided = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+  if (provided !== secret) {
+    return NextResponse.json(
+      { error: { code: "UNAUTHORIZED", message: "시크릿이 일치하지 않습니다." } },
       { status: 401 }
     );
   }
