@@ -11,3 +11,7 @@ next-env.d.ts
 # 작업 과정에서 생긴 산출물 (스크린샷, 배포용 압축본)
 /Claude outputs/
 tiera-source.zip
+
+.vercel
+.env*
+!.env.example
