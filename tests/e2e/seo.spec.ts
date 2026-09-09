@@ -51,6 +51,22 @@ test("모델 상세는 구조화 데이터를 내보내고, 리뷰가 없으면 
   }
 });
 
+test("점수 없는 모델은 sitemap에서 빠지고 색인에서도 제외된다", async ({ page, request }) => {
+  // AA가 이름만 알려주고 평가 데이터가 없는 모델이 상당수 있다.
+  // 그런 페이지는 "데이터 없음"만 찍힌 빈 문서라 색인되면 얇은 콘텐츠가 된다.
+  const xml = await (await request.get("/sitemap.xml")).text();
+  const slugs = [...xml.matchAll(/\/models\/([^<]+)</g)].map((m) => m[1]);
+
+  for (const slug of slugs.slice(0, 5)) {
+    await page.goto(`/models/${slug}`);
+    const robots = page.locator('meta[name="robots"]');
+    if ((await robots.count()) > 0) {
+      // sitemap에 올린 페이지가 noindex면 서로 모순된 신호를 보내는 것이다
+      await expect(robots).not.toHaveAttribute("content", /noindex/);
+    }
+  }
+});
+
 test("OG 이미지가 생성된다", async ({ request }) => {
   const res = await request.get("/opengraph-image");
   expect(res.status()).toBe(200);

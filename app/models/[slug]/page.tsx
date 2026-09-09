@@ -38,12 +38,21 @@ export async function generateMetadata({
   const title = `${m.name} — ${m.developerName} AI 모델 평가`;
   const url = `/models/${slug}`;
 
+  // 점수도 리뷰도 없는 모델은 "데이터 없음"만 찍힌 빈 문서다.
+  // 이런 페이지가 색인되면 얇은 콘텐츠로 잡혀 사이트 전체 평가가 깎인다.
+  // 페이지 자체는 살려두되(직접 방문·내부 링크는 유효) 색인에서만 뺀다.
+  const hasData =
+    Object.keys(m.community).length > 0 ||
+    Object.keys(m.benchmark).length > 0 ||
+    m.benchmarks.length > 0;
+
   return {
     title,
     description,
     alternates: { canonical: url },
     openGraph: { type: "article", url, title, description },
     twitter: { card: "summary_large_image", title, description },
+    ...(hasData ? {} : { robots: { index: false, follow: true } }),
   };
 }
 
