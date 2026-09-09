@@ -16,12 +16,14 @@
     "db:migrate": "tsx db/migrate.ts",
     "db:check": "tsx db/check.ts",
     "data:sync": "tsx db/sync.ts",
-    "db:purge-demo": "tsx db/purge-demo.ts"
+    "db:purge-demo": "tsx db/purge-demo.ts",
+    "db:migrate:deploy": "tsx db/migrate-deploy.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.3",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
+    "hyparquet": "^1.30.0",
     "next": "^15.5.25",
     "next-auth": "^5.0.0-beta.32",
     "pg": "^8.23.0",

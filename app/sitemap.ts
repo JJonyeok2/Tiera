@@ -18,7 +18,6 @@
  * ------------------------------------------------------------------------- */
 import type { MetadataRoute } from "next";
 import { sql } from "drizzle-orm";
-import { db } from "@/db";
 import { absoluteUrl } from "@/lib/site";
 
 export const revalidate = 3600;
@@ -34,6 +33,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
+    // db를 최상단에서 import하지 않는다. 접속 주소가 없으면 import 시점에 던지는데,
+    // 그러면 이 try/catch가 잡지 못하고 sitemap 라우트가 통째로 죽는다.
+    const { db } = await import("@/db");
     const query = db.execute<{ slug: string; created_at: Date }>(sql`
       SELECT m.slug, m.created_at
       FROM model m

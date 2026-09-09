@@ -8,7 +8,7 @@
  * ------------------------------------------------------------------------- */
 import "dotenv/config";
 import { Pool } from "pg";
-import { resolveDirectDatabaseUrl } from "./index";
+import { resolveDirectDatabaseUrl } from "./url";
 import { explainError } from "./explain-error";
 
 async function main() {

@@ -21,31 +21,10 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as schema from "./schema";
+import { resolveDatabaseUrl } from "./url";
 
-/**
- * 접속 주소를 찾는 순서.
- *
- * Vercel의 Supabase/Postgres 연동은 환경변수를 자기 이름으로 자동 주입한다
- * (POSTGRES_URL 등). 사용자가 DATABASE_URL을 손으로 또 넣게 만들 이유가 없어서
- * 그 이름들도 그대로 받아준다. 앞에 있는 것이 이긴다.
- */
-export function resolveDatabaseUrl(): string | undefined {
-  return (
-    process.env.DATABASE_URL ||
-    process.env.POSTGRES_URL ||          // Vercel 연동(풀링됨)
-    process.env.POSTGRES_PRISMA_URL ||   // 〃
-    undefined
-  );
-}
-
-/** 마이그레이션용 — 풀러를 통과하지 않는 직결 주소를 우선한다. */
-export function resolveDirectDatabaseUrl(): string | undefined {
-  return (
-    process.env.DATABASE_URL_UNPOOLED ||
-    process.env.POSTGRES_URL_NON_POOLING || // Vercel 연동(직결)
-    resolveDatabaseUrl()
-  );
-}
+// 주소 해석은 부작용 없는 모듈로 분리했다. 재노출만 한다.
+export { resolveDatabaseUrl, resolveDirectDatabaseUrl } from "./url";
 
 const isServerless = Boolean(process.env.VERCEL);
 
@@ -75,8 +54,18 @@ function getPool(): Pool {
 }
 
 /**
- * drizzle은 생성 시점에 pool 객체를 요구하지만, 실제로 건드리는 건 쿼리 때다.
- * 프록시로 감싸 첫 접근까지 생성을 미룬다 — 덕분에 import만으로는 아무 일도 안 난다.
+ * drizzle은 생성 시점에 pool 객체를 요구하지만, 실제 커넥션은 쿼리 때 열린다.
+ * 프록시로 감싸 풀 생성을 첫 접근까지 미룬다.
+ *
+ * 주의: "import만으로는 아무 일도 안 난다"가 아니다.
+ * drizzle()은 인자가 설정 객체인지 판별하려고 생성 시점에 프로퍼티를 읽고,
+ * 그 접근이 여기서 풀 생성을 트리거한다. 즉 **주소가 없으면 import에서 던진다.**
+ * 판별용 접근에 undefined를 돌려주는 식으로 우회해봤지만, drizzle이 그 값을
+ * 실제로 쓰기 때문에 빌드가 다른 곳에서 깨진다. 그대로 두는 편이 낫다.
+ *
+ * 그래서 이 모듈을 import하는 쪽은 "주소가 없으면 빌드가 실패한다"를 전제로 한다.
+ * 요청 시점의 DB 장애를 감내해야 하는 코드(app/sitemap.ts)는 최상단에서
+ * import하지 말고 try 안에서 동적 import할 것 — 그래야 fallback이 실제로 동작한다.
  */
 const lazyPool = new Proxy({} as Pool, {
   get(_target, prop) {
