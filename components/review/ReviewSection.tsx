@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { CATEGORY_LABEL } from "@/lib/labels";
+import { CATEGORY_LABEL, displayAuthorName } from "@/lib/labels";
 import type { ReviewListItem, ReviewSort } from "@/lib/reviews";
 import ReviewForm from "./ReviewForm";
 
@@ -121,12 +121,15 @@ export default function ReviewSection({
             className="rounded-xl border border-[var(--color-line)] bg-[var(--color-surface)] p-4"
           >
             <div className="flex flex-wrap items-center gap-2">
+              {/* 익명이면 서버가 뭘 내려주든 화면은 이름을 쓰지 않는다.
+                  쿼리 쪽 익명 처리(lib/reviews.ts)가 1차 방어선이고 이건 2차다.
+                  한 겹만 두면 그 한 겹이 무너지는 날 이름이 그대로 노출된다. */}
               <span
                 className={`text-xs font-medium ${
                   r.isAnonymous ? "text-[var(--color-text-mute)]" : "text-[var(--color-text)]"
                 }`}
               >
-                {r.authorName}
+                {displayAuthorName(r)}
               </span>
               {r.isMine && (
                 <span className="rounded bg-[var(--color-tier-prism)]/15 px-1.5 py-[2px] text-[10px] text-[var(--color-tier-prism)]">

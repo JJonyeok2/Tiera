@@ -20,4 +20,15 @@ export const SCORE_TYPE_LABEL: Record<ScoreType, string> = {
   COMMUNITY: "커뮤니티 평가",
   BENCHMARK: "벤치마크",
 };
+/**
+ * 리뷰 목록에 띄울 작성자 표시명.
+ *
+ * 익명이면 서버가 이름을 내려주더라도 무시한다. 익명 처리는 쿼리에서 이미
+ * 하고 있지만(lib/reviews.ts), 그 한 겹만 두면 쿼리가 회귀하는 날 이름이
+ * 그대로 화면에 찍힌다. 표시 규칙은 화면 쪽에서도 독립적으로 강제한다.
+ */
+export function displayAuthorName(r: { isAnonymous: boolean; authorName: string | null }): string {
+  if (r.isAnonymous) return "익명";
+  return r.authorName?.trim() || "익명";
+}
 /* Footer: lib/labels.ts */
