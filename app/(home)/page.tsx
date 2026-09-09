@@ -5,10 +5,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import FilterBar from "@/components/ranking/FilterBar";
 import RankingList from "@/components/ranking/RankingList";
+import ScoreTypeSwitch from "@/components/ranking/ScoreTypeSwitch";
 import { CompareProvider } from "@/components/ranking/CompareContext";
 import CompareTray from "@/components/ranking/CompareTray";
-import { getRanking } from "@/lib/queries";
-import { CATEGORY_LABEL, SCORE_TYPE_LABEL } from "@/lib/labels";
+import { getRanking, getScoreTypeTotals } from "@/lib/queries";
 import { parseCountry, parseQuery, parseScope, parseScoreType } from "@/lib/params";
 import JsonLd from "@/components/seo/JsonLd";
 import { websiteJsonLd } from "@/lib/structured-data";
@@ -46,26 +46,22 @@ export default async function HomePage({
   // 검색·필터가 걸려 있으면 결과 0건은 "평가가 없다"가 아니라 "이 조건에 없다"이다.
   const filtered = Boolean(q || country);
 
-  const { rows, total } = await getRanking({
-    scoreType,
-    scope,
-    country,
-    q,
-    limit: 20,
-    offset: 0,
-  });
+  // 목록과 전환 스위치의 숫자는 서로 의존하지 않는다. 순차로 돌리면 왕복이 두 번이다.
+  const [{ rows, total }, totals] = await Promise.all([
+    getRanking({ scoreType, scope, country, q, limit: 20, offset: 0 }),
+    getScoreTypeTotals({ scope, country, q }),
+  ]);
 
   return (
     <CompareProvider>
       <JsonLd data={websiteJsonLd()} />
       <Suspense>
-        <FilterBar />
+        <ScoreTypeSwitch totals={totals} />
       </Suspense>
 
-      <p className="pb-2 text-[11px] text-[var(--color-text-mute)]">
-        {SCORE_TYPE_LABEL[scoreType]} · {CATEGORY_LABEL[scope]} 기준 ·{" "}
-        {total.toLocaleString("ko-KR")}개 모델
-      </p>
+      <Suspense>
+        <FilterBar />
+      </Suspense>
 
       <Suspense>
         {scoreType === "COMMUNITY" && total === 0 && !filtered ? (

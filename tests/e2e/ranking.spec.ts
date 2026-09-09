@@ -23,14 +23,16 @@ test("카테고리 탭이 URL과 목록에 반영된다", async ({ page }) => {
   await page.goto("/");
   await page.click('button[role=tab]:has-text("코딩")');
   await expect(page).toHaveURL(/scope=CODING/);
-  await expect(page.locator("main")).toContainText("코딩 기준");
+  await expect(page.locator('button[role=tab]:has-text("코딩")')).toHaveAttribute(
+    "aria-selected",
+    "true"
+  );
 });
 
 test("첫 화면은 벤치마크이고, 커뮤니티로 바꾸면 순위가 달라진다", async ({ page }) => {
   // 기본 탭은 벤치마크다. 커뮤니티 점수는 평가가 쌓이기 전까지 모델이 몇 개뿐이라
   // 기본으로 두면 302개짜리 사이트가 2개짜리로 보인다.
   await page.goto("/");
-  await expect(page.locator("main")).toContainText("벤치마크 · 종합 기준");
   await expect(page.locator('button[role=tab]:has-text("벤치마크")')).toHaveAttribute(
     "aria-selected",
     "true"
@@ -39,7 +41,10 @@ test("첫 화면은 벤치마크이고, 커뮤니티로 바꾸면 순위가 달�
 
   await page.click('button[role=tab]:has-text("커뮤니티 평가")');
   await expect(page).toHaveURL(/type=COMMUNITY/);
-  await expect(page.locator("main")).toContainText("커뮤니티 평가 · 종합 기준");
+  await expect(page.locator('button[role=tab]:has-text("커뮤니티 평가")')).toHaveAttribute(
+    "aria-selected",
+    "true"
+  );
   const communityTop = await page.locator("main ul > li").first().innerText();
   expect(communityTop).not.toBe(benchTop);
 });

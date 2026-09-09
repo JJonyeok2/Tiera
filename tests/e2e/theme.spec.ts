@@ -1,9 +1,17 @@
-/* Header: 테마 E2E — 다크/라이트/시스템 3상태와 저장·복원 */
-import { expect, test } from "@playwright/test";
+/* Header: 테마 E2E — 다크/라이트/시스템 3상태와 저장·복원
+
+   테마 선택은 아이콘 하나에 접혀 있다. 옵션을 누르려면 먼저 펼쳐야 한다. */
+import { expect, type Page, test } from "@playwright/test";
+
+/** 테마 메뉴를 펼치고 옵션을 고른다. */
+async function pickTheme(page: Page, label: string) {
+  await page.click('button[aria-label="화면 테마"]');
+  await page.click(`button[role=radio][title="${label}"]`);
+}
 
 test("라이트를 고르면 data-theme=light가 박히고 새로고침해도 유지된다", async ({ page }) => {
   await page.goto("/");
-  await page.click('button[role=radio][title="라이트"]');
+  await pickTheme(page, "라이트");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
@@ -11,16 +19,16 @@ test("라이트를 고르면 data-theme=light가 박히고 새로고침해도 �
 
 test("다크로 바꾸면 즉시 반영된다", async ({ page }) => {
   await page.goto("/");
-  await page.click('button[role=radio][title="다크"]');
+  await pickTheme(page, "다크");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 });
 
 test("시스템을 고르면 data-theme 속성 자체가 사라진다", async ({ page }) => {
   // JS로 OS 설정을 흉내내지 않고 CSS의 prefers-color-scheme에 넘기기 위해서다.
   await page.goto("/");
-  await page.click('button[role=radio][title="다크"]');
+  await pickTheme(page, "다크");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  await page.click('button[role=radio][title="시스템"]');
+  await pickTheme(page, "시스템");
   await expect(page.locator("html")).not.toHaveAttribute("data-theme", /.*/);
 });
 

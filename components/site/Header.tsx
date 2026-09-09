@@ -1,18 +1,16 @@
 "use client";
-/* Header: 상단 바 — 로고 / 검색 / 점수 타입 토글.
-   검색어와 토글 상태는 전부 URL 쿼리에 반영한다. 공유 가능한 링크가 되어야 하고,
+/* Header: 상단 바 — 로고 / 검색 / 유틸(테마·계정).
+
+   점수 종류 전환은 여기 있었지만 목록 위로 옮겼다(ScoreTypeSwitch).
+   사이트의 핵심 축이 테마·로그인 버튼 옆에 있으면 유틸리티처럼 보인다.
+
+   검색어는 URL 쿼리에 반영한다. 공유 가능한 링크가 되어야 하고,
    뒤로가기가 기대대로 동작해야 하기 때문이다. */
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import TierStar from "@/components/tier/TierStar";
-import { parseScoreType } from "@/lib/params";
-
-const TABS = [
-  { value: "COMMUNITY", label: "커뮤니티 평가" },
-  { value: "BENCHMARK", label: "벤치마크" },
-] as const;
 
 export default function Header({
   userMenu,
@@ -26,7 +24,6 @@ export default function Header({
   const params = useSearchParams();
   const [, startTransition] = useTransition();
 
-  const currentType = parseScoreType(params.get("type"));
   const [q, setQ] = useState(params.get("q") ?? "");
 
   // 뒤로/앞으로 이동했을 때 입력창이 URL과 어긋나지 않도록 맞춘다.
@@ -47,11 +44,7 @@ export default function Header({
     return () => clearTimeout(t);
   }, [q, params, router]);
 
-  function setType(value: string) {
-    const next = new URLSearchParams(params.toString());
-    next.set("type", value);
-    startTransition(() => router.replace(`/?${next.toString()}`, { scroll: false }));
-  }
+
 
   const onHome = pathname === "/";
 
@@ -62,7 +55,7 @@ export default function Header({
           <TierStar tier="prism" size={24} />
           <span className="text-[17px] font-bold tracking-tight">Tiera</span>
           <span className="hidden text-[11px] text-[var(--color-text-mute)] sm:inline">
-            AI 모델 커뮤니티 평가
+            벤치마크 vs 체감 평가
           </span>
         </Link>
 
@@ -82,30 +75,6 @@ export default function Header({
               />
             </div>
 
-            <div
-              role="tablist"
-              aria-label="점수 종류"
-              className="ml-auto flex shrink-0 rounded-full border border-[var(--color-line)] bg-[var(--color-surface)] p-0.5"
-            >
-              {TABS.map((t) => {
-                const active = currentType === t.value;
-                return (
-                  <button
-                    key={t.value}
-                    role="tab"
-                    aria-selected={active}
-                    onClick={() => setType(t.value)}
-                    className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
-                      active
-                        ? "bg-[var(--color-surface-2)] text-[var(--color-text)]"
-                        : "text-[var(--color-text-mute)] hover:text-[var(--color-text-dim)]"
-                    }`}
-                  >
-                    {t.label}
-                  </button>
-                );
-              })}
-            </div>
           </>
         )}
 

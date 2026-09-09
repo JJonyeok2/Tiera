@@ -326,6 +326,38 @@ export async function getAllModelSlugs(): Promise<string[]> {
 
 export const MAX_COMPARE_MODELS = 3;
 
+/**
+ * 두 점수 종류의 모델 수를 한 번에 센다 — 전환 스위치에 붙일 숫자.
+ *
+ * 같은 필터(카테고리·국가·검색어)를 그대로 적용한다. "한국 모델만" 상태에서
+ * 전환 칸에 전체 개수가 떠 있으면 눌렀을 때 나오는 결과와 어긋난다.
+ */
+export async function getScoreTypeTotals(opts: {
+  scope: ScoreScope;
+  country?: Country;
+  q?: string;
+}): Promise<Record<ScoreType, number>> {
+  const countryParam: Country | null = opts.country ?? null;
+  const like = opts.q ? `%${opts.q.toLowerCase()}%` : null;
+
+  const res = await db.execute<{ score_type: ScoreType; c: number }>(sql`
+    SELECT ms.score_type::text AS score_type, COUNT(*)::int AS c
+    FROM model_score ms
+    JOIN model m ON m.id = ms.model_id
+    JOIN developer d ON d.id = m.developer_id
+    WHERE ms.scope = ${opts.scope}::score_scope
+      AND (${countryParam}::text IS NULL OR d.country::text = ${countryParam}::text)
+      AND (${like}::text IS NULL
+           OR lower(m.name) LIKE ${like}::text
+           OR lower(d.name) LIKE ${like}::text)
+    GROUP BY ms.score_type
+  `);
+
+  const out: Record<ScoreType, number> = { COMMUNITY: 0, BENCHMARK: 0 };
+  for (const r of res.rows ?? []) out[r.score_type] = Number(r.c);
+  return out;
+}
+
 export async function getCompare(slugs: string[]): Promise<ModelDetail[]> {
   const unique = [...new Set(slugs.map((s) => s.trim()).filter(Boolean))].slice(0, MAX_COMPARE_MODELS);
   const found = await Promise.all(unique.map((s) => getModelDetail(s)));
