@@ -46,6 +46,20 @@ test("검색은 디바운스 후 URL에 반영되고, 없는 모델은 빈 상�
   await expect(page.locator("main")).toContainText("일치하는 모델이 없어요", { timeout: 5000 });
 });
 
+test("벤치마크 탭은 표본을 '리뷰'가 아니라 '벤치마크 N종'으로 표기한다", async ({ page }) => {
+  // 두 탭의 sample_count는 의미가 다르다(리뷰어 수 vs 벤치마크 종류 수).
+  // 둘 다 "리뷰 N개"로 찍었더니 리뷰가 0건인데도 "리뷰 5개"가 떠서 없는 평가가 있는 것처럼 보였다.
+  await page.goto("/?type=BENCHMARK");
+  const first = page.locator("main ul > li").first();
+  await expect(first).toContainText(/벤치마크 \d+종/);
+  await expect(first).not.toContainText("리뷰");
+  // 공인/평가 중 배지도 리뷰 수에서 나오는 값이라 벤치마크 탭에는 없어야 한다
+  await expect(first).not.toContainText("공인");
+
+  await page.goto("/?type=COMMUNITY");
+  await expect(page.locator("main ul > li").first()).toContainText(/리뷰 [\d,]+개/);
+});
+
 test("2개를 고르면 비교 트레이가 뜨고 비교 페이지로 넘어간다", async ({ page }) => {
   await page.goto("/");
   const boxes = page.locator('main input[type="checkbox"]');

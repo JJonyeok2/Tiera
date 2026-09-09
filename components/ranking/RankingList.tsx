@@ -19,6 +19,7 @@ export default function RankingList({
 }) {
   const params = useSearchParams();
   const key = params.toString();
+  const scoreType = params.get("type") === "BENCHMARK" ? "BENCHMARK" : "COMMUNITY";
 
   const [rows, setRows] = useState(initialRows);
   const [loading, setLoading] = useState(false);
@@ -94,7 +95,7 @@ export default function RankingList({
           <TierDivider tier={g.tier} count={g.rows.length} />
           <ul>
             {g.rows.map((r) => (
-              <RankingRow key={r.slug} row={r} />
+              <RankingRow key={r.slug} row={r} scoreType={scoreType} />
             ))}
           </ul>
         </section>

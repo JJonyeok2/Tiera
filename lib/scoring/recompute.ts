@@ -11,7 +11,7 @@
  *     부분 갱신이 불가능하므로 항상 전 모델을 다시 계산한다.
  * ------------------------------------------------------------------------- */
 
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   benchmarkResults,
@@ -90,6 +90,15 @@ export async function recomputeCommunity(onlyModelId?: string): Promise<void> {
     ? [onlyModelId]
     : (await db.select({ id: models.id }).from(models)).map((m) => m.id);
 
+  // 모델별 리뷰어 수를 한 번에 집계한다.
+  // 예전에는 루프 안에서 모델마다 COUNT를 날려 모델 수만큼 쿼리가 나갔다(N+1).
+  const reviewerCounts = await db.execute<{ model_id: string; c: number }>(sql`
+    SELECT model_id, COUNT(*)::int AS c FROM review GROUP BY model_id
+  `);
+  const reviewerBy = new Map<string, number>(
+    (reviewerCounts.rows ?? []).map((r) => [r.model_id, Number(r.c)])
+  );
+
   const out: ScoreRow[] = [];
 
   for (const modelId of targetIds) {
@@ -129,7 +138,7 @@ export async function recomputeCommunity(onlyModelId?: string): Promise<void> {
 
     // 종합의 표본 수는 "그 모델에 리뷰를 쓴 사람 수"다.
     // 카테고리 평가 수를 다 더하면 한 사람이 4번 센 것이 되어 신뢰도가 부풀려진다.
-    const reviewerCount = await db.$count(reviews, eq(reviews.modelId, modelId));
+    const reviewerCount = reviewerBy.get(modelId) ?? 0;
 
     out.push({
       modelId,
@@ -140,12 +149,23 @@ export async function recomputeCommunity(onlyModelId?: string): Promise<void> {
       sampleCount: reviewerCount,
       tier: tierOf(overall),
     });
-
-    await db
-      .update(models)
-      .set({ status: reviewerCount >= CONFIDENCE_M ? "CERTIFIED" : "PROVISIONAL" })
-      .where(eq(models.id, modelId));
   }
+
+  // 상태는 루프 밖에서, 대상 전체에 대해 한 번에 다시 매긴다.
+  //
+  // 예전에는 리뷰가 있는 모델만 루프를 돌며 갱신했다. 그래서 리뷰가 전부 삭제된
+  // 모델은 continue로 빠져나가 status가 CERTIFIED인 채로 남았다.
+  // 실제로 더미 리뷰 2,879건을 지운 뒤 리뷰 0개짜리 모델들이 "공인" 배지를 달고 있었다.
+  // 상태는 리뷰 수에서 파생되는 값이므로, 리뷰가 사라지면 같이 내려가야 한다.
+  await db.execute(sql`
+    UPDATE model m
+    SET status = CASE
+      WHEN (SELECT COUNT(*) FROM review r WHERE r.model_id = m.id) >= ${CONFIDENCE_M}
+      THEN 'CERTIFIED'::model_status
+      ELSE 'PROVISIONAL'::model_status
+    END
+    ${onlyModelId ? sql`WHERE m.id = ${onlyModelId}` : sql``}
+  `);
 
   await replaceScores(targetIds, "COMMUNITY", out);
 }
