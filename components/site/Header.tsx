@@ -1,6 +1,9 @@
 "use client";
 /* Header: 상단 바 — 로고 / 검색 / 유틸(테마·계정).
 
+   로고 옆 설명 문구는 뺐다. 바로 아래 ScoreTypeSwitch가 두 축을 이름과 개수까지
+   보여주기 때문에 헤더에서 또 말하면 같은 문장이 화면에 두 번 나온다.
+
    점수 종류 전환은 여기 있었지만 목록 위로 옮겼다(ScoreTypeSwitch).
    사이트의 핵심 축이 테마·로그인 버튼 옆에 있으면 유틸리티처럼 보인다.
 
@@ -54,9 +57,6 @@ export default function Header({
         <Link href="/" className="flex shrink-0 items-center gap-2">
           <TierStar tier="prism" size={24} />
           <span className="text-[17px] font-bold tracking-tight">Tiera</span>
-          <span className="hidden text-[11px] text-[var(--color-text-mute)] sm:inline">
-            벤치마크 vs 체감 평가
-          </span>
         </Link>
 
         {onHome && (
