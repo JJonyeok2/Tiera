@@ -33,6 +33,8 @@ export default function ReviewSection({
   const [sort, setSort] = useState<ReviewSort>("recent");
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [lastAttempt, setLastAttempt] = useState<{ sort: ReviewSort; offset: number } | null>(null);
   const [count, setCount] = useState(total);
 
   // 서버가 새 initialItems를 내려주면(예: router.refresh 이후) 목록을 갈아끼운다.
@@ -44,13 +46,22 @@ export default function ReviewSection({
 
   async function load(nextSort: ReviewSort, offset: number) {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch(
         `/api/models/${slug}/reviews?sort=${nextSort}&offset=${offset}&limit=10`
       );
+      // res.ok를 먼저 본다. 500 응답 본문은 JSON이 아닐 수 있어서
+      // 바로 json()을 부르면 파싱 예외로 바뀌어 원인이 가려진다.
+      if (!res.ok) throw new Error(String(res.status));
       const json = (await res.json()) as { data: ReviewListItem[]; meta: { total: number } };
       setItems((prev) => (offset === 0 ? json.data : [...prev, ...json.data]));
       setCount(json.meta.total);
+    } catch {
+      // 예전에는 catch 없이 finally만 있었다. 실패해도 목록이 그대로 남아서
+      // 사용자는 정렬이 바뀐 줄 알고, 오래된 목록을 최신으로 착각했다.
+      setError("리뷰를 불러오지 못했습니다.");
+      setLastAttempt({ sort: nextSort, offset });
     } finally {
       setLoading(false);
     }
@@ -157,6 +168,18 @@ export default function ReviewSection({
           </li>
         ))}
       </ul>
+
+      {error && (
+        <p className="py-2 text-center text-xs text-[var(--color-down)]">
+          {error}{" "}
+          <button
+            onClick={() => void load(lastAttempt?.sort ?? sort, lastAttempt?.offset ?? 0)}
+            className="underline"
+          >
+            다시 시도
+          </button>
+        </p>
+      )}
 
       {items.length < count && (
         <button

@@ -67,6 +67,15 @@ test("점수 없는 모델은 sitemap에서 빠지고 색인에서도 제외된�
   }
 });
 
+test("없는 페이지는 200이 아니라 404를 준다", async ({ request }) => {
+  // 홈에 로딩 스켈레톤을 넣었을 때 실제로 깨졌던 부분이다.
+  // loading.tsx는 해당 세그먼트와 하위 전체를 스트리밍으로 바꾸는데,
+  // 스트리밍은 본문보다 헤더가 먼저 나가서 뒤늦은 notFound()가 상태 코드를
+  // 바꾸지 못한다. 200을 주는 없는 페이지는 검색엔진에 soft 404로 잡힌다.
+  expect((await request.get("/models/definitely-not-a-real-model")).status()).toBe(404);
+  expect((await request.get("/이런-경로는-없다")).status()).toBe(404);
+});
+
 test("OG 이미지가 생성된다", async ({ request }) => {
   const res = await request.get("/opengraph-image");
   expect(res.status()).toBe(200);

@@ -15,3 +15,6 @@ tiera-source.zip
 .vercel
 .env*
 !.env.example
+
+# 삭제 권한이 없어 옮겨둔 파일 (직접 지우면 됨)
+_to_delete/
