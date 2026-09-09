@@ -793,7 +793,16 @@ Artificial Analysis는 이름은 알려주지만 평가 데이터가 없는 모�
 얇은 문서가 대량으로 색인되면 사이트 전체 평가가 깎이고 크롤링 예산도 낭비된다.
 E2E가 "sitemap에 올린 페이지가 noindex인" 모순 상태를 잡는다.
 
-### 17.6 남은 것 (사람이 해야 하는 부분)
+### 17.6 sitemap 응답 시간에 상한을 둔다
+
+Search Console 첫 제출에서 "가져올 수 없음"이 떴다. 확인해보니 sitemap 자체는
+정상 응답하고 있었지만, 이 라우트는 콜드 스타트 + 원격 DB 연결이 겹칠 수 있는
+구조다. 크롤러의 sitemap 페치는 인내심이 짧아서 한 번 느리면 실패로 처리한다.
+
+DB 조회에 5초 상한을 걸고, 넘기면 정적 페이지만이라도 즉시 돌려준다.
+불완전한 sitemap이 응답 없는 sitemap보다 낫다.
+
+### 17.7 남은 것 (사람이 해야 하는 부분)
 
 1. **Google Search Console** 등록 → `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`에 코드 입력 → sitemap 제출
 2. **네이버 서치어드바이저** 등록 → `NEXT_PUBLIC_NAVER_SITE_VERIFICATION` → sitemap 제출.
