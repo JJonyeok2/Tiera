@@ -7,6 +7,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import TierStar from "@/components/tier/TierStar";
+import { parseScoreType } from "@/lib/params";
 
 const TABS = [
   { value: "COMMUNITY", label: "커뮤니티 평가" },
@@ -25,7 +26,7 @@ export default function Header({
   const params = useSearchParams();
   const [, startTransition] = useTransition();
 
-  const currentType = params.get("type") === "BENCHMARK" ? "BENCHMARK" : "COMMUNITY";
+  const currentType = parseScoreType(params.get("type"));
   const [q, setQ] = useState(params.get("q") ?? "");
 
   // 뒤로/앞으로 이동했을 때 입력창이 URL과 어긋나지 않도록 맞춘다.

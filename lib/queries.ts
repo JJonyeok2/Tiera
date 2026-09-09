@@ -316,15 +316,6 @@ function parsePgArray(v: string[] | string | null | undefined): string[] {
   return v.replace(/^\{|\}$/g, "").split(",").map((x) => x.trim().replace(/^"|"$/g, "")).filter(Boolean);
 }
 
-/** 커뮤니티 평가가 하나라도 쌓였는지. 홈 기본 탭을 정하는 데 쓴다. */
-export async function hasCommunityScores(): Promise<boolean> {
-  const r = await db.execute<{ exists: boolean }>(sql`
-    SELECT EXISTS (
-      SELECT 1 FROM model_score WHERE score_type = 'COMMUNITY' AND scope = 'OVERALL'
-    ) AS exists
-  `);
-  return Boolean(r.rows?.[0]?.exists);
-}
 
 export async function getAllModelSlugs(): Promise<string[]> {
   const r = await db.execute<{ slug: string }>(sql`SELECT slug FROM model WHERE is_published`);

@@ -3,12 +3,11 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import FilterBar from "@/components/ranking/FilterBar";
 import RankingList from "@/components/ranking/RankingList";
 import { CompareProvider } from "@/components/ranking/CompareContext";
 import CompareTray from "@/components/ranking/CompareTray";
-import { getRanking, hasCommunityScores } from "@/lib/queries";
+import { getRanking } from "@/lib/queries";
 import { CATEGORY_LABEL, SCORE_TYPE_LABEL } from "@/lib/labels";
 import { parseCountry, parseQuery, parseScope, parseScoreType } from "@/lib/params";
 import JsonLd from "@/components/seo/JsonLd";
@@ -40,21 +39,6 @@ export default async function HomePage({
 }) {
   const sp = await searchParams;
   const scope = parseScope(sp.scope);
-
-  // 평가가 하나도 없으면 커뮤니티 탭이 빈 화면이 된다.
-  // 그 상태에서 첫 화면이 텅 비어 있는 것보다, 실데이터가 있는 벤치마크를 먼저 보여주는 게 낫다.
-  // 사용자가 명시적으로 type을 고른 경우에는 존중한다.
-  if (sp.type === undefined && !(await hasCommunityScores())) {
-    // 검색어·국가 필터를 유지한 채로 벤치마크 탭으로 넘긴다.
-    // (초기에 scope만 넘겼다가 q와 country가 조용히 사라지는 버그가 있었다)
-    const next = new URLSearchParams({ type: "BENCHMARK" });
-    if (scope !== "OVERALL") next.set("scope", scope);
-    const c = parseCountry(sp.country);
-    if (c) next.set("country", c);
-    const query = parseQuery(sp.q);
-    if (query) next.set("q", query);
-    redirect(`/?${next.toString()}`);
-  }
 
   const scoreType = parseScoreType(sp.type);
   const country = parseCountry(sp.country);

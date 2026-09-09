@@ -9,6 +9,7 @@ import RankingRow from "./RankingRow";
 import TierDivider from "./TierDivider";
 import type { TierName } from "@/db/schema";
 import type { RankingRow as Row } from "@/lib/queries";
+import { parseScoreType } from "@/lib/params";
 
 export default function RankingList({
   initialRows,
@@ -19,7 +20,7 @@ export default function RankingList({
 }) {
   const params = useSearchParams();
   const key = params.toString();
-  const scoreType = params.get("type") === "BENCHMARK" ? "BENCHMARK" : "COMMUNITY";
+  const scoreType = parseScoreType(params.get("type"));
 
   const [rows, setRows] = useState(initialRows);
   const [loading, setLoading] = useState(false);

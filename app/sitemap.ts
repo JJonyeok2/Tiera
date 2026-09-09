@@ -28,7 +28,6 @@ const DB_TIMEOUT_MS = 5000;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     { url: absoluteUrl("/"), changeFrequency: "daily", priority: 1 },
-    { url: absoluteUrl("/?type=BENCHMARK"), changeFrequency: "daily", priority: 0.9 },
     { url: absoluteUrl("/about"), changeFrequency: "monthly", priority: 0.5 },
   ];
 
