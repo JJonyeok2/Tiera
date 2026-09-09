@@ -7,12 +7,56 @@ import Header from "@/components/site/Header";
 import UserMenu from "@/components/site/UserMenu";
 import { ThemeProvider, themeInitScript } from "@/components/site/ThemeProvider";
 import ThemeToggle from "@/components/site/ThemeToggle";
+import { SITE_DESCRIPTION, SITE_NAME, siteUrl } from "@/lib/site";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Tiera — AI 모델 커뮤니티 평가",
-  description:
-    "벤치마크 점수와 커뮤니티 체감 평가를 나란히 보는 AI 모델 티어. 재미로 보는 AI 티어표.",
+  // metadataBase가 없으면 canonical·OG 이미지가 상대 경로로 나가서
+  // 크롤러가 어떤 도메인을 정본으로 볼지 판단하지 못한다.
+  metadataBase: new URL(siteUrl()),
+  title: {
+    default: "Tiera — AI 모델 티어표 | 벤치마크 vs 체감 평가",
+    // 하위 페이지는 제목만 넘기면 뒤에 브랜드가 붙는다.
+    template: "%s | Tiera",
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  keywords: [
+    "AI 모델 순위",
+    "LLM 비교",
+    "AI 벤치마크",
+    "GPT Claude Gemini 비교",
+    "국산 LLM",
+    "AI 티어표",
+  ],
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    locale: "ko_KR",
+    url: "/",
+    title: "Tiera — AI 모델 티어표",
+    description: SITE_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Tiera — AI 모델 티어표",
+    description: SITE_DESCRIPTION,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+  },
+  // 서치 콘솔 소유 확인 코드. 환경변수로 받아서 코드 수정 없이 붙였다 뗄 수 있게 한다.
+  verification: {
+    ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+      ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
+      : {}),
+    ...(process.env.NEXT_PUBLIC_NAVER_SITE_VERIFICATION
+      ? { other: { "naver-site-verification": process.env.NEXT_PUBLIC_NAVER_SITE_VERIFICATION } }
+      : {}),
+  },
   icons: { icon: "/favicon.svg" },
 };
 

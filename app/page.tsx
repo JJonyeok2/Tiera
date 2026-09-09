@@ -1,6 +1,7 @@
 /* Header: 홈 — 랭킹.
    서버 컴포넌트로 첫 페이지를 렌더하고, 이후 페이지만 클라이언트가 API로 가져온다. */
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import FilterBar from "@/components/ranking/FilterBar";
@@ -10,8 +11,27 @@ import CompareTray from "@/components/ranking/CompareTray";
 import { getRanking, hasCommunityScores } from "@/lib/queries";
 import { CATEGORY_LABEL, SCORE_TYPE_LABEL } from "@/lib/labels";
 import { parseCountry, parseQuery, parseScope, parseScoreType } from "@/lib/params";
+import JsonLd from "@/components/seo/JsonLd";
+import { websiteJsonLd } from "@/lib/structured-data";
 
 export const revalidate = 300;
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}): Promise<Metadata> {
+  const sp = await searchParams;
+
+  // 필터 조합마다 URL이 갈라지는데 내용은 같은 목록이다.
+  // canonical을 루트로 고정하지 않으면 크롤러가 중복 문서로 보고 평가를 나눠 가진다.
+  // 검색 결과(?q=)는 무한히 생성되는 얕은 페이지라 아예 색인에서 뺀다.
+  const q = parseQuery(sp.q);
+  return {
+    alternates: { canonical: "/" },
+    ...(q ? { robots: { index: false, follow: true } } : {}),
+  };
+}
 
 export default async function HomePage({
   searchParams,
@@ -53,6 +73,7 @@ export default async function HomePage({
 
   return (
     <CompareProvider>
+      <JsonLd data={websiteJsonLd()} />
       <Suspense>
         <FilterBar />
       </Suspense>

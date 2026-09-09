@@ -738,3 +738,48 @@ GitHub OAuth를 붙여(15.2) 한국 사용자가 EXAONE·Solar를 직접 평가�
 - 지표: `downloads`, `likes`
 - **오픈웨이트 모델만 잡힌다.** GPT·Claude·Gemini는 HF에 없으므로 통합 랭킹 축으로
   쓸 수 없다. 모델 상세의 "오픈웨이트 채택도"로만 표기한다.
+
+## 17. 검색 노출(SEO)
+
+### 17.1 왜 이 사이트는 롱테일이 핵심인가
+
+이 사이트의 검색 유입은 "AI 티어표" 같은 대표 질의가 아니라 **개별 모델 질의**에서
+나온다. "EXAONE 4.5 성능", "Claude Opus 5 벤치마크", "Solar Pro 4 후기" 같은
+질의가 모델 상세 페이지 302개에 각각 대응한다. 그래서 sitemap에 모델 상세를
+전부 올리고, 상세 페이지의 title·description·구조화 데이터를 개별로 생성한다.
+
+### 17.2 구현
+
+| 항목 | 파일 | 비고 |
+|---|---|---|
+| 사이트 절대 URL 해석 | `lib/site.ts` | `NEXT_PUBLIC_SITE_URL` → `VERCEL_PROJECT_PRODUCTION_URL` → localhost 순. `VERCEL_URL`은 배포마다 바뀌므로 canonical에 쓰지 않는다 |
+| robots.txt | `app/robots.ts` | `/api/`·`/login` 차단, sitemap 위치 명시 |
+| sitemap.xml | `app/sitemap.ts` | DB에서 발행된 모델을 읽어 생성(`revalidate = 3600`). 빌드 타임 고정이면 동기화로 늘어난 새 모델이 색인되지 않는다 |
+| 루트 메타데이터 | `app/layout.tsx` | `metadataBase`, title template, OG/Twitter, 서치 콘솔 확인 코드(환경변수) |
+| OG 이미지 | `app/opengraph-image.tsx` | `next/og`로 요청 시 생성. 정적 PNG면 디자인 토큰이 바뀔 때마다 손으로 다시 만들어야 한다 |
+| 구조화 데이터 | `lib/structured-data.ts`, `components/seo/JsonLd.tsx` | 홈=WebSite+SearchAction, 상세=SoftwareApplication |
+| 회귀 테스트 | `tests/e2e/seo.spec.ts` | 5개 |
+
+### 17.3 중복 문서 처리
+
+홈은 `type`·`scope`·`country`·`q` 조합마다 URL이 갈라지는데 내용은 같은 목록이다.
+그대로 두면 크롤러가 중복 문서로 보고 평가를 나눠 가진다.
+
+- 목록 페이지의 canonical을 **루트(`/`)로 고정**한다.
+- 검색 결과(`?q=`)는 무한히 생성되는 얕은 페이지라 **`noindex, follow`**로 뺀다.
+  링크는 따라가되 그 페이지 자체는 색인하지 않는다.
+
+### 17.4 구조화 데이터의 원칙 — 없는 별점은 넣지 않는다
+
+`aggregateRating`은 **실제 리뷰가 1건 이상일 때만** 내보낸다.
+리뷰가 0건인데 별점을 선언하는 것은 구조화 데이터 스팸이고, 적발되면 해당
+도메인이 리치 결과에서 통째로 배제된다. 더미 리뷰를 지운 지금 이 조건이 실제로
+동작하는 상태이며, E2E가 `ratingCount > 0`을 강제한다.
+
+### 17.5 남은 것 (사람이 해야 하는 부분)
+
+1. **Google Search Console** 등록 → `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`에 코드 입력 → sitemap 제출
+2. **네이버 서치어드바이저** 등록 → `NEXT_PUBLIC_NAVER_SITE_VERIFICATION` → sitemap 제출.
+   한국인 대상 사이트라 구글보다 우선순위가 낮지 않다
+3. **커스텀 도메인.** 프로덕션 `.vercel.app` 주소도 색인은 되지만, 공유 서브도메인이라
+   자체 도메인 대비 불리하다. 도메인을 붙이면 `NEXT_PUBLIC_SITE_URL`을 갱신한다

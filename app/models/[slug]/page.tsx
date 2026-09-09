@@ -7,6 +7,8 @@ import DualScore from "@/components/model/DualScore";
 import CategoryBars from "@/components/model/CategoryBars";
 import { StatusBadge } from "@/components/ranking/Badges";
 import { getModelDetail } from "@/lib/queries";
+import JsonLd from "@/components/seo/JsonLd";
+import { modelJsonLd } from "@/lib/structured-data";
 import { COUNTRY_LABEL, CATEGORY_LABEL } from "@/lib/labels";
 import { formatContext, formatPrice, MODALITY_LABEL } from "@/lib/format";
 import ReviewSection from "@/components/review/ReviewSection";
@@ -21,11 +23,27 @@ export async function generateMetadata({
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const m = await getModelDetail((await params).slug);
-  if (!m) return { title: "찾을 수 없는 모델 — Tiera" };
+  const slug = (await params).slug;
+  const m = await getModelDetail(slug);
+  if (!m) return { title: "찾을 수 없는 모델" };
+
+  // 검색 결과에 그대로 노출되는 문장이다. 모델 설명이 없을 때를 대비해
+  // 개발사·국가·순위처럼 이 페이지에서만 알 수 있는 정보로 채운다.
+  const rank = m.benchmarkRank ?? m.communityRank;
+  const description =
+    m.description ??
+    `${m.name}(${m.developerName}, ${COUNTRY_LABEL[m.country]})의 벤치마크 점수와 커뮤니티 체감 평가` +
+      (rank ? ` — 현재 ${rank}위.` : ".");
+
+  const title = `${m.name} — ${m.developerName} AI 모델 평가`;
+  const url = `/models/${slug}`;
+
   return {
-    title: `${m.name} — Tiera`,
-    description: m.description ?? `${m.name}의 커뮤니티 평가와 벤치마크 점수.`,
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: { type: "article", url, title, description },
+    twitter: { card: "summary_large_image", title, description },
   };
 }
 
@@ -45,6 +63,7 @@ export default async function ModelPage({ params }: { params: Promise<{ slug: st
 
   return (
     <article className="space-y-8 py-7">
+      <JsonLd data={modelJsonLd(model)} />
       <header className="space-y-2">
         <Link href="/" className="text-xs text-[var(--color-text-mute)] hover:underline">
           ← 랭킹으로
