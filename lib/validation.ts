@@ -18,6 +18,7 @@ export const reviewInputSchema = z.object({
       (arr) => new Set(arr.map((r) => r.category)).size === arr.length,
       "같은 카테고리를 두 번 보낼 수 없습니다."
     ),
+  isAnonymous: z.boolean().optional(),
   comment: z
     .string()
     .trim()

@@ -40,7 +40,7 @@ export async function createReview(userId: string, slug: string, input: ReviewIn
   const reviewId = await db.transaction(async (tx) => {
     const [created] = await tx
       .insert(reviews)
-      .values({ userId, modelId, comment: input.comment })
+      .values({ userId, modelId, comment: input.comment, isAnonymous: input.isAnonymous ?? false })
       .returning({ id: reviews.id });
     await tx
       .insert(reviewRatings)
@@ -65,7 +65,11 @@ export async function updateReview(userId: string, reviewId: string, input: Revi
   await db.transaction(async (tx) => {
     await tx
       .update(reviews)
-      .set({ comment: input.comment, updatedAt: new Date() })
+      .set({
+        comment: input.comment,
+        isAnonymous: input.isAnonymous ?? false,
+        updatedAt: new Date(),
+      })
       .where(eq(reviews.id, reviewId));
     await tx.delete(reviewRatings).where(eq(reviewRatings.reviewId, reviewId));
     await tx.insert(reviewRatings).values(input.ratings.map((r) => ({ reviewId, ...r })));
@@ -98,6 +102,7 @@ export interface ReviewListItem {
   comment: string | null;
   createdAt: string;
   isMine: boolean;
+  isAnonymous: boolean;
   ratings: { category: string; score: number }[];
   average: number;
 }
@@ -119,12 +124,17 @@ export async function listReviews(
 
   const rows = await db.execute<{
     id: string; comment: string | null; created_at: string; user_id: string;
-    author_name: string | null; author_image: string | null;
+    author_name: string | null; author_image: string | null; is_anonymous: boolean;
     avg_score: number; ratings: { category: string; score: number }[] | null; total: string;
   }>(sql`
     WITH base AS (
       SELECT r.id, r.comment, r.created_at, r.user_id,
-             u.name AS author_name, u.image AS author_image,
+             -- 익명 처리는 반드시 여기서 한다.
+             -- UI에서만 가리면 이름이 응답 JSON에 그대로 실려 나가서
+             -- 개발자도구만 열면 누구인지 보인다. 애초에 내보내지 않는다.
+             CASE WHEN r.is_anonymous THEN NULL ELSE u.name END AS author_name,
+             CASE WHEN r.is_anonymous THEN NULL ELSE u.image END AS author_image,
+             r.is_anonymous,
              COALESCE(AVG(rr.score), 0) AS avg_score,
              JSON_AGG(JSON_BUILD_OBJECT('category', rr.category, 'score', rr.score)
                       ORDER BY rr.category) FILTER (WHERE rr.id IS NOT NULL) AS ratings
@@ -132,7 +142,7 @@ export async function listReviews(
       JOIN "user" u ON u.id = r.user_id
       LEFT JOIN review_rating rr ON rr.review_id = r.id
       WHERE r.model_id = ${modelId}
-      GROUP BY r.id, u.name, u.image
+      GROUP BY r.id, u.name, u.image, r.is_anonymous
     )
     SELECT *, COUNT(*) OVER ()::text AS total FROM base
     ORDER BY ${orderBy}
@@ -144,6 +154,7 @@ export async function listReviews(
     id: r.id,
     authorName: r.author_name ?? "익명",
     authorImage: r.author_image,
+    isAnonymous: Boolean(r.is_anonymous),
     comment: r.comment,
     createdAt: new Date(r.created_at).toISOString(),
     isMine: viewerId !== undefined && r.user_id === viewerId,
@@ -161,21 +172,27 @@ export async function getMyReview(userId: string, slug: string, knownId?: string
   const rows = await db.execute<{
     id: string;
     comment: string | null;
+    is_anonymous: boolean;
     ratings: { category: string; score: number }[] | null;
   }>(sql`
-    SELECT r.id, r.comment,
+    SELECT r.id, r.comment, r.is_anonymous,
            JSON_AGG(JSON_BUILD_OBJECT('category', rr.category, 'score', rr.score)
                     ORDER BY rr.category) FILTER (WHERE rr.id IS NOT NULL) AS ratings
     FROM review r
     LEFT JOIN review_rating rr ON rr.review_id = r.id
     WHERE r.user_id = ${userId} AND r.model_id = ${modelId}
-    GROUP BY r.id
+    GROUP BY r.id, r.is_anonymous
     LIMIT 1
   `);
 
   const row = rows.rows?.[0];
   if (!row) return null;
-  return { id: row.id, comment: row.comment, ratings: row.ratings ?? [] };
+  return {
+    id: row.id,
+    comment: row.comment,
+    isAnonymous: Boolean(row.is_anonymous),
+    ratings: row.ratings ?? [],
+  };
 }
 
 export { users };

@@ -80,6 +80,41 @@ test("로그인 → 평가 작성 → 목록 반영 → 중복 차단 → 수정
   await expect(page.locator('button:has-text("이 모델 평가하기")')).toBeVisible();
 });
 
+test("익명 체크 시 목록에 이름이 안 뜨고 API 응답에도 실리지 않는다", async ({ page }) => {
+  const nick = `anon-tester-${Date.now()}`;
+  const email = `${nick}@example.com`;
+
+  await page.goto(`/login?callbackUrl=/models/${MODEL}`);
+  await page.fill("input[name=email]", email);
+  await page.click('button:has-text("이메일로 계속하기")');
+  await page.waitForURL((u) => u.pathname === `/models/${MODEL}`);
+
+  await page.click('button:has-text("이 모델 평가하기")');
+  await page.locator('[role=radiogroup][aria-label="코딩 평점"] label').nth(3).click();
+  await page.fill("textarea", "익명 리뷰 본문");
+  await page.check('input[type="checkbox"]');
+  await page.click('button:has-text("평가 등록")');
+
+  const mine = page.locator('li:has-text("내 평가")').first();
+  await expect(mine).toContainText("익명 리뷰 본문");
+  // 화면에 이름이 아니라 "익명"이 떠야 한다
+  await expect(mine).toContainText("익명");
+  await expect(mine).not.toContainText(nick);
+
+  // 핵심: 이름이 응답 JSON 자체에 없어야 한다.
+  // UI에서만 가렸다면 여기서 잡힌다 — 개발자도구만 열면 보이는 상태이므로.
+  const raw = await page.evaluate(async (m) => {
+    const r = await fetch(`/api/models/${m}/reviews?limit=30`);
+    return JSON.stringify(await r.json());
+  }, MODEL);
+  expect(raw).not.toContain(nick);
+
+  // 익명이어도 본인은 수정·삭제할 수 있다
+  await page.click('button:has-text("내 평가 수정")');
+  await page.click('button:has-text("평가 삭제")');
+  await expect(page.locator('button:has-text("이 모델 평가하기")')).toBeVisible();
+});
+
 test("크론 스냅샷은 시크릿 없이는 401", async ({ request }) => {
   const res = await request.post("/api/cron/snapshot");
   expect(res.status()).toBe(401);

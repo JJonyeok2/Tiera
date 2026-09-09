@@ -32,7 +32,7 @@ export default async function LoginPage({
       </div>
       <h1 className="mt-4 text-xl font-bold">Tiera 로그인</h1>
       <p className="mt-1 text-xs text-[var(--color-text-mute)]">
-        평가를 남기려면 로그인이 필요합니다. 익명 평가는 받지 않습니다.
+        평가를 남기려면 로그인이 필요합니다. 이름은 익명으로 숨길 수 있습니다.
       </p>
 
       <div className="mt-8 space-y-2">

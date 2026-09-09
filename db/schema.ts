@@ -147,6 +147,9 @@ export const reviews = pgTable(
       .notNull()
       .references(() => models.id, { onDelete: "cascade" }),
     comment: text("comment"),
+    // 익명은 "표시만" 감춘다. 작성자는 서버가 계속 알고 있어야 1인 1회 제약과
+    // 수정·삭제 권한이 유지된다. 로그인 없이 받는 익명이 아니다.
+    isAnonymous: boolean("is_anonymous").notNull().default(false),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },

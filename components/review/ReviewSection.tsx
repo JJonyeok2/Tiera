@@ -121,7 +121,13 @@ export default function ReviewSection({
             className="rounded-xl border border-[var(--color-line)] bg-[var(--color-surface)] p-4"
           >
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-medium text-[var(--color-text)]">{r.authorName}</span>
+              <span
+                className={`text-xs font-medium ${
+                  r.isAnonymous ? "text-[var(--color-text-mute)]" : "text-[var(--color-text)]"
+                }`}
+              >
+                {r.authorName}
+              </span>
               {r.isMine && (
                 <span className="rounded bg-[var(--color-tier-prism)]/15 px-1.5 py-[2px] text-[10px] text-[var(--color-tier-prism)]">
                   내 평가

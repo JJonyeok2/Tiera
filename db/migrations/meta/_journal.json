@@ -8,6 +8,13 @@
       "when": 1788854530323,
       "tag": "0000_tearful_shaman",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788972324841,
+      "tag": "0001_magenta_scarlet_spider",
+      "breakpoints": true
     }
   ]
 }

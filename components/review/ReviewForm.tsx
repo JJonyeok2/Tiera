@@ -14,7 +14,12 @@ export default function ReviewForm({
   onDone,
 }: {
   slug: string;
-  existing: { id: string; comment: string | null; ratings: { category: string; score: number }[] } | null;
+  existing: {
+    id: string;
+    comment: string | null;
+    isAnonymous?: boolean;
+    ratings: { category: string; score: number }[];
+  } | null;
   onDone: () => void | Promise<void>;
 }) {
   const [ratings, setRatings] = useState<Ratings>(() => {
@@ -23,6 +28,7 @@ export default function ReviewForm({
     return init;
   });
   const [comment, setComment] = useState(existing?.comment ?? "");
+  const [anonymous, setAnonymous] = useState(existing?.isAnonymous ?? false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -31,6 +37,7 @@ export default function ReviewForm({
       ratings[c] ? [{ category: c, score: ratings[c]! }] : []
     ),
     comment: comment.trim() || undefined,
+    isAnonymous: anonymous,
   };
   const valid = payload.ratings.length > 0 && comment.length <= REVIEW_COMMENT_MAX;
 
@@ -103,6 +110,21 @@ export default function ReviewForm({
         />
         <span className="mt-1 block text-right text-[11px] tabular-nums text-[var(--color-text-mute)]">
           {comment.length} / {REVIEW_COMMENT_MAX}
+        </span>
+      </label>
+
+      <label className="mt-3 flex cursor-pointer items-start gap-2">
+        <input
+          type="checkbox"
+          checked={anonymous}
+          onChange={(e) => setAnonymous(e.target.checked)}
+          className="mt-[3px] accent-[var(--color-tier-prism)]"
+        />
+        <span className="text-xs text-[var(--color-text-dim)]">
+          익명으로 남기기
+          <span className="mt-0.5 block text-[11px] text-[var(--color-text-mute)]">
+            목록에 이름 대신 &lsquo;익명&rsquo;으로 표시됩니다. 수정·삭제는 그대로 할 수 있어요.
+          </span>
         </span>
       </label>
 
