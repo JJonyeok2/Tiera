@@ -7,22 +7,31 @@
  * "이 도구가 쓰는 모델" 섹션이 일반인 층과 개발자 층을 잇는 유일한 지점이다.
  * 일반인은 안 눌러도 되고, 궁금한 사람은 거기서 벤치마크까지 내려간다.
  *
- * 후기 영역은 아직 없다. tool_review 스키마는 준비됐지만 작성 폼·API·집계가
- * 별도 작업이라, 지금은 "없다"고 쓰는 편이 빈 섹션을 두는 것보다 정직하다.
+ * 후기가 붙으면 축별 점수가 같이 뜬다. 후기가 0개면 점수 영역을 **아예 그리지 않는다** —
+ * 회색 "–"로 채운 칸은 사이트가 고장난 것처럼 보인다.
  * ------------------------------------------------------------------------- */
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { auth } from "@/auth";
 import TierStar from "@/components/tier/TierStar";
+import ToolReviewSection from "@/components/tool/ToolReviewSection";
+import JsonLd from "@/components/seo/JsonLd";
+import { toolJsonLd } from "@/lib/structured-data";
 import { getAllToolSlugs, getToolDetail } from "@/lib/queries";
+import { getMyToolReview, listToolReviews } from "@/lib/tool-reviews";
+import { TOOL_AXES, TOOL_MIN_REVIEWS_FOR_TIER } from "@/lib/scoring/constants";
 import {
   KOREAN_LEVEL_LABEL,
   PLATFORM_LABEL,
   PRICING_LABEL,
   PURPOSE_LABEL,
+  TOOL_AXIS_LABEL,
+  TOOL_AXIS_QUESTION,
 } from "@/lib/labels";
 
-export const revalidate = 300;
+// 후기는 로그인 사용자마다 "내 후기"가 다르므로 페이지 단위 캐시를 쓰지 않는다.
+export const dynamic = "force-dynamic";
 
 export async function generateStaticParams() {
   const slugs = await getAllToolSlugs().catch(() => []);
@@ -42,8 +51,6 @@ export async function generateMetadata({
     title: `${tool.name} — 어떤 도구인가`,
     description: tool.summary,
     alternates: { canonical: `/tools/${tool.slug}` },
-    // 후기가 0개인 동안에는 aggregateRating을 내보내지 않는다.
-    // 없는 평점을 구조화 데이터로 흘리면 검색엔진에 스팸으로 잡힌다.
   };
 }
 
@@ -52,10 +59,25 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
   const tool = await getToolDetail(slug);
   if (!tool) notFound();
 
+  const session = await auth();
+  const viewerId = session?.user?.id;
+
+  // 후기 목록과 "내 후기"를 함께 가져온다. 순차로 돌리면 왕복이 두 번이다.
+  // slug→id 조회는 이미 끝났으므로 id를 넘겨 한 번 더 묻지 않는다.
+  const [reviews, myReview] = await Promise.all([
+    listToolReviews(slug, { viewerId, toolId: tool.id }),
+    viewerId ? getMyToolReview(viewerId, slug, tool.id) : Promise.resolve(null),
+  ]);
+
   const payAttention = tool.pricingKind === "PAID" || tool.pricingKind === "TRIAL";
+  const rated = TOOL_AXES.filter((a) => tool.axisScores[a] !== undefined);
+  // 카드와 같은 기준. 표본이 서기 전에는 단정하는 표시를 미룬다.
+  const showTier =
+    tool.tier !== null && tool.score !== null && tool.reviewCount >= TOOL_MIN_REVIEWS_FOR_TIER;
 
   return (
     <article className="py-7">
+      <JsonLd data={toolJsonLd(tool)} />
       <Link href="/" className="text-xs text-[var(--color-text-mute)] hover:underline">
         ← 도구 목록
       </Link>
@@ -73,13 +95,13 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
               대학생 혜택
             </span>
           )}
-          {tool.tier && tool.score !== null && (
+          {showTier && (
             <span className="flex items-center gap-1.5">
               <TierStar
-                tier={tool.tier.toLowerCase() as "prism" | "gold" | "silver" | "bronze"}
+                tier={tool.tier!.toLowerCase() as "prism" | "gold" | "silver" | "bronze"}
                 size={20}
               />
-              <span className="text-sm font-semibold tabular-nums">{tool.score.toFixed(1)}</span>
+              <span className="text-sm font-semibold tabular-nums">{tool.score!.toFixed(1)}</span>
             </span>
           )}
         </div>
@@ -100,6 +122,35 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
         >
           {tool.caution}
         </p>
+      )}
+
+      {/* 축별 점수는 후기가 있을 때만 그린다. */}
+      {rated.length > 0 && (
+        <Section title={`써 본 사람들 ${tool.reviewCount}명`}>
+          <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {rated.map((a) => {
+              const s = tool.axisScores[a]!;
+              return (
+                <div key={a} className="rounded-lg border border-[var(--color-line)] px-3 py-2.5">
+                  <dt className="text-[11px] text-[var(--color-text-mute)]">
+                    {TOOL_AXIS_LABEL[a]}
+                  </dt>
+                  <dd className="mt-0.5 text-base font-semibold tabular-nums text-[var(--color-text)]">
+                    {s.score.toFixed(1)}
+                  </dd>
+                  <dd className="text-[10px] text-[var(--color-text-mute)]">
+                    {TOOL_AXIS_QUESTION[a]}
+                  </dd>
+                </div>
+              );
+            })}
+          </dl>
+          <p className="mt-2 text-[11px] text-[var(--color-text-mute)]">
+            {tool.reviewCount < TOOL_MIN_REVIEWS_FOR_TIER
+              ? `후기 ${TOOL_MIN_REVIEWS_FOR_TIER}개부터 티어를 매깁니다. 지금 숫자는 ${tool.reviewCount}명이 매긴 값 그대로입니다.`
+              : "후기가 적을수록 점수는 전체 평균 쪽으로 당겨집니다. 소수 의견이 순위를 뒤집지 않게 하기 위한 보정입니다."}
+          </p>
+        </Section>
       )}
 
       <Section title="뭘 해주나">
@@ -174,13 +225,14 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
         </Section>
       )}
 
-      <Section title="후기">
-        <p className="text-[var(--color-text-mute)]">
-          {tool.reviewCount > 0
-            ? `${tool.reviewCount}개`
-            : "아직 없습니다. 후기 기능은 준비 중입니다."}
-        </p>
-      </Section>
+      <ToolReviewSection
+        slug={tool.slug}
+        toolName={tool.name}
+        initialItems={reviews.items}
+        total={reviews.total}
+        signedIn={Boolean(viewerId)}
+        myReview={myReview}
+      />
     </article>
   );
 }

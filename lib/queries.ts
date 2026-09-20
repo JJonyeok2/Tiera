@@ -17,10 +17,12 @@ import type {
   ScoreScope,
   ScoreType,
   TierName,
+  ToolAxis,
   ToolOrigin,
   ToolPurpose,
 } from "@/db/schema";
 import { PURPOSES } from "@/lib/params";
+import { TOOL_MIN_REVIEWS_FOR_TIER } from "@/lib/scoring/constants";
 import { GAP_RANK_THRESHOLD } from "@/lib/scoring/constants";
 import { gapOf, normalizeWithRange, type Gap } from "@/lib/scoring/score";
 
@@ -461,7 +463,9 @@ export async function getTools(params: ToolListParams = {}): Promise<ToolListRow
       ${origin ? sql`AND t.origin = ${origin}::tool_origin` : sql``}
       ${like ? sql`AND (LOWER(t.name) LIKE ${like} OR LOWER(t.maker) LIKE ${like} OR LOWER(t.summary) LIKE ${like})` : sql``}
     ORDER BY
-      (ts.score IS NULL),      -- 후기 있는 것 먼저
+      -- 티어를 띄울 만큼 후기가 쌓인 것만 위로 올린다.
+      -- 단순히 "점수가 있으면" 으로 하면 후기 1개짜리가 37개 위에 앉는다.
+      (ts.sample_count IS NULL OR ts.sample_count < ${TOOL_MIN_REVIEWS_FOR_TIER}),
       ts.score DESC NULLS LAST,
       -- 그다음 용도 순. enum 선언 순서를 그대로 쓴다(CHAT이 첫 번째).
       array_position(enum_range(NULL::tool_purpose), t.purpose),
@@ -518,6 +522,8 @@ export async function getPurposeTotals(
 }
 
 export interface ToolDetail extends ToolListRow {
+  /** 후기 조회에서 slug→id 왕복을 한 번 더 하지 않도록 내려준다. */
+  id: string;
   howToStart: string | null;
   priceNote: string | null;
   koreanNote: string | null;
@@ -525,6 +531,8 @@ export interface ToolDetail extends ToolListRow {
   platforms: Platform[];
   /** 이 도구가 쓰는 모델. 두 층을 잇는 지점이다(SPEC 23.5). */
   models: { slug: string; name: string; score: number | null; tier: TierName | null }[];
+  /** 축별 점수. 후기가 없으면 빈 객체다 — 0이 아니라 "아직 없음"이다. */
+  axisScores: Partial<Record<ToolAxis, { score: number; sampleCount: number }>>;
 }
 
 export async function getToolDetail(slug: string): Promise<ToolDetail | null> {
@@ -559,6 +567,17 @@ export async function getToolDetail(slug: string): Promise<ToolDetail | null> {
   const t = rows.rows?.[0];
   if (!t) return null;
 
+  // 축별 점수. OVERALL은 위에서 이미 조인했으므로 나머지 4축만 가져온다.
+  const axes = await db.execute<{ scope: ToolAxis; score: number; sample_count: number }>(sql`
+    SELECT scope, score, sample_count
+    FROM tool_score
+    WHERE tool_id = ${t.id} AND scope <> 'OVERALL'
+  `);
+  const axisScores: Partial<Record<ToolAxis, { score: number; sampleCount: number }>> = {};
+  for (const a of axes.rows ?? []) {
+    axisScores[a.scope] = { score: Number(a.score), sampleCount: Number(a.sample_count) };
+  }
+
   // 이 도구가 쓰는 모델. 벤치마크 점수가 있는 것만, 높은 순으로.
   const models = await db.execute<{
     slug: string;
@@ -576,6 +595,7 @@ export async function getToolDetail(slug: string): Promise<ToolDetail | null> {
   `);
 
   return {
+    id: t.id,
     slug: t.slug,
     name: t.name,
     maker: t.maker,
@@ -596,6 +616,7 @@ export async function getToolDetail(slug: string): Promise<ToolDetail | null> {
     tier: t.tier,
     reviewCount: Number(t.review_count) || 0,
     models: models.rows ?? [],
+    axisScores,
   };
 }
 

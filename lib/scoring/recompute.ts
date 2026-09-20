@@ -20,11 +20,24 @@ import {
   models,
   reviewRatings,
   reviews,
+  toolReviewRatings,
+  toolReviews,
+  toolScores,
+  tools,
   type Category,
   type ScoreScope,
   type ScoreType,
+  type ToolAxis,
+  type ToolScope,
 } from "@/db/schema";
-import { CATEGORIES, CATEGORY_WEIGHT, CONFIDENCE_M } from "./constants";
+import {
+  CATEGORIES,
+  CATEGORY_WEIGHT,
+  CONFIDENCE_M,
+  TOOL_AXES,
+  TOOL_AXIS_WEIGHT,
+  TOOL_CONFIDENCE_M,
+} from "./constants";
 import { bayesian, normalize, overallFrom, tierOf, toHundred, weightedMean } from "./score";
 
 type ScoreRow = typeof modelScores.$inferInsert;
@@ -268,5 +281,136 @@ export async function recomputeBenchmarks(): Promise<void> {
 export async function recomputeAll(): Promise<void> {
   await recomputeBenchmarks();
   await recomputeCommunity();
+}
+// --- 도구 (SPEC 23.6) -------------------------------------------------------
+
+type ToolScoreRow = typeof toolScores.$inferInsert;
+
+/**
+ * 도구 집계 캐시(tool_score) 갱신.
+ *
+ * 모델 쪽 recomputeCommunity와 같은 골격이다. 합치지 않은 이유는 축 enum이
+ * 다르기 때문이다 — 한 함수에 Category와 ToolAxis를 같이 흘리면 타입이
+ * 둘을 구분해주지 못하고, EASE 점수가 model_score에 들어가도 컴파일이 통과한다.
+ *
+ * @param onlyToolId 지정하면 그 도구만 갱신한다. 전체 평균 C는 항상 전 도구
+ *                   기준으로 구한다 — 한 도구의 후기만 보고 C를 계산하면
+ *                   보정이 자기 자신을 평균으로 삼는 꼴이라 무의미해진다.
+ */
+export async function recomputeToolScores(onlyToolId?: string): Promise<void> {
+  const rows = await db
+    .select({
+      toolId: toolReviews.toolId,
+      axis: toolReviewRatings.axis,
+      score: toolReviewRatings.score,
+    })
+    .from(toolReviewRatings)
+    .innerJoin(toolReviews, eq(toolReviewRatings.reviewId, toolReviews.id));
+
+  const byTool = new Map<string, Map<ToolAxis, CatAgg>>();
+  const global = new Map<ToolAxis, CatAgg>();
+
+  for (const r of rows) {
+    const m = byTool.get(r.toolId) ?? new Map<ToolAxis, CatAgg>();
+    const a = m.get(r.axis) ?? { sum: 0, count: 0 };
+    a.sum += r.score;
+    a.count += 1;
+    m.set(r.axis, a);
+    byTool.set(r.toolId, m);
+
+    const g = global.get(r.axis) ?? { sum: 0, count: 0 };
+    g.sum += r.score;
+    g.count += 1;
+    global.set(r.axis, g);
+  }
+
+  /** 축별 전체 평균 C. 표본이 없으면 모델 쪽과 같은 60으로 둔다. */
+  const globalMean = new Map<ToolAxis, number>();
+  for (const axis of TOOL_AXES) {
+    const g = global.get(axis);
+    globalMean.set(axis, g && g.count > 0 ? toHundred(g.sum / g.count) : 60);
+  }
+
+  const targetIds = onlyToolId
+    ? [onlyToolId]
+    : (await db.select({ id: tools.id }).from(tools)).map((t) => t.id);
+
+  // 도구별 후기 수를 한 번에 센다. 루프 안에서 COUNT를 돌리면 N+1이 된다.
+  const counts = await db.execute<{ tool_id: string; c: number }>(sql`
+    SELECT tool_id, COUNT(*)::int AS c FROM tool_review GROUP BY tool_id
+  `);
+  const reviewerBy = new Map<string, number>(
+    (counts.rows ?? []).map((r) => [r.tool_id, Number(r.c)])
+  );
+
+  const out: ToolScoreRow[] = [];
+
+  for (const toolId of targetIds) {
+    const perAxis = byTool.get(toolId);
+    // 후기가 하나도 없으면 행을 만들지 않는다. 0점이 아니라 "아직 없음"이고,
+    // 화면도 그 구분을 그대로 쓴다(점수 칸을 아예 안 그린다).
+    if (!perAxis || perAxis.size === 0) continue;
+
+    const axisScores: Partial<Record<ToolAxis, number>> = {};
+
+    for (const axis of TOOL_AXES) {
+      const a = perAxis.get(axis);
+      if (!a || a.count === 0) continue;
+      const raw = toHundred(a.sum / a.count);
+      const score = bayesian(raw, a.count, globalMean.get(axis)!, TOOL_CONFIDENCE_M);
+      axisScores[axis] = score;
+      out.push({
+        toolId,
+        scope: axis as ToolScope,
+        raw,
+        score,
+        sampleCount: a.count,
+        tier: tierOf(score),
+      });
+    }
+
+    // 종합. 평가가 없는 축은 가중치에서 통째로 빠진다 —
+    // "한국어를 안 써본 사람이 많다"는 이유로 종합이 깎이면 안 된다.
+    let num = 0;
+    let den = 0;
+    for (const axis of TOOL_AXES) {
+      const s = axisScores[axis];
+      if (s === undefined || Number.isNaN(s)) continue;
+      num += TOOL_AXIS_WEIGHT[axis] * s;
+      den += TOOL_AXIS_WEIGHT[axis];
+    }
+    if (den === 0) continue;
+    const overall = num / den;
+
+    // 종합의 raw는 보정 전 축 평균들의 가중 평균이다.
+    const rawPairs = TOOL_AXES.flatMap((axis) => {
+      const a = perAxis.get(axis);
+      if (!a || a.count === 0) return [];
+      return [{ value: toHundred(a.sum / a.count), weight: TOOL_AXIS_WEIGHT[axis] }];
+    });
+    const overallRaw = weightedMean(rawPairs);
+
+    out.push({
+      toolId,
+      scope: "OVERALL",
+      raw: overallRaw ?? overall,
+      score: overall,
+      // 종합의 표본은 축 평점 수가 아니라 **사람 수**다.
+      // 축 평점을 세면 한 사람이 4축을 매겼을 때 4명이 평가한 것처럼 보인다.
+      sampleCount: reviewerBy.get(toolId) ?? 0,
+      tier: tierOf(overall),
+    });
+  }
+
+  await db.transaction(async (tx) => {
+    if (targetIds.length > 0) {
+      await tx.delete(toolScores).where(inArray(toolScores.toolId, targetIds));
+    }
+    if (out.length > 0) await tx.insert(toolScores).values(out);
+  });
+
+  // 도구에는 CERTIFIED/PROVISIONAL 상태를 아직 쓰지 않는다.
+  // 모델 쪽 임계(리뷰 30개)를 그대로 가져오면 37개 전부 영원히 '평가 중'이다.
+  // 기준이 설 만큼 후기가 쌓인 뒤에 정한다.
 }
 /* Footer: lib/scoring/recompute.ts */

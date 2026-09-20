@@ -15,6 +15,7 @@ import Link from "next/link";
 import TierStar from "@/components/tier/TierStar";
 import type { ToolListRow } from "@/lib/queries";
 import { KOREAN_LEVEL_LABEL, PRICING_LABEL, PURPOSE_LABEL } from "@/lib/labels";
+import { TOOL_MIN_REVIEWS_FOR_TIER } from "@/lib/scoring/constants";
 
 export default function ToolCard({ tool }: { tool: ToolListRow }) {
   // 유료·체험만은 무료로 오해하기 쉬운 지점이라 배지 색을 다르게 준다.
@@ -22,6 +23,10 @@ export default function ToolCard({ tool }: { tool: ToolListRow }) {
   // 한국어를 모르는 것과 안 되는 것은 다르다. 둘 다 눈에 띄어야 하지만
   // "확인 중"을 경고색으로 칠하면 도구 탓처럼 보인다 — 우리가 못 채운 칸이다.
   const koreanWeak = tool.koreanLevel === "NONE" || tool.koreanLevel === "PARTIAL";
+  // 후기 한두 개로 별과 점수를 띄우면 "이 도구는 실버 등급"으로 읽힌다.
+  // 실제로는 "한 사람이 그렇게 말했다"다. 후기 수는 아래에 그대로 보여준다.
+  const showTier =
+    tool.tier !== null && tool.score !== null && tool.reviewCount >= TOOL_MIN_REVIEWS_FOR_TIER;
 
   return (
     <Link
@@ -48,12 +53,12 @@ export default function ToolCard({ tool }: { tool: ToolListRow }) {
           </p>
         </div>
 
-        {/* 점수는 있을 때만 그린다. 없는 칸을 "–"로 채우지 않는다. */}
-        {tool.tier && tool.score !== null && (
+        {/* 점수는 표본이 설 때만 그린다. 없는 칸을 "–"로 채우지도 않는다. */}
+        {showTier && (
           <div className="flex shrink-0 items-center gap-1.5">
-            <TierStar tier={tool.tier.toLowerCase() as "prism" | "gold" | "silver" | "bronze"} size={18} />
+            <TierStar tier={tool.tier!.toLowerCase() as "prism" | "gold" | "silver" | "bronze"} size={18} />
             <span className="text-sm font-semibold tabular-nums text-[var(--color-text)]">
-              {tool.score.toFixed(1)}
+              {tool.score!.toFixed(1)}
             </span>
           </div>
         )}

@@ -115,12 +115,45 @@ test("도구 상세에서 그 도구가 쓰는 모델로 내려갈 수 있다", 
 
 test("후기가 없으면 별점을 지어내지 않는다", async ({ page }) => {
   await page.goto("/tools/suno");
-  await expect(page.locator("main")).toContainText("아직 없습니다");
-  // 구조화 데이터에 aggregateRating이 새어나가면 검색엔진 스팸이다
+  await expect(page.locator("main")).toContainText("아직 후기가 없습니다");
+  // 구조화 데이터에 aggregateRating이 새어나가면 검색엔진 스팸이고
+  // 도메인 단위로 불이익을 받는다.
   const scripts = await page.locator('script[type="application/ld+json"]').allTextContents();
   for (const raw of scripts) {
     expect(JSON.parse(raw || "{}").aggregateRating).toBeUndefined();
   }
+});
+
+test("후기가 없으면 축별 점수 영역 자체가 없다", async ({ page }) => {
+  // 회색 "–"로 채운 칸이 네 개 늘어선 화면은 사이트가 고장난 것처럼 보인다.
+  await page.goto("/tools/suno");
+  await expect(page.locator("main")).not.toContainText("써 본 사람들");
+});
+
+test("비로그인은 후기 작성 대신 로그인 유도를 본다", async ({ page }) => {
+  await page.goto("/tools/gemini");
+  await expect(page.locator("main")).toContainText("로그인하고 후기 남기기");
+});
+
+test("비로그인 후기 POST는 401", async ({ request }) => {
+  const res = await request.post("/api/tools/gemini/reviews", {
+    data: { ratings: [{ axis: "EASE", score: 5 }] },
+  });
+  expect(res.status()).toBe(401);
+});
+
+test("없는 도구에 후기를 달면 404", async ({ request }) => {
+  const res = await request.get("/api/tools/does-not-exist/reviews");
+  expect(res.status()).toBe(404);
+});
+
+test("모델 축은 도구 후기 API가 거부한다", async ({ request }) => {
+  // 인증 전에 막히므로 401이지만, 스키마가 갈라져 있다는 것 자체는
+  // 단위 테스트(tests/tool-scoring.test.ts)가 지킨다. 여기서는 경로 분리만 본다.
+  const res = await request.post("/api/tools/gemini/reviews", {
+    data: { ratings: [{ axis: "CODING", score: 5 }] },
+  });
+  expect([400, 401]).toContain(res.status());
 });
 
 test("홈과 모델 순위는 서로를 가리킨다", async ({ page }) => {

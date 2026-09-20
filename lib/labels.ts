@@ -7,6 +7,7 @@ import type {
   PricingKind,
   ScoreScope,
   ScoreType,
+  ToolAxis,
   ToolPurpose,
 } from "@/db/schema";
 
@@ -87,6 +88,21 @@ export const PLATFORM_LABEL: Record<Platform, string> = {
   DESKTOP: "PC 프로그램",
   EXTENSION: "브라우저 확장",
   PLUGIN: "플러그인",
+};
+
+/** 도구 평가 4축 — 질문 형태로 쓴다. 명사로 두면 뭘 묻는지 모호하다. */
+export const TOOL_AXIS_LABEL: Record<ToolAxis, string> = {
+  EASE: "쉬움",
+  OUTPUT: "결과물",
+  PRICE: "가격",
+  KOREAN: "한국어",
+};
+
+export const TOOL_AXIS_QUESTION: Record<ToolAxis, string> = {
+  EASE: "처음 써도 할 만한가",
+  OUTPUT: "나온 게 실제로 쓸 만한가",
+  PRICE: "값어치를 하는가",
+  KOREAN: "한국어로 잘 되는가",
 };
 
 /**
