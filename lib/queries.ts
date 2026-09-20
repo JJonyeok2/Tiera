@@ -399,6 +399,7 @@ export interface ToolListRow {
   pricingKind: PricingKind;
   koreanLevel: KoreanLevel;
   studentFree: boolean;
+  logoUrl: string | null;
   caution: string | null;
   /** 후기가 쌓이기 전에는 null이다. 0이 아니라 null이어야 "없음"과 구분된다. */
   score: number | null;
@@ -446,6 +447,7 @@ export async function getTools(params: ToolListParams = {}): Promise<ToolListRow
     pricing_kind: PricingKind;
     korean_level: KoreanLevel;
     student_free: boolean;
+    logo_url: string | null;
     caution: string | null;
     score: number | null;
     tier: TierName | null;
@@ -453,7 +455,7 @@ export async function getTools(params: ToolListParams = {}): Promise<ToolListRow
   }>(sql`
     SELECT
       t.slug, t.name, t.maker, t.purpose, t.also_for, t.origin, t.summary,
-      t.pricing_kind, t.korean_level, t.student_free, t.caution,
+      t.pricing_kind, t.korean_level, t.student_free, t.logo_url, t.caution,
       ts.score, ts.tier,
       COALESCE(ts.sample_count, 0) AS review_count
     FROM tool t
@@ -484,6 +486,7 @@ export async function getTools(params: ToolListParams = {}): Promise<ToolListRow
     pricingKind: r.pricing_kind,
     koreanLevel: r.korean_level,
     studentFree: r.student_free,
+    logoUrl: r.logo_url,
     caution: r.caution,
     score: r.score,
     tier: r.tier,
@@ -552,6 +555,7 @@ export async function getToolDetail(slug: string): Promise<ToolDetail | null> {
     korean_level: KoreanLevel;
     korean_note: string | null;
     site_url: string;
+    logo_url: string | null;
     platforms: Platform[] | string;
     caution: string | null;
     score: number | null;
@@ -610,6 +614,7 @@ export async function getToolDetail(slug: string): Promise<ToolDetail | null> {
     koreanLevel: t.korean_level,
     koreanNote: t.korean_note,
     siteUrl: t.site_url,
+    logoUrl: t.logo_url,
     platforms: parsePgArray(t.platforms) as Platform[],
     caution: t.caution,
     score: t.score,

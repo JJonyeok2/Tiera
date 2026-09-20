@@ -11,6 +11,7 @@
  * 회색 "–"로 채운 칸은 사이트가 고장난 것처럼 보인다.
  * ------------------------------------------------------------------------- */
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
@@ -82,9 +83,22 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
         ← 도구 목록
       </Link>
 
-      <header className="mt-3">
+      <header className="mt-3 flex items-start gap-3.5">
+        {tool.logoUrl && (
+          <span className="mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[var(--color-surface-2)] ring-1 ring-inset ring-[var(--color-line)]">
+            <Image
+              src={tool.logoUrl}
+              alt=""
+              width={32}
+              height={32}
+              className="h-8 w-8 object-contain"
+              unoptimized
+            />
+          </span>
+        )}
+        <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
-          <h1 className="text-xl font-bold tracking-tight text-[var(--color-text)]">{tool.name}</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text)]">{tool.name}</h1>
           {tool.origin === "KR" && (
             <span className="rounded border border-[var(--color-tier-prism)] px-1.5 py-0.5 text-[10px] text-[var(--color-tier-prism)]">
               한국
@@ -109,6 +123,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
           {tool.maker} · {PURPOSE_LABEL[tool.purpose]}
           {tool.alsoFor.length > 0 && ` · ${tool.alsoFor.map((p) => PURPOSE_LABEL[p]).join(" · ")}`}
         </p>
+        </div>
       </header>
 
       {/* 주의사항은 본문보다 위에 둔다. 밑에 두면 결제하고 나서 읽는다. */}

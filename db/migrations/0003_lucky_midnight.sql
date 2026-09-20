@@ -1,0 +1,1 @@
+ALTER TABLE "tool" ADD COLUMN "logo_url" text;

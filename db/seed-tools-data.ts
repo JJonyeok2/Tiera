@@ -54,6 +54,11 @@ export interface SeedTool {
   koreanLevel: KoreanLevel;
   koreanNote?: string;
   siteUrl: string;
+  /**
+   * public 기준 로고 경로(예: "/logos/chatgpt.png"). 없으면 첫 글자 타일.
+   * scripts/fetch-logos.ts로 각 서비스 파비콘을 받아 채운다 — 직접 그리지 않는다.
+   */
+  logoUrl?: string;
   platforms: Platform[];
   /** 카드에 눈에 띄게 띄울 주의사항. 무료로 오해하기 쉬운 것 위주. */
   caution?: string;

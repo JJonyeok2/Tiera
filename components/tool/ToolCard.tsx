@@ -13,10 +13,13 @@
  *   아무 정보도 나르지 않는다. 색은 사용자가 실제로 판단에 쓰는 두 가지에만
  *   쓴다 — 돈이 드는가(유료·체험만), 한국어가 되는가. 나머지는 전부 무채색이다.
  *
- * 로고 대신 이름 첫 글자를 쓴다. 남의 상표를 가져다 박지 않으면서
- * 37장을 눈으로 훑을 때 걸리는 지점을 만들어 준다.
+ * 로고는 logoUrl이 있을 때만 띄우고, 없으면 이름 첫 글자 타일로 떨어진다.
+ * **로고를 직접 그리지 않는다** — 남의 상표를 흉내 내 SVG로 만드는 건 재현이다.
+ * logoUrl은 각 서비스가 자기 도메인에 올려둔 파비콘을 받아 self-host한 것이고,
+ * scripts/fetch-logos.ts가 채운다. 아직 비어 있으면 첫 글자가 그 자리를 지킨다.
  * ------------------------------------------------------------------------- */
 
+import Image from "next/image";
 import Link from "next/link";
 import TierStar from "@/components/tier/TierStar";
 import type { ToolListRow } from "@/lib/queries";
@@ -47,7 +50,7 @@ export default function ToolCard({ tool, index = 0 }: { tool: ToolListRow; index
       // 순서대로 아주 짧게 올라온다. 37장이 한 번에 툭 나타나면 깜빡인 것처럼 보인다.
       // 8장까지만 지연을 준다 — 그 뒤까지 기다리게 하면 답답해진다.
       style={{ animationDelay: `${Math.min(index, 8) * 28}ms` }}
-      className="tiera-rise group relative flex w-full flex-col overflow-hidden rounded-2xl border border-[var(--color-line)] bg-[var(--color-surface)] p-4 transition duration-200 hover:-translate-y-0.5 hover:border-[var(--color-tier-prism)]/45 hover:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.35)]"
+      className="tiera-rise group relative flex w-full flex-col overflow-hidden rounded-2xl border border-[var(--color-line)] bg-[var(--color-surface)] p-4 transition duration-200 hover:-translate-y-0.5 hover:border-[var(--color-tier-prism)] hover:shadow-[0_10px_28px_-14px_rgba(0,0,0,0.45)]"
     >
       {/* 호버 시 위쪽에만 브랜드 그라데이션 실선. 카드 전체를 물들이지 않고
           "이걸 보고 있다"만 표시한다. */}
@@ -57,20 +60,33 @@ export default function ToolCard({ tool, index = 0 }: { tool: ToolListRow; index
       />
 
       <div className="flex items-start gap-3">
-        <span
-          aria-hidden="true"
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-bold ${
-            tool.origin === "KR"
-              ? "bg-[var(--color-tier-prism)]/12 text-[var(--color-tier-prism)] ring-1 ring-inset ring-[var(--color-tier-prism)]/30"
-              : "bg-[var(--color-surface-2)] text-[var(--color-text-dim)]"
-          }`}
-        >
-          {initial(tool.name)}
-        </span>
+        {tool.logoUrl ? (
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[var(--color-surface-2)] ring-1 ring-inset ring-[var(--color-line)]">
+            <Image
+              src={tool.logoUrl}
+              alt=""
+              width={28}
+              height={28}
+              className="h-7 w-7 object-contain"
+              unoptimized
+            />
+          </span>
+        ) : (
+          <span
+            aria-hidden="true"
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[15px] font-bold ${
+              tool.origin === "KR"
+                ? "bg-[var(--color-tier-prism)]/15 text-[var(--color-tier-prism)] ring-1 ring-inset ring-[var(--color-tier-prism)]/40"
+                : "bg-[var(--color-surface-2)] text-[var(--color-text-dim)] ring-1 ring-inset ring-[var(--color-line)]"
+            }`}
+          >
+            {initial(tool.name)}
+          </span>
+        )}
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-            <h3 className="text-[15px] font-semibold leading-tight text-[var(--color-text)]">
+            <h3 className="text-base font-bold leading-tight tracking-tight text-[var(--color-text)]">
               {tool.name}
             </h3>
             {tool.origin === "KR" && (
@@ -139,6 +155,19 @@ export default function ToolCard({ tool, index = 0 }: { tool: ToolListRow; index
             후기 {tool.reviewCount}
           </span>
         )}
+
+        {/* 카드가 어디로 가는지 알려준다. 지금은 카드 전체가 링크인데
+            그걸 알려주는 표시가 하나도 없어서, 상세가 있는 줄 모르고 지나친다.
+            후기 수가 있으면 그 옆에, 없으면 오른쪽 끝에 붙는다. */}
+        <span
+          aria-hidden="true"
+          className={`flex items-center gap-0.5 text-[10px] text-[var(--color-text-mute)] transition-colors group-hover:text-[var(--color-tier-prism)] ${
+            tool.reviewCount > 0 ? "" : "ml-auto"
+          }`}
+        >
+          자세히
+          <span className="transition-transform duration-200 group-hover:translate-x-0.5">›</span>
+        </span>
       </div>
 
       {/* 무료로 오해하기 쉬운 것은 카드에서 미리 말한다.

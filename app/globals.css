@@ -46,11 +46,13 @@
 :root {
   color-scheme: light;
 
-  --c-bg: #f6f7f9;
+  /* '또렷하게' 방향으로 조정: 카드(흰색)와 배경의 명도 차를 벌리고 선을 진하게.
+     이전 값은 배경 #f6f7f9에 선 #dde1e8이라 카드 경계가 거의 안 보였다. */
+  --c-bg: #eef1f5;
   --c-surface: #ffffff;
-  --c-surface-2: #eceff4;
-  --c-line: #dde1e8;
-  --c-line-soft: #e8ebf0;
+  --c-surface-2: #e4e9f0;
+  --c-line: #cbd3de;
+  --c-line-soft: #dfe4ec;
 
   --c-text: #12161e;
   --c-text-dim: #495265;
@@ -76,11 +78,13 @@
   :root:not([data-theme="light"]) {
     color-scheme: dark;
 
-    --c-bg: #12161d;
-    --c-surface: #1a1f28;
-    --c-surface-2: #242a36;
-    --c-line: #2e3542;
-    --c-line-soft: #242a34;
+    /* 다크도 같은 이유로 벌렸다. 배경을 더 내리고 카드를 살짝 올린 뒤
+       선을 밝혀서, 카드 하나하나가 면으로 읽히게 한다. */
+    --c-bg: #0d1117;
+    --c-surface: #171d26;
+    --c-surface-2: #222a36;
+    --c-line: #333c4b;
+    --c-line-soft: #232b37;
 
     --c-text: #f0f3f8;
     --c-text-dim: #b4bdcd;
@@ -103,11 +107,11 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --c-bg: #12161d;
-  --c-surface: #1a1f28;
-  --c-surface-2: #242a36;
-  --c-line: #2e3542;
-  --c-line-soft: #242a34;
+  --c-bg: #0d1117;
+  --c-surface: #171d26;
+  --c-surface-2: #222a36;
+  --c-line: #333c4b;
+  --c-line-soft: #232b37;
 
   --c-text: #f0f3f8;
   --c-text-dim: #b4bdcd;

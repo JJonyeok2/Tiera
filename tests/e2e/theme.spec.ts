@@ -32,15 +32,28 @@ test("시스템을 고르면 data-theme 속성 자체가 사라진다", async ({
   await expect(page.locator("html")).not.toHaveAttribute("data-theme", /.*/);
 });
 
+/**
+ * 배경 밝기를 재는 헬퍼.
+ *
+ * 예전에는 hex 값을 그대로 비교했다(#12161d 등). 그러면 팔레트를 한 번 손볼
+ * 때마다 테스트가 깨지는데, 정작 **깨진 게 기능인지 취향인지 구분이 안 된다.**
+ * 실제로 대비를 올리는 조정을 했더니 두 개가 빨갛게 떴다 — 기능은 멀쩡했다.
+ * 이 테스트가 지키려던 건 "다크는 어둡고 라이트는 밝은가"이므로 그걸 직접 잰다.
+ */
+async function bodyLuminance(page: Page): Promise<number> {
+  return page.evaluate(() => {
+    const m = getComputedStyle(document.body).backgroundColor.match(/\d+/g)!;
+    const [r, g, b] = m.map(Number);
+    // 사람 눈의 민감도를 반영한 근사 밝기(0~255).
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  });
+}
+
 test("시스템 모드에서 OS가 다크면 어두운 배경이 적용된다", async ({ browser }) => {
   const ctx = await browser.newContext({ colorScheme: "dark" });
   const page = await ctx.newPage();
   await page.goto("/");
-  const bg = await page.evaluate(() =>
-    getComputedStyle(document.body).backgroundColor
-  );
-  // #12161d
-  expect(bg).toBe("rgb(18, 22, 29)");
+  expect(await bodyLuminance(page)).toBeLessThan(60);
   await ctx.close();
 });
 
@@ -48,9 +61,7 @@ test("시스템 모드에서 OS가 라이트면 밝은 배경이 적용된다", 
   const ctx = await browser.newContext({ colorScheme: "light" });
   const page = await ctx.newPage();
   await page.goto("/");
-  const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  // #f6f7f9
-  expect(bg).toBe("rgb(246, 247, 249)");
+  expect(await bodyLuminance(page)).toBeGreaterThan(195);
   await ctx.close();
 });
 

@@ -20,7 +20,8 @@
     "db:migrate:deploy": "tsx db/migrate-deploy.ts",
     "data:sync-arena": "tsx db/sync-arena.ts",
     "db:seed-tools": "tsx db/seed-tools.ts",
-    "db:seed-tools:deploy": "tsx db/seed-tools-deploy.ts"
+    "db:seed-tools:deploy": "tsx db/seed-tools-deploy.ts",
+    "logos:fetch": "tsx scripts/fetch-logos.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.3",

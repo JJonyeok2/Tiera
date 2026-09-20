@@ -407,6 +407,19 @@ export const tools = pgTable(
     koreanNote: text("korean_note"),
 
     siteUrl: text("site_url").notNull(),
+    /**
+     * 카드·상세에 띄울 로고 경로. 비어 있으면 이름 첫 글자 타일로 떨어진다.
+     *
+     * **로고를 직접 그리지 않는다.** 남의 상표를 흉내 내 SVG로 만드는 건
+     * 재현이다. 여기 들어가는 건 각 서비스가 자기 도메인에 올려둔 파비콘을
+     * 받아 self-host한 것이고(scripts/fetch-logos.ts), 디렉터리가 대상을
+     * 식별하려고 쓰는 용도다.
+     *
+     * 값은 '/logos/chatgpt.png'처럼 public 기준 절대 경로를 쓴다. 외부 URL을
+     * 그대로 박지 않는다 — 방문자 브라우저가 제3자에 37번 요청하게 되고,
+     * 폰트를 self-host한 이유를 스스로 뒤집는 꼴이 된다.
+     */
+    logoUrl: text("logo_url"),
     platforms: platformEnum("platforms").array().notNull().default(["WEB"]),
 
     /** 카드에 크게 띄울 주의사항. 무료로 오해하기 쉬운 것 등. */

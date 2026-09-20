@@ -63,6 +63,7 @@ async function upsertTools(db: Db): Promise<Map<string, string>> {
       koreanLevel: t.koreanLevel,
       koreanNote: t.koreanNote ?? null,
       siteUrl: t.siteUrl,
+      logoUrl: t.logoUrl ?? null,
       platforms: t.platforms,
       caution: t.caution ?? null,
     };
@@ -89,6 +90,7 @@ async function upsertTools(db: Db): Promise<Map<string, string>> {
           koreanLevel: values.koreanLevel,
           koreanNote: values.koreanNote,
           siteUrl: values.siteUrl,
+          logoUrl: values.logoUrl,
           platforms: values.platforms,
           caution: values.caution,
         },

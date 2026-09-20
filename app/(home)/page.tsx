@@ -15,6 +15,8 @@ import ToolCard from "@/components/tool/ToolCard";
 import { getPurposeTotals, getTools } from "@/lib/queries";
 import { parseQuery, parseToolOrigin, parseToolPurpose } from "@/lib/params";
 import { PURPOSE_HINT, PURPOSE_LABEL } from "@/lib/labels";
+import { PURPOSES } from "@/lib/params";
+import type { ToolListRow } from "@/lib/queries";
 import JsonLd from "@/components/seo/JsonLd";
 import { websiteJsonLd } from "@/lib/structured-data";
 
@@ -58,6 +60,24 @@ export default async function HomePage({
 
   const filtered = Boolean(q || origin || purpose);
   const krCount = all.filter((t) => t.origin === "KR").length;
+
+  /**
+   * 기본 화면은 격자가 아니라 **용도별 섹션**이다.
+   *
+   * 37장을 똑같은 박스로 쭉 깔면 어디서 끊어 읽어야 할지가 없다. 제목을 달아
+   * 끊으면 스크롤만 내려도 "이런 것도 있구나"가 되고, 그게 이 사이트가 하려는
+   * 일 자체다 — 뭘 써야 할지 모르는 사람이 둘러보는 것.
+   *
+   * 섹션은 **대표 용도로만** 묶는다. alsoFor까지 넣으면 ChatGPT가 네 번 나온다.
+   * 겸하는 용도는 탭을 눌렀을 때 드러나면 된다(그쪽 쿼리는 alsoFor를 본다).
+   */
+  const sections =
+    filtered || purpose
+      ? []
+      : PURPOSES.map((p) => ({
+          purpose: p,
+          items: tools.filter((t) => t.purpose === p),
+        })).filter((s) => s.items.length > 0);
 
   return (
     <>
@@ -109,7 +129,7 @@ export default async function HomePage({
       </div>
 
       {tools.length === 0 ? (
-        <div className="mt-5 rounded-xl border border-[var(--color-line)] bg-[var(--color-surface)] px-6 py-16 text-center">
+        <div className="mt-5 rounded-2xl border border-[var(--color-line)] bg-[var(--color-surface)] px-6 py-16 text-center">
           <p className="text-sm text-[var(--color-text-dim)]">
             {filtered ? "조건에 맞는 도구가 없습니다." : "아직 등록된 도구가 없습니다."}
           </p>
@@ -122,7 +142,15 @@ export default async function HomePage({
             </Link>
           )}
         </div>
+      ) : sections.length > 0 ? (
+        <div className="mt-2">
+          {sections.map((sec, si) => (
+            <Section key={sec.purpose} purpose={sec.purpose} items={sec.items} order={si} />
+          ))}
+        </div>
       ) : (
+        // 탭·검색·필터가 걸린 화면은 섹션으로 나누지 않는다.
+        // 이미 한 갈래로 좁힌 결과라 제목을 또 달면 같은 말을 두 번 하는 셈이다.
         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
           {tools.map((t, i) => (
             <li key={t.slug} className="flex">
@@ -149,6 +177,46 @@ export default async function HomePage({
         </Link>
       </div>
     </>
+  );
+}
+
+/**
+ * 용도 한 묶음.
+ *
+ * 제목을 크게 두고 숫자를 옆에 붙인다. 섹션이 열 개라 제목이 크지 않으면
+ * 스크롤할 때 그냥 지나가고, 결국 격자와 다를 게 없어진다.
+ */
+function Section({
+  purpose,
+  items,
+  order,
+}: {
+  purpose: (typeof PURPOSES)[number];
+  items: ToolListRow[];
+  order: number;
+}) {
+  return (
+    <section className="scroll-mt-20 pt-9 first:pt-5">
+      <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+        <h2 className="text-[19px] font-bold tracking-tight text-[var(--color-text)]">
+          {PURPOSE_LABEL[purpose]}
+        </h2>
+        <span className="text-xs tabular-nums text-[var(--color-text-mute)]">{items.length}</span>
+        <p className="w-full text-xs text-[var(--color-text-mute)] sm:w-auto">
+          {PURPOSE_HINT[purpose]}
+        </p>
+      </div>
+
+      <ul className="mt-3.5 grid gap-3 sm:grid-cols-2">
+        {items.map((t, i) => (
+          <li key={t.slug} className="flex">
+            {/* 지연은 섹션 안에서만 준다. 열 번째 섹션까지 누적하면
+                아래쪽 카드가 한참 뒤에 나타나서 로딩이 끊긴 것처럼 보인다. */}
+            <ToolCard tool={t} index={order === 0 ? i : 0} />
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 /* Footer: app/(home)/page.tsx */
