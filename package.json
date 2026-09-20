@@ -17,7 +17,10 @@
     "db:check": "tsx db/check.ts",
     "data:sync": "tsx db/sync.ts",
     "db:purge-demo": "tsx db/purge-demo.ts",
-    "db:migrate:deploy": "tsx db/migrate-deploy.ts"
+    "db:migrate:deploy": "tsx db/migrate-deploy.ts",
+    "data:sync-arena": "tsx db/sync-arena.ts",
+    "db:seed-tools": "tsx db/seed-tools.ts",
+    "db:seed-tools:deploy": "tsx db/seed-tools-deploy.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.3",

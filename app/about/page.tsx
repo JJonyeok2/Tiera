@@ -23,7 +23,7 @@ export default function AboutPage() {
   return (
     <article className="space-y-10 py-8 text-sm leading-relaxed text-[var(--color-text-dim)]">
       <header className="space-y-2">
-        <Link href="/" className="text-xs text-[var(--color-text-mute)] hover:underline">← 랭킹으로</Link>
+        <Link href="/models" className="text-xs text-[var(--color-text-mute)] hover:underline">← 모델 순위로</Link>
         <h1 className="text-2xl font-bold text-[var(--color-text)]">점수는 이렇게 계산합니다</h1>
         <p>
           Tiera는 <strong className="text-[var(--color-text)]">벤치마크 점수(스펙)</strong>와{" "}

@@ -71,8 +71,10 @@ export default function RankingList({
         <p className="text-sm text-[var(--color-text-dim)]">
           {q ? `'${q}'와 일치하는 모델이 없어요` : "이 조건에 해당하는 모델이 없어요"}
         </p>
+        {/* 홈이 아니라 /models로 보낸다. 여기서 '/'로 보내면 필터를 지우려던
+            사람이 도구 목록에 떨어져서, 초기화가 아니라 이탈이 된다. */}
         <Link
-          href="/"
+          href="/models"
           className="mt-3 inline-block text-xs text-[var(--color-tier-prism)] hover:underline"
         >
           필터 초기화

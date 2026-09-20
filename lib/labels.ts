@@ -1,6 +1,14 @@
 /* Header: 표시용 라벨. DB에 의존하지 않아 클라이언트 컴포넌트에서도 안전하게 import된다.
    (lib/queries.ts는 pg 커넥션을 끌고 오므로 클라이언트에서 import하면 번들이 깨진다.) */
-import type { Country, ScoreScope, ScoreType } from "@/db/schema";
+import type {
+  Country,
+  KoreanLevel,
+  Platform,
+  PricingKind,
+  ScoreScope,
+  ScoreType,
+  ToolPurpose,
+} from "@/db/schema";
 
 export const CATEGORY_LABEL: Record<ScoreScope, string> = {
   OVERALL: "종합",
@@ -20,6 +28,67 @@ export const SCORE_TYPE_LABEL: Record<ScoreType, string> = {
   COMMUNITY: "커뮤니티 평가",
   BENCHMARK: "벤치마크",
 };
+// --- 도구 ------------------------------------------------------------------
+
+/** 용도 탭의 이름. 화면에 그대로 나가는 문구다. */
+export const PURPOSE_LABEL: Record<ToolPurpose, string> = {
+  CHAT: "대화",
+  RESEARCH: "자료조사",
+  TRANSLATE: "번역·글쓰기",
+  SLIDES: "발표자료",
+  NOTE: "기록·정리",
+  IMAGE: "이미지",
+  VIDEO: "영상",
+  AVATAR: "아바타 영상",
+  AUDIO: "음악·목소리",
+  CODE: "코딩",
+};
+
+/** 용도 탭 아래 한 줄. "이 탭에 뭐가 있는지"를 미리 알려준다. */
+export const PURPOSE_HINT: Record<ToolPurpose, string> = {
+  CHAT: "뭐든 물어보는 AI",
+  RESEARCH: "과제 자료 찾고 논문 읽기",
+  TRANSLATE: "번역하고 글 다듬기",
+  SLIDES: "발표자료와 디자인 만들기",
+  NOTE: "녹음하고 받아 적고 정리하기",
+  IMAGE: "그림 만들고 사진 고치기",
+  VIDEO: "영상 만들고 자막 넣기",
+  AVATAR: "사람이 말하는 영상 만들기",
+  AUDIO: "노래 만들고 목소리 입히기",
+  CODE: "코드 짜고 앱 만들기",
+};
+
+/**
+ * 과금 형태.
+ *
+ * FREEMIUM과 TRIAL의 문구가 이 표에서 제일 중요하다. 둘 다 "무료"라는 말을
+ * 쓰면 구분한 의미가 없어진다. 갱신되는 쪽만 "무료로 시작"이라고 쓴다.
+ */
+export const PRICING_LABEL: Record<PricingKind, string> = {
+  FREE: "무료",
+  FREEMIUM: "무료로 시작",
+  TRIAL: "체험만 무료",
+  PAID: "유료",
+};
+
+export const KOREAN_LEVEL_LABEL: Record<KoreanLevel, string> = {
+  NATIVE: "한국 서비스",
+  GOOD: "한국어 잘 됨",
+  PARTIAL: "한국어 아쉬움",
+  NONE: "영어만",
+  // 비워두면 "한국어 안 됨"으로 읽힌다. 모른다는 걸 말로 해야 한다.
+  UNKNOWN: "한국어 확인 중",
+};
+
+export const PLATFORM_LABEL: Record<Platform, string> = {
+  WEB: "웹",
+  IOS: "아이폰",
+  ANDROID: "안드로이드",
+  DESKTOP: "PC 프로그램",
+  EXTENSION: "브라우저 확장",
+  PLUGIN: "플러그인",
+};
+
 /**
  * 리뷰 목록에 띄울 작성자 표시명.
  *

@@ -10,7 +10,7 @@
  * "지금 무슨 순위를 보고 있는지"와 "반대쪽에는 뭐가 있는지"가 동시에 보여야 한다.
  * ------------------------------------------------------------------------- */
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
 import type { ScoreType } from "@/db/schema";
 import { parseScoreType } from "@/lib/params";
@@ -26,6 +26,8 @@ export default function ScoreTypeSwitch({
   totals: Record<ScoreType, number>;
 }) {
   const router = useRouter();
+  // 경로를 박지 않는다 — 이 스위치는 랭킹이 어느 URL에 있든 그 자리에 머문다.
+  const pathname = usePathname();
   const params = useSearchParams();
   const [pending, startTransition] = useTransition();
 
@@ -35,7 +37,7 @@ export default function ScoreTypeSwitch({
     if (value === current) return;
     const next = new URLSearchParams(params.toString());
     next.set("type", value);
-    startTransition(() => router.replace(`/?${next.toString()}`, { scroll: false }));
+    startTransition(() => router.replace(`${pathname}?${next.toString()}`, { scroll: false }));
   }
 
   return (

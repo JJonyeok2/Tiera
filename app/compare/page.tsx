@@ -30,8 +30,8 @@ export default async function ComparePage({
         <p className="text-sm text-[var(--color-text-dim)]">
           비교하려면 모델을 2개 이상 선택해야 합니다. (최대 {MAX_COMPARE_MODELS}개)
         </p>
-        <Link href="/" className="mt-3 inline-block text-xs text-[var(--color-tier-prism)] hover:underline">
-          랭킹에서 고르기
+        <Link href="/models" className="mt-3 inline-block text-xs text-[var(--color-tier-prism)] hover:underline">
+          모델 순위에서 고르기
         </Link>
       </div>
     );
@@ -53,8 +53,8 @@ export default async function ComparePage({
   return (
     <div className="space-y-8 py-7">
       <header>
-        <Link href="/" className="text-xs text-[var(--color-text-mute)] hover:underline">
-          ← 랭킹으로
+        <Link href="/models" className="text-xs text-[var(--color-text-mute)] hover:underline">
+          ← 모델 순위로
         </Link>
         <h1 className="mt-2 text-2xl font-bold">모델 비교</h1>
       </header>

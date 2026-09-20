@@ -10,31 +10,39 @@ test("robots.txt가 크롤링을 허용하고 sitemap을 가리킨다", async ({
   expect(body).toMatch(/Sitemap: https?:\/\/.+\/sitemap\.xml/);
 });
 
-test("sitemap에 모델 상세가 들어간다", async ({ request }) => {
+test("sitemap에 도구와 모델 상세가 모두 들어간다", async ({ request }) => {
   const res = await request.get("/sitemap.xml");
   expect(res.status()).toBe(200);
   const xml = await res.text();
   // 정적 페이지 3개만 들어 있으면 DB 조회가 조용히 실패한 것이다
   expect((xml.match(/<url>/g) ?? []).length).toBeGreaterThan(3);
   expect(xml).toContain("/models/");
+  // 도구가 빠지면 일반 질의("발표자료 AI 추천") 유입 경로가 통째로 사라진다
+  expect(xml).toContain("/tools/");
 });
 
-test("검색 결과 페이지는 색인에서 빼고, 목록은 canonical을 루트로 고정한다", async ({ page }) => {
+test("검색 결과 페이지는 색인에서 빼고, 목록은 canonical을 고정한다", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator('link[rel="canonical"]')).toHaveCount(1);
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /index, follow/);
 
-  // 필터 조합마다 URL이 갈라져도 정본은 하나여야 한다
-  await page.goto("/?type=BENCHMARK&scope=CODING");
-  const canonical = await page.locator('link[rel="canonical"]').getAttribute("href");
-  expect(canonical).not.toContain("scope=");
+  // 용도 탭마다 URL이 갈라져도 정본은 하나여야 한다
+  await page.goto("/?for=IMAGE");
+  const homeCanonical = await page.locator('link[rel="canonical"]').getAttribute("href");
+  expect(homeCanonical).not.toContain("for=");
 
   await page.goto("/?q=claude");
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+
+  // 모델 랭킹도 같은 규칙을 따른다
+  await page.goto("/models?type=BENCHMARK&scope=CODING");
+  const canonical = await page.locator('link[rel="canonical"]').getAttribute("href");
+  expect(canonical).toContain("/models");
+  expect(canonical).not.toContain("scope=");
 });
 
 test("모델 상세는 구조화 데이터를 내보내고, 리뷰가 없으면 별점을 넣지 않는다", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/models");
   await page.locator("main ul > li a").first().click();
   await expect(page).toHaveURL(/\/models\//);
 
@@ -73,6 +81,7 @@ test("없는 페이지는 200이 아니라 404를 준다", async ({ request }) =
   // 스트리밍은 본문보다 헤더가 먼저 나가서 뒤늦은 notFound()가 상태 코드를
   // 바꾸지 못한다. 200을 주는 없는 페이지는 검색엔진에 soft 404로 잡힌다.
   expect((await request.get("/models/definitely-not-a-real-model")).status()).toBe(404);
+  expect((await request.get("/tools/definitely-not-a-real-tool")).status()).toBe(404);
   expect((await request.get("/이런-경로는-없다")).status()).toBe(404);
 });
 

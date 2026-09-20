@@ -1,6 +1,6 @@
 /* Header: URL 쿼리 파싱 — 화이트리스트 방식.
    사용자 입력을 그대로 SQL 정렬/필터에 넘기지 않기 위해 반드시 여기를 통과시킨다. */
-import type { Country, ScoreScope, ScoreType } from "@/db/schema";
+import type { Country, ScoreScope, ScoreType, ToolOrigin, ToolPurpose } from "@/db/schema";
 
 const SCORE_TYPES: ScoreType[] = ["COMMUNITY", "BENCHMARK"];
 const SCOPES: ScoreScope[] = ["OVERALL", "CODING", "WRITING", "REASONING", "MULTIMODAL"];
@@ -46,5 +46,38 @@ export function parseOffset(v: unknown): number {
   return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 0;
 }
 
-export { SCOPES, COUNTRIES };
+// --- 도구 ------------------------------------------------------------------
+
+/** 용도 탭의 순서. 화면에 이 순서 그대로 나간다. */
+const PURPOSES: ToolPurpose[] = [
+  "CHAT",
+  "RESEARCH",
+  "TRANSLATE",
+  "SLIDES",
+  "NOTE",
+  "IMAGE",
+  "VIDEO",
+  "AVATAR",
+  "AUDIO",
+  "CODE",
+];
+
+const ORIGINS: ToolOrigin[] = ["KR", "GLOBAL"];
+
+/**
+ * 용도 필터.
+ *
+ * 모델 쪽 parseScope와 달리 **기본값이 없다(undefined = 전체)**.
+ * 도구 목록의 첫 화면은 "전체"여야 한다. 잘 모르는 사람이 들어왔을 때
+ * 특정 용도가 먼저 선택돼 있으면, 그 탭에 없는 도구는 사이트에 없는 것이 된다.
+ */
+export function parseToolPurpose(v: unknown): ToolPurpose | undefined {
+  return PURPOSES.includes(v as ToolPurpose) ? (v as ToolPurpose) : undefined;
+}
+
+export function parseToolOrigin(v: unknown): ToolOrigin | undefined {
+  return ORIGINS.includes(v as ToolOrigin) ? (v as ToolOrigin) : undefined;
+}
+
+export { SCOPES, COUNTRIES, PURPOSES };
 /* Footer: lib/params.ts */

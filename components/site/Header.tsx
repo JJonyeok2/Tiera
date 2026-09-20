@@ -8,7 +8,11 @@
    사이트의 핵심 축이 테마·로그인 버튼 옆에 있으면 유틸리티처럼 보인다.
 
    검색어는 URL 쿼리에 반영한다. 공유 가능한 링크가 되어야 하고,
-   뒤로가기가 기대대로 동작해야 하기 때문이다. */
+   뒤로가기가 기대대로 동작해야 하기 때문이다.
+
+   검색은 홈(도구)과 /models(모델) 두 곳에서 동작한다. 찾는 대상이 다르므로
+   안내 문구도 다르다. 이동 경로는 pathname을 그대로 쓴다 — '/'를 박아 두면
+   /models에서 검색할 때마다 도구 목록으로 튕긴다. */
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -42,43 +46,44 @@ export default function Header({
       const next = new URLSearchParams(params.toString());
       if (q.trim()) next.set("q", q.trim());
       else next.delete("q");
-      startTransition(() => router.replace(`/?${next.toString()}`, { scroll: false }));
+      startTransition(() => router.replace(`${pathname}?${next.toString()}`, { scroll: false }));
     }, 300);
     return () => clearTimeout(t);
-  }, [q, params, router]);
+  }, [q, params, router, pathname]);
 
 
 
-  const onHome = pathname === "/";
+  // 검색이 의미 있는 두 화면. 상세·비교·소개에서는 입력창을 띄우지 않는다.
+  const searchable = pathname === "/" || pathname === "/models";
+  const placeholder = pathname === "/models" ? "모델 또는 개발사 검색" : "도구 검색";
 
   return (
     <header className="sticky top-0 z-30 border-b border-[var(--color-line)] bg-[var(--color-bg)]/92 backdrop-blur">
       <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-x-4 gap-y-3 px-4 py-3 sm:px-6">
         <Link href="/" className="flex shrink-0 items-center gap-2">
           <TierStar tier="prism" size={24} />
-          <span className="text-[17px] font-bold tracking-tight">Tiera</span>
+          {/* leading-none이 없으면 줄상자(기본 line-height)가 글자보다 커서,
+              박스를 기준으로 정렬해도 글자가 별보다 아래로 내려앉아 보인다. */}
+          <span className="text-[17px] font-bold leading-none tracking-tight">Tiera</span>
         </Link>
 
-        {onHome && (
-          <>
-            <div className="order-3 w-full sm:order-none sm:w-auto sm:flex-1">
-              <label className="sr-only" htmlFor="model-search">
-                모델 또는 개발사 검색
-              </label>
-              <input
-                id="model-search"
-                type="search"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="모델 또는 개발사 검색"
-                className="w-full rounded-full border border-[var(--color-line)] bg-[var(--color-surface)] px-4 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-mute)] focus:border-[var(--color-tier-prism)] focus:outline-none"
-              />
-            </div>
-
-          </>
+        {searchable && (
+          <div className="order-3 w-full sm:order-none sm:w-auto sm:flex-1">
+            <label className="sr-only" htmlFor="site-search">
+              {placeholder}
+            </label>
+            <input
+              id="site-search"
+              type="search"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder={placeholder}
+              className="w-full rounded-full border border-[var(--color-line)] bg-[var(--color-surface)] px-4 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-mute)] focus:border-[var(--color-tier-prism)] focus:outline-none"
+            />
+          </div>
         )}
 
-        <div className={`flex shrink-0 items-center gap-3 ${onHome ? "" : "ml-auto"}`}>
+        <div className={`flex shrink-0 items-center gap-3 ${searchable ? "" : "ml-auto"}`}>
           {themeToggle}
           {userMenu}
         </div>

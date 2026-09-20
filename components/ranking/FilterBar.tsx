@@ -1,13 +1,18 @@
 "use client";
-/* Header: 국가 칩 + 카테고리 탭. 상태는 전부 URL 쿼리에 있다. */
+/* Header: 국가 칩 + 카테고리 탭. 상태는 전부 URL 쿼리에 있다.
 
-import { useRouter, useSearchParams } from "next/navigation";
+   경로는 usePathname으로 받는다. 예전에는 '/'를 박아 뒀는데, 랭킹이 /models로
+   옮겨가면서 그대로 뒀다면 필터를 누를 때마다 도구 목록으로 튕겼을 것이다.
+   화면이 어디 붙어 있는지를 컴포넌트가 알 필요가 없다. */
+
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
 import { COUNTRIES, SCOPES } from "@/lib/params";
 import { CATEGORY_LABEL, COUNTRY_LABEL } from "@/lib/labels";
 
 export default function FilterBar() {
   const router = useRouter();
+  const pathname = usePathname();
   const params = useSearchParams();
   const [pending, startTransition] = useTransition();
 
@@ -18,7 +23,7 @@ export default function FilterBar() {
     const next = new URLSearchParams(params.toString());
     if (value) next.set(key, value);
     else next.delete(key);
-    startTransition(() => router.replace(`/?${next.toString()}`, { scroll: false }));
+    startTransition(() => router.replace(`${pathname}?${next.toString()}`, { scroll: false }));
   }
 
   return (

@@ -1,8 +1,12 @@
 /* ---------------------------------------------------------------------------
  * Header: sitemap.xml 생성.
  *
- * 이 사이트의 검색 유입은 대부분 개별 모델 페이지에서 나온다("EXAONE 4.5 성능"
- * 같은 롱테일 질의). 그래서 모델 상세를 전부 sitemap에 올린다.
+ * 검색 유입은 개별 상세 페이지에서 나온다. 모델은 "EXAONE 4.5 성능" 같은
+ * 개발자 질의, 도구는 "발표자료 AI 추천" 같은 일반 질의다. 둘 다 올린다.
+ *
+ * 도구는 모델과 달리 점수가 없어도 올린다. 모델 상세는 점수가 없으면 "데이터 없음"만
+ * 찍힌 빈 문서지만, 도구 상세는 후기가 0개여도 설명·시작법·가격·한국어가 전부 차 있다.
+ * 얇은 문서가 아니므로 뺄 이유가 없다.
  *
  * DB를 읽으므로 빌드 타임이 아니라 요청 시점에 만든다. 모델이 동기화로 계속
  * 늘어나는데 빌드 시점에 고정하면 새 모델이 색인되지 않는다.
@@ -28,6 +32,7 @@ const DB_TIMEOUT_MS = 5000;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     { url: absoluteUrl("/"), changeFrequency: "daily", priority: 1 },
+    { url: absoluteUrl("/models"), changeFrequency: "daily", priority: 0.7 },
     { url: absoluteUrl("/about"), changeFrequency: "monthly", priority: 0.5 },
   ];
 
@@ -35,15 +40,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // db를 최상단에서 import하지 않는다. 접속 주소가 없으면 import 시점에 던지는데,
     // 그러면 이 try/catch가 잡지 못하고 sitemap 라우트가 통째로 죽는다.
     const { db } = await import("@/db");
-    const query = db.execute<{ slug: string; created_at: Date }>(sql`
-      SELECT m.slug, m.created_at
-      FROM model m
-      WHERE m.is_published
-        AND EXISTS (SELECT 1 FROM model_score s WHERE s.model_id = m.id)
-      ORDER BY m.created_at DESC
-    `);
+    const query = Promise.all([
+      db.execute<{ slug: string; created_at: Date }>(sql`
+        SELECT m.slug, m.created_at
+        FROM model m
+        WHERE m.is_published
+          AND EXISTS (SELECT 1 FROM model_score s WHERE s.model_id = m.id)
+        ORDER BY m.created_at DESC
+      `),
+      db.execute<{ slug: string; created_at: Date }>(sql`
+        SELECT t.slug, t.created_at
+        FROM tool t
+        WHERE t.is_published
+        ORDER BY t.created_at DESC
+      `),
+    ]);
 
-    const res = await Promise.race([
+    const [modelRes, toolRes] = await Promise.race([
       query,
       new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error("sitemap db timeout")), DB_TIMEOUT_MS)
@@ -52,7 +65,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     return [
       ...staticPages,
-      ...(res.rows ?? []).map((m) => ({
+      // 도구를 모델보다 위·높은 우선순위로 둔다. 이제 이쪽이 사이트의 정면이다.
+      ...(toolRes.rows ?? []).map((t) => ({
+        url: absoluteUrl(`/tools/${t.slug}`),
+        lastModified: new Date(t.created_at),
+        changeFrequency: "weekly" as const,
+        priority: 0.9,
+      })),
+      ...(modelRes.rows ?? []).map((m) => ({
         url: absoluteUrl(`/models/${m.slug}`),
         lastModified: new Date(m.created_at),
         changeFrequency: "weekly" as const,

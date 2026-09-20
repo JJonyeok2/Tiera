@@ -74,8 +74,8 @@ export default async function ModelPage({ params }: { params: Promise<{ slug: st
     <article className="space-y-8 py-7">
       <JsonLd data={modelJsonLd(model)} />
       <header className="space-y-2">
-        <Link href="/" className="text-xs text-[var(--color-text-mute)] hover:underline">
-          ← 랭킹으로
+        <Link href="/models" className="text-xs text-[var(--color-text-mute)] hover:underline">
+          ← 모델 순위로
         </Link>
         <div className="flex flex-wrap items-center gap-2">
           <h1 className="text-2xl font-bold">{model.name}</h1>
