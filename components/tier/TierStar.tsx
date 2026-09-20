@@ -14,7 +14,14 @@
 // 별 실루엣을 따라 번지는 형태라서 그렇다. 블러는 비싸므로
 // 별이 여러 개 깔리는 리스트에서는 기본값(false)을 유지한다.
 
-import { FACET_POINTS, SPINES, TIER_ART, TIER_LABEL, glowFilter, type Tier } from "./tierTokens";
+import {
+  FACET_POINTS,
+  SPINES,
+  TIER_ART,
+  TIER_LABEL,
+  glowFilter,
+  type Tier,
+} from "./tierTokens";
 
 /** 이 크기 미만에서는 능선/중심점이 서브픽셀이라 보이지 않으므로 그리지 않는다 */
 const DETAIL_MIN_PX = 28;
