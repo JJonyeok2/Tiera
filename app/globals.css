@@ -132,6 +132,24 @@ body * {
   transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
 }
 
+/* 카드 진입 애니메이션 — 37장이 한 번에 툭 나타나면 화면이 깜빡인 것처럼 보인다.
+   순서대로 아주 짧게 올라오면 '목록이 채워졌다'로 읽힌다.
+   reduced-motion에서는 아래 블록이 통째로 끈다. */
+@keyframes tiera-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.tiera-rise {
+  animation: tiera-rise 260ms ease-out both;
+}
+
 /* 브랜드 그라데이션 — Figma 브랜드 보드의 PRISM 토큰 (#7B68FF → #FFB868). */
 .brand-gradient-text {
   background: linear-gradient(90deg, #7b68ff 0%, #ffb868 100%);
@@ -152,6 +170,13 @@ body * {
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+  /* 애니메이션을 0으로 줄이면 both 때문에 시작 프레임(투명)에 멈출 수 있다.
+     끌 때는 최종 상태를 직접 박아준다. */
+  .tiera-rise {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
   }
 }
 /* Footer: app/globals.css */

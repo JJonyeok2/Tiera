@@ -63,11 +63,15 @@ export default async function HomePage({
     <>
       <JsonLd data={websiteJsonLd()} />
 
-      <section className="pt-7">
-        <h1 className="text-lg font-bold tracking-tight text-[var(--color-text)]">
-          어떤 AI를 써야 할지 모르겠을 때
+      {/* 히어로. 스크롤한 상태에서 탭을 눌러도 제목이 sticky 헤더에 먹히지 않도록
+          scroll-mt를 준다 — 실제로 잘린 채로 보이는 걸 스크린샷에서 확인했다. */}
+      <section className="scroll-mt-20 pb-1 pt-9">
+        <h1 className="text-[26px] font-bold leading-[1.3] tracking-tight text-[var(--color-text)] sm:text-[30px]">
+          어떤 AI를 써야 할지
+          <br className="sm:hidden" />
+          <span className="brand-gradient-text"> 모르겠을 때</span>
         </h1>
-        <p className="mt-1.5 text-xs leading-relaxed text-[var(--color-text-dim)]">
+        <p className="mt-2.5 max-w-xl text-sm leading-relaxed text-[var(--color-text-dim)]">
           쓸 일부터 고르면 된다. 돈이 드는지, 한국어가 되는지 먼저 적어 뒀다.
         </p>
       </section>
@@ -76,20 +80,32 @@ export default async function HomePage({
         <PurposeTabs totals={totals} allCount={all.length} />
       </Suspense>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
+      {/* 탭과 다른 줄, 다른 모양으로 둔다.
+          같은 알약 모양이면 '용도 탭 하나'로 읽혀서, 한국 필터가 탭 목록에
+          섞여 들어간 것처럼 보였다. 여기는 가로선 위의 도구 모음이다. */}
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-[var(--color-line-soft)] pt-3">
+        <p className="text-[11px] text-[var(--color-text-mute)]">
+          {purpose ? PURPOSE_HINT[purpose] : "쓸 일을 고르거나 검색해 보세요"}
+        </p>
+
         <Link
           href={origin === "KR" ? "/" : "/?origin=KR"}
-          className={`rounded-full border px-3 py-1.5 text-xs transition ${
+          aria-pressed={origin === "KR"}
+          className={`ml-auto flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] transition ${
             origin === "KR"
-              ? "border-[var(--color-tier-prism)] bg-[var(--color-surface-2)] text-[var(--color-text)]"
-              : "border-[var(--color-line)] text-[var(--color-text-dim)] hover:border-[var(--color-text-mute)]"
+              ? "bg-[var(--color-tier-prism)]/12 text-[var(--color-tier-prism)]"
+              : "text-[var(--color-text-mute)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text-dim)]"
           }`}
         >
-          국산만 <span className="tabular-nums text-[10px] text-[var(--color-text-mute)]">{krCount}</span>
+          <span
+            aria-hidden="true"
+            className={`h-1.5 w-1.5 rounded-full ${
+              origin === "KR" ? "bg-[var(--color-tier-prism)]" : "bg-[var(--color-text-mute)]/50"
+            }`}
+          />
+          한국에서 만든 것만
+          <span className="tabular-nums opacity-70">{krCount}</span>
         </Link>
-        <p className="text-[11px] text-[var(--color-text-mute)]">
-          {purpose ? PURPOSE_HINT[purpose] : `도구 ${all.length}개`}
-        </p>
       </div>
 
       {tools.length === 0 ? (
@@ -107,22 +123,29 @@ export default async function HomePage({
           )}
         </div>
       ) : (
-        <ul className="mt-5 grid gap-3 sm:grid-cols-2">
-          {tools.map((t) => (
+        <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+          {tools.map((t, i) => (
             <li key={t.slug} className="flex">
-              <ToolCard tool={t} />
+              <ToolCard tool={t} index={i} />
             </li>
           ))}
         </ul>
       )}
 
-      {/* 개발자용 입구. 일반인은 안 눌러도 되지만, 궁금한 사람은 여기로 내려간다. */}
-      <div className="mt-10 border-t border-[var(--color-line-soft)] pt-5">
+      {/* 개발자용 입구. 일반인은 안 눌러도 되지만, 궁금한 사람은 여기로 내려간다.
+          목록 끝에 붙는 마무리이므로 카드보다 조용해야 한다. */}
+      <div className="mt-12 border-t border-[var(--color-line-soft)] pt-6">
         <Link
           href="/models"
-          className="text-xs text-[var(--color-text-mute)] transition hover:text-[var(--color-text-dim)]"
+          className="group inline-flex items-center gap-1.5 text-xs text-[var(--color-text-mute)] transition hover:text-[var(--color-text-dim)]"
         >
-          모델 단위로 보기 — 벤치마크·커뮤니티 순위 →
+          모델 단위로 보기 — 벤치마크·커뮤니티 순위
+          <span
+            aria-hidden="true"
+            className="transition-transform duration-200 group-hover:translate-x-0.5"
+          >
+            →
+          </span>
         </Link>
       </div>
     </>

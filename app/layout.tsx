@@ -21,12 +21,14 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
+  // 사이트가 모델 순위표에서 도구 정보방으로 바뀌었는데 키워드는 옛 주제 그대로였다.
+  // ('국산'은 화면 문구에서 뺐으므로 여기서도 쓰지 않는다.)
   keywords: [
+    "AI 도구 추천",
+    "무료 AI 도구",
+    "한국어 AI",
+    "대학생 AI",
     "AI 모델 순위",
-    "LLM 비교",
-    "AI 벤치마크",
-    "GPT Claude Gemini 비교",
-    "국산 LLM",
     "AI 티어표",
   ],
   alternates: { canonical: "/" },

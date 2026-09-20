@@ -112,7 +112,7 @@ export const platformEnum = pgEnum("platform", [
 ]);
 
 /**
- * 국산 여부.
+ * 한국에서 만든 것인지.
  *
  * developer.country(US/CN/KR)로 대신할 수 없다. 도구 제작사에는 캔바(호주),
  * 사이스페이스(인도)처럼 3개국 밖이 섞여 있는데, 우리가 답해야 하는 질문은

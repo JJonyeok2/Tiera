@@ -87,7 +87,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
           <h1 className="text-xl font-bold tracking-tight text-[var(--color-text)]">{tool.name}</h1>
           {tool.origin === "KR" && (
             <span className="rounded border border-[var(--color-tier-prism)] px-1.5 py-0.5 text-[10px] text-[var(--color-tier-prism)]">
-              국산
+              한국
             </span>
           )}
           {tool.studentFree && (

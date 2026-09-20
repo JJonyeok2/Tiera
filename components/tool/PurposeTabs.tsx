@@ -40,7 +40,7 @@ export default function PurposeTabs({
   return (
     <nav
       aria-label="용도"
-      className={`flex flex-wrap gap-1.5 pt-5 transition-opacity ${pending ? "opacity-70" : ""}`}
+      className={`mt-6 flex flex-wrap gap-1.5 transition-opacity ${pending ? "opacity-70" : ""}`}
     >
       <Tab active={!current} label="전체" count={allCount} onClick={() => select(undefined)} />
       {PURPOSES.map((p) => (
@@ -75,16 +75,24 @@ function Tab({
       type="button"
       onClick={onClick}
       aria-current={active ? "page" : undefined}
-      className={`rounded-full border px-3 py-1.5 text-xs transition ${
+      // 선택된 탭은 테두리를 바꾸는 대신 **채운다.** 테두리만 바꾸면 알약 12개
+      // 사이에서 어느 게 켜졌는지 한눈에 안 들어왔다.
+      className={`rounded-full px-3 py-1.5 text-xs transition duration-150 ${
         active
-          ? "border-[var(--color-tier-prism)] bg-[var(--color-surface-2)] text-[var(--color-text)]"
+          ? "bg-[var(--color-text)] font-medium text-[var(--color-bg)]"
           : empty
-            ? "border-[var(--color-line-soft)] text-[var(--color-text-mute)]"
-            : "border-[var(--color-line)] text-[var(--color-text-dim)] hover:border-[var(--color-text-mute)]"
+            ? "text-[var(--color-text-mute)]/60 hover:bg-[var(--color-surface)]"
+            : "text-[var(--color-text-dim)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text)]"
       }`}
     >
       {label}
-      <span className="ml-1.5 tabular-nums text-[10px] text-[var(--color-text-mute)]">{count}</span>
+      <span
+        className={`ml-1.5 tabular-nums text-[10px] ${
+          active ? "opacity-60" : "text-[var(--color-text-mute)]"
+        }`}
+      >
+        {count}
+      </span>
     </button>
   );
 }

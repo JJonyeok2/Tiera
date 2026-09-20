@@ -73,7 +73,9 @@ export const PRICING_LABEL: Record<PricingKind, string> = {
 };
 
 export const KOREAN_LEVEL_LABEL: Record<KoreanLevel, string> = {
-  NATIVE: "한국 서비스",
+  // "한국 서비스"였는데 제작사 배지가 '한국'이 되면서 둘이 같은 말로 보였다.
+  // 배지는 **어디서 만들었나**이고 이 라벨은 **한국어가 되나**다. 다른 질문이다.
+  NATIVE: "한국어 완벽",
   GOOD: "한국어 잘 됨",
   PARTIAL: "한국어 아쉬움",
   NONE: "영어만",

@@ -275,7 +275,7 @@ export const SEED_TOOLS: SeedTool[] = [
     purpose: "TRANSLATE",
     alsoFor: ["CHAT"],
     origin: "KR",
-    summary: "여러 회사의 AI를 무료로 골라 쓸 수 있는 국산 서비스. 가입이 쉽고 전부 한국어다.",
+    summary: "여러 회사의 AI를 무료로 골라 쓸 수 있는 한국 서비스. 가입이 쉽고 전부 한국어다.",
     howToStart: "네이버·카카오·구글 계정으로 간편 가입하면 바로 쓸 수 있다.",
     pricingKind: "FREE",
     priceNote: "무료.",

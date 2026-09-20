@@ -50,14 +50,24 @@ test("탭에 적힌 숫자와 실제 목록 개수가 같다", async ({ page }) 
   await expect(page.locator("main ul > li")).toHaveCount(claimed);
 });
 
-test("국산 필터가 국산만 남긴다", async ({ page }) => {
+test("한국 필터가 한국 도구만 남긴다", async ({ page }) => {
   await page.goto("/?origin=KR");
   const cards = page.locator("main ul > li");
   const n = await cards.count();
   expect(n).toBeGreaterThan(5);
   for (let i = 0; i < n; i++) {
-    await expect(cards.nth(i)).toContainText("국산");
+    await expect(cards.nth(i)).toContainText("한국");
   }
+});
+
+test("제작사 배지와 한국어 지원 라벨이 서로 다른 말을 쓴다", async ({ page }) => {
+  // 배지는 '어디서 만들었나', 라벨은 '한국어가 되나'다. 둘 다 '한국 서비스'였을 때
+  // 같은 뜻으로 읽혔다. 한 카드 안에서 구분이 서는지 본다.
+  await page.goto("/?origin=KR");
+  const card = page.locator("main ul > li", { hasText: "클로바노트" });
+  await expect(card).toContainText("한국");
+  await expect(card).toContainText("한국어 완벽");
+  await expect(card).not.toContainText("한국 서비스");
 });
 
 test("유료·체험만 도구는 목록에서 미리 경고한다", async ({ page }) => {

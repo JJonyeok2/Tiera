@@ -163,7 +163,7 @@ export async function seedTools(db: Db) {
     "용도별: " +
       [...byPurpose.entries()].map(([p, n]) => `${p} ${n}`).join(" · ")
   );
-  console.log(`국산 ${SEED_TOOLS.filter((t) => t.origin === "KR").length}개`);
+  console.log(`한국 제작 ${SEED_TOOLS.filter((t) => t.origin === "KR").length}개`);
   console.log(
     `한국어 미확인 ${SEED_TOOLS.filter((t) => t.koreanLevel === "UNKNOWN").length}개 ` +
       `(화면에 "확인 중"으로 나갑니다)`
