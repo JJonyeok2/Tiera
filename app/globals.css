@@ -12,6 +12,9 @@
  * 대비 1.4:1이라 글자로 쓰면 사실상 안 보인다. 라이트 전용 값을 따로 둔 이유다.
  * ------------------------------------------------------------------------- */
 @import "tailwindcss";
+/* Pretendard를 tailwind 뒤에 불러온다 — @font-face 선언만 있어 순서에 영향받지 않지만,
+   빌드 산출물에서 폰트 블록이 한군데 모여 있어야 찾기 쉽다. */
+@import "./pretendard.css";
 
 @theme {
   --color-bg: var(--c-bg);
@@ -32,8 +35,11 @@
   --color-up: var(--c-up);
   --color-down: var(--c-down);
 
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Pretendard,
-    "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  /* Pretendard가 먼저다. 예전 스택은 Pretendard를 Segoe UI 뒤에 뒀는데,
+     웹폰트로 싣지도 않았으면서 뒤에 두기까지 해서 윈도우에서는 한 번도
+     쓰이지 않았다. 뒤쪽은 폰트를 받는 동안(swap)과 실패했을 때의 대비책이다. */
+  --font-sans: "Pretendard Variable", Pretendard, ui-sans-serif, system-ui,
+    -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
 }
 
 /* --- 1. 라이트 (기본) ---------------------------------------------------- */
@@ -124,6 +130,12 @@ body {
   color: var(--c-text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  /* 한글은 라틴보다 글자 폭이 꽉 차서, 같은 자간이면 답답해 보인다.
+     아주 살짝 벌리면 본문 가독성이 눈에 띄게 올라간다. */
+  letter-spacing: -0.003em;
+  /* 한글에서 단어 중간이 잘리지 않게. 긴 도구 설명이 카드 안에서 접힌다. */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* 테마 전환 시 색이 툭 바뀌지 않도록. reduced-motion에서는 아래에서 꺼진다. */

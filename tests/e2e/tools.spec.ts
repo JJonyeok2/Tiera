@@ -181,4 +181,26 @@ test("모델 순위에서 검색해도 홈으로 튕기지 않는다", async ({ 
   await page.fill("#site-search", "deep");
   await expect(page).toHaveURL(/\/models\?.*q=deep/, { timeout: 5000 });
 });
+
+test("Pretendard가 실제로 적용된다", async ({ page }) => {
+  // CSS만 넣고 정작 안 쓰이는 경우가 흔하다. 파일이 200을 주는지가 아니라
+  // 브라우저가 **로드해서 쓰고 있는지**를 본다.
+  await page.goto("/", { waitUntil: "networkidle" });
+  const r = await page.evaluate(async () => {
+    await document.fonts.ready;
+    const loaded: string[] = [];
+    document.fonts.forEach((f) => {
+      if (f.status === "loaded") loaded.push(f.family);
+    });
+    return {
+      family: getComputedStyle(document.body).fontFamily,
+      hasPretendard: loaded.some((x) => x.includes("Pretendard")),
+      // 동적 서브셋이라 92개 전부가 아니라 쓰인 범위만 받아야 한다.
+      loadedCount: loaded.length,
+    };
+  });
+  expect(r.hasPretendard).toBe(true);
+  expect(r.family).toContain("Pretendard");
+  expect(r.loadedCount).toBeLessThan(92);
+});
 /* Footer: tests/e2e/tools.spec.ts */
