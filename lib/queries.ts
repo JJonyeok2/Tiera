@@ -463,7 +463,7 @@ export async function getTools(params: ToolListParams = {}): Promise<ToolListRow
     WHERE t.is_published
       ${purpose ? sql`AND (t.purpose = ${purpose}::tool_purpose OR ${purpose}::tool_purpose = ANY(t.also_for))` : sql``}
       ${origin ? sql`AND t.origin = ${origin}::tool_origin` : sql``}
-      ${like ? sql`AND (LOWER(t.name) LIKE ${like} OR LOWER(t.maker) LIKE ${like} OR LOWER(t.summary) LIKE ${like})` : sql``}
+      ${like ? sql`AND (LOWER(t.name) LIKE ${like} OR LOWER(t.maker) LIKE ${like} OR LOWER(t.summary) LIKE ${like} OR LOWER(array_to_string(t.aliases, ' ')) LIKE ${like})` : sql``}
     ORDER BY
       -- 티어를 띄울 만큼 후기가 쌓인 것만 위로 올린다.
       -- 단순히 "점수가 있으면" 으로 하면 후기 1개짜리가 37개 위에 앉는다.
@@ -515,7 +515,7 @@ export async function getPurposeTotals(
     CROSS JOIN LATERAL unnest(ARRAY[t.purpose] || t.also_for) AS p
     WHERE t.is_published
       ${origin ? sql`AND t.origin = ${origin}::tool_origin` : sql``}
-      ${like ? sql`AND (LOWER(t.name) LIKE ${like} OR LOWER(t.maker) LIKE ${like} OR LOWER(t.summary) LIKE ${like})` : sql``}
+      ${like ? sql`AND (LOWER(t.name) LIKE ${like} OR LOWER(t.maker) LIKE ${like} OR LOWER(t.summary) LIKE ${like} OR LOWER(array_to_string(t.aliases, ' ')) LIKE ${like})` : sql``}
     GROUP BY p
   `);
 

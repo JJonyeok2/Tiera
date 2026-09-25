@@ -75,7 +75,7 @@ export default function ToolReviewSection({
       setItems((prev) => (offset === 0 ? json.data : [...prev, ...json.data]));
       setCount(json.meta.total);
     } catch {
-      setError("후기를 불러오지 못했습니다.");
+      setError("후기를 불러오지 못했어요.");
       setLastAttempt({ sort: nextSort, offset });
     } finally {
       setLoading(false);
@@ -142,7 +142,7 @@ export default function ToolReviewSection({
       <ul className="mt-4 space-y-3">
         {items.length === 0 && (
           <li className="py-8 text-center text-xs text-[var(--color-text-mute)]">
-            아직 후기가 없습니다. 첫 후기를 남겨보세요.
+            아직 후기가 없어요. 첫 후기를 남겨보세요.
           </li>
         )}
         {items.map((r) => (

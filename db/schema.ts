@@ -422,6 +422,16 @@ export const tools = pgTable(
     logoUrl: text("logo_url"),
     platforms: platformEnum("platforms").array().notNull().default(["WEB"]),
 
+    /**
+     * 검색용 다른 이름. **화면에는 나오지 않는다.**
+     *
+     * 이게 없으면 목록이 사람을 놓친다. 제일 많이 쓰이는 이름이 우리 name과
+     * 다른 경우가 실제로 있다 — name은 "제미나이 노트북"인데 사람들은
+     * "노트북LM"으로 검색한다. 있는데 없는 것처럼 보이는 게 제일 나쁜 결과다.
+     * 한글 표기·영문 표기·옛 이름·흔한 오타를 담는다.
+     */
+    aliases: text("aliases").array().notNull().default([]),
+
     /** 카드에 크게 띄울 주의사항. 무료로 오해하기 쉬운 것 등. */
     caution: text("caution"),
 

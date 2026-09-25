@@ -125,7 +125,7 @@ test("도구 상세에서 그 도구가 쓰는 모델로 내려갈 수 있다", 
 
 test("후기가 없으면 별점을 지어내지 않는다", async ({ page }) => {
   await page.goto("/tools/suno");
-  await expect(page.locator("main")).toContainText("아직 후기가 없습니다");
+  await expect(page.locator("main")).toContainText("아직 후기가 없어요");
   // 구조화 데이터에 aggregateRating이 새어나가면 검색엔진 스팸이고
   // 도메인 단위로 불이익을 받는다.
   const scripts = await page.locator('script[type="application/ld+json"]').allTextContents();
@@ -179,7 +179,11 @@ test("모델 순위에서 검색해도 홈으로 튕기지 않는다", async ({ 
   // 한 글자 칠 때마다 도구 목록으로 쫓겨났을 것이다.
   await page.goto("/models");
   await page.fill("#site-search", "deep");
-  await expect(page).toHaveURL(/\/models\?.*q=deep/, { timeout: 5000 });
+  // URL 갱신이 startTransition 안에 있어서, 주소가 바뀌기 전에 /models의 RSC
+  // 응답을 한 번 기다린다. 이 파일 전체를 연달아 돌리면 5초를 넘겨 간헐적으로
+  // 깨졌다 — 느린 것이지 틀린 게 아니다. 이 테스트가 보는 건 속도가 아니라
+  // **검색이 /models에 머무는가**이므로 여유를 준다.
+  await expect(page).toHaveURL(/\/models\?.*q=deep/, { timeout: 15_000 });
 });
 
 test("Pretendard가 실제로 적용된다", async ({ page }) => {

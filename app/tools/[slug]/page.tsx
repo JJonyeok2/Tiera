@@ -2,7 +2,7 @@
  * Header: /tools/[slug] — 도구 상세. SPEC 23.5.
  *
  * 답해야 하는 질문 순서가 곧 화면 순서다:
- *   뭘 해주나 → 어떻게 시작하나 → 돈이 드나 → 한국어가 되나 → 이게 쓰는 모델
+ *   뭘 해주나요 → 어떻게 시작하나요 → 돈이 드나요 → 한국어가 되나요 → 이게 쓰는 모델
  *
  * "이 도구가 쓰는 모델" 섹션이 일반인 층과 개발자 층을 잇는 유일한 지점이다.
  * 일반인은 안 눌러도 되고, 궁금한 사람은 거기서 벤치마크까지 내려간다.
@@ -162,23 +162,23 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
           </dl>
           <p className="mt-2 text-[11px] text-[var(--color-text-mute)]">
             {tool.reviewCount < TOOL_MIN_REVIEWS_FOR_TIER
-              ? `후기 ${TOOL_MIN_REVIEWS_FOR_TIER}개부터 티어를 매깁니다. 지금 숫자는 ${tool.reviewCount}명이 매긴 값 그대로입니다.`
-              : "후기가 적을수록 점수는 전체 평균 쪽으로 당겨집니다. 소수 의견이 순위를 뒤집지 않게 하기 위한 보정입니다."}
+              ? `후기 ${TOOL_MIN_REVIEWS_FOR_TIER}개부터 티어를 매겨요. 지금 숫자는 ${tool.reviewCount}명이 매긴 값 그대로예요.`
+              : "후기가 적을수록 점수를 전체 평균 쪽으로 당겨요. 몇 명 의견이 순위를 뒤집지 않게 하려는 보정이에요."}
           </p>
         </Section>
       )}
 
-      <Section title="뭘 해주나">
+      <Section title="뭘 해주나요">
         <p>{tool.summary}</p>
       </Section>
 
       {tool.howToStart && (
-        <Section title="어떻게 시작하나">
+        <Section title="어떻게 시작하나요">
           <p>{tool.howToStart}</p>
         </Section>
       )}
 
-      <Section title="돈이 드나">
+      <Section title="돈이 드나요">
         <p>
           <strong className="font-semibold text-[var(--color-text)]">
             {PRICING_LABEL[tool.pricingKind]}
@@ -187,7 +187,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
         </p>
       </Section>
 
-      <Section title="한국어가 되나">
+      <Section title="한국어가 되나요">
         <p>
           <strong className="font-semibold text-[var(--color-text)]">
             {KOREAN_LEVEL_LABEL[tool.koreanLevel]}
@@ -196,7 +196,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
         </p>
       </Section>
 
-      <Section title="어디서 쓰나">
+      <Section title="어디서 쓰나요">
         <p>{tool.platforms.map((p) => PLATFORM_LABEL[p]).join(" · ")}</p>
         <a
           href={tool.siteUrl}
@@ -212,7 +212,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
       {tool.models.length > 0 && (
         <Section title="이 도구가 쓰는 모델">
           <p className="text-[var(--color-text-mute)]">
-            안에서 돌아가는 AI 모델이다. 몰라도 쓰는 데 지장은 없다.
+            안에서 돌아가는 AI 모델이에요. 몰라도 쓰는 데 지장은 없어요.
           </p>
           <ul className="mt-2.5 space-y-1.5">
             {tool.models.map((m) => (

@@ -29,6 +29,13 @@
       "when": 1789929713031,
       "tag": "0003_lucky_midnight",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790352740571,
+      "tag": "0004_steep_dust",
+      "breakpoints": true
     }
   ]
 }

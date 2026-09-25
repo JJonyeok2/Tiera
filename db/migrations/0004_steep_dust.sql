@@ -1,0 +1,1 @@
+ALTER TABLE "tool" ADD COLUMN "aliases" text[] DEFAULT '{}' NOT NULL;

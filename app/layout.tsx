@@ -79,7 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Suspense>
         <main className="mx-auto w-full max-w-5xl px-4 pb-24 sm:px-6">{children}</main>
         <footer className="mx-auto w-full max-w-5xl px-4 pb-10 text-xs text-[var(--color-text-mute)] sm:px-6">
-          Tiera는 재미로 보는 AI 티어표입니다. 점수 산정 방식은{" "}
+          Tiera는 재미로 보는 AI 티어표예요. 점수 산정 방식은{" "}
           <a className="underline hover:text-[var(--color-text-dim)]" href="/about">
             여기
           </a>

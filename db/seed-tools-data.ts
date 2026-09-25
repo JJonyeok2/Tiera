@@ -5,7 +5,7 @@
  * 저기 벤치마크 수치는 UI 검증용 예시 값이지만, **여기는 전부 실제 정보다.**
  * 잘 모르는 사람이 이 카드를 읽고 실제로 가입하고 결제한다.
  *
- * 작성 규칙 네 가지 — 어기면 정보방이 아니라 블로그가 된다.
+ * 작성 규칙 다섯 가지 — 어기면 정보방이 아니라 블로그가 된다.
  *
  * 1. **모르면 UNKNOWN을 쓴다.** 확인 못한 걸 그럴듯하게 채우지 않는다.
  *    koreanLevel: "UNKNOWN"이 화면에 "확인 중"으로 나가는 게, 틀린 "보통"보다 낫다.
@@ -21,8 +21,15 @@
  *
  * 4. **도구와 모델을 섞지 않는다.** Seedance는 도구가 아니라 Dreamina 안의 모델이고,
  *    나노 바나나 2는 Gemini 안의 모델이다. 사람이 여는 것만 여기 들어온다.
+ *    TypeSafe AI의 Jev(2026-09-15 공개)도 같은 이유로 빠져 있다. 글을 쓰지 않고
+ *    YES/NO·점수·선택지만 돌려주는 판단 모델이라 개발자가 API로 붙이는 부품이지,
+ *    일반인이 열어서 쓰는 화면이 없다. 우리 층으로는 model 쪽이다.
  *
- * 조사일 2026-09-20. 모든 항목 웹 검색으로 확인.
+ * 5. **말투는 해요체다.** 이 사이트는 잘 모르는 사람에게 알려주는 곳인데
+ *    "~한다"로 끝내면 교과서가 된다. 사람이 옆에서 말해주는 톤을 유지한다.
+ *    (주석은 예외다. 주석을 읽는 건 개발자지 사용자가 아니다.)
+ *
+ * 조사일 2026-09-20, 코딩 도구 3종 추가 2026-09-25. 모든 항목 웹 검색으로 확인.
  * ------------------------------------------------------------------------- */
 
 import type {
@@ -62,6 +69,15 @@ export interface SeedTool {
   platforms: Platform[];
   /** 카드에 눈에 띄게 띄울 주의사항. 무료로 오해하기 쉬운 것 위주. */
   caution?: string;
+  /**
+   * 검색용 다른 이름.
+   *
+   * 이게 없으면 목록이 사람을 놓친다. "노트북LM"으로 검색하는 사람이 제일 많은데
+   * 우리 name은 "제미나이 노트북"이라 한 건도 안 나온다 — 있는데 없는 것처럼
+   * 보이는 게 제일 나쁜 결과다. 한글 표기·영문 표기·옛 이름·흔한 오타를 넣는다.
+   * 화면에는 안 나온다. 검색에만 쓴다.
+   */
+  aliases?: string[];
 }
 
 export const SEED_TOOLS: SeedTool[] = [
@@ -75,17 +91,18 @@ export const SEED_TOOLS: SeedTool[] = [
     alsoFor: ["IMAGE", "RESEARCH", "CODE"],
     origin: "GLOBAL",
     summary:
-      "가장 많은 사람이 쓰는 AI. 그래서 막혔을 때 검색하면 남들이 써둔 요령이 제일 많이 나온다.",
-    howToStart: "chatgpt.com에 들어가 구글 계정으로 로그인하면 바로 대화할 수 있다.",
+      "가장 많은 사람이 쓰는 AI예요. 그래서 막혔을 때 검색하면 남들이 써둔 요령이 제일 많이 나와요.",
+    howToStart: "chatgpt.com에 들어가서 구글 계정으로 로그인하면 바로 대화할 수 있어요.",
     pricingKind: "FREEMIUM",
-    priceNote: "무료로도 대화는 넉넉하다. 유료는 단계가 여러 개고 자주 바뀐다.",
+    priceNote: "무료로도 대화는 넉넉해요. 유료는 단계가 여러 개고 자주 바뀌어요.",
     koreanLevel: "GOOD",
     koreanNote:
-      "일상 대화·글쓰기는 무리 없다. 학사일정이나 행정 같은 한국 고유 정보는 약하다. 그림 안에 한글을 넣는 능력은 현재 가장 정확하다.",
+      "일상 대화나 글쓰기는 무리 없어요. 학사일정이나 행정 같은 한국 고유 정보는 약한 편이에요. 그림 안에 한글을 넣는 건 지금 여기가 제일 정확해요.",
     siteUrl: "https://chatgpt.com",
     platforms: ["WEB", "IOS", "ANDROID", "DESKTOP"],
     caution:
-      "한국 요금이 미국보다 비싸다. 가장 싼 유료 단계가 미국 $8인데 한국은 15,000원이다.",
+      "한국 요금이 미국보다 비싸요. 가장 싼 유료 단계가 미국은 $8인데 한국은 15,000원이에요.",
+    aliases: ["챗지피티", "챗GPT", "지피티", "gpt", "오픈AI", "openai"],
   },
   {
     slug: "claude",
@@ -96,13 +113,14 @@ export const SEED_TOOLS: SeedTool[] = [
     alsoFor: ["RESEARCH", "CODE", "TRANSLATE"],
     origin: "GLOBAL",
     summary:
-      "긴 글을 통째로 넣고 '여기서 이것만 찾아줘' 할 때 없는 말을 지어내는 일이 가장 적다.",
-    howToStart: "claude.com에서 가입하면 바로 쓸 수 있다.",
+      "긴 글을 통째로 넣고 '여기서 이것만 찾아줘' 할 때 없는 말을 지어내는 일이 제일 적어요.",
+    howToStart: "claude.com에서 가입하면 바로 쓸 수 있어요.",
     pricingKind: "FREEMIUM",
-    priceNote: "무료 사용량은 몇 시간 단위로 다시 찬다.",
+    priceNote: "무료 사용량은 몇 시간 단위로 다시 차요.",
     koreanLevel: "GOOD",
     siteUrl: "https://claude.com",
     platforms: ["WEB", "IOS", "ANDROID", "DESKTOP"],
+    aliases: ["클로드", "앤트로픽", "anthropic"],
   },
   {
     slug: "gemini",
@@ -113,18 +131,20 @@ export const SEED_TOOLS: SeedTool[] = [
     alsoFor: ["IMAGE", "RESEARCH", "CODE"],
     origin: "GLOBAL",
     summary:
-      "구글 계정만 있으면 되고, 내 지메일·드라이브에 있는 자료를 그대로 불러다 쓸 수 있다.",
-    howToStart: "gemini.google.com에 구글 계정으로 로그인. 안드로이드 폰에는 이미 깔려 있다.",
+      "구글 계정만 있으면 되고, 내 지메일이나 드라이브에 있는 자료를 그대로 불러다 쓸 수 있어요.",
+    howToStart:
+      "gemini.google.com에 구글 계정으로 로그인하면 돼요. 안드로이드 폰에는 이미 깔려 있어요.",
     pricingKind: "FREEMIUM",
-    priceNote:
-      "이미지는 무료로 하루 20장까지 되고 매일 다시 찬다. 카드 등록도 필요 없다.",
+    priceNote: "이미지는 무료로 하루 20장까지 되고 매일 다시 차요. 카드 등록도 필요 없어요.",
     studentFree: true,
     koreanLevel: "GOOD",
-    koreanNote: "한국어 UI·음성 모두 성숙하고, 구글 검색이 붙어 한국 최신 정보에 강하다.",
+    koreanNote:
+      "한국어 화면과 음성이 둘 다 자연스럽고, 구글 검색이 붙어 있어서 한국 최신 정보에 강해요.",
     siteUrl: "https://gemini.google.com",
     platforms: ["WEB", "IOS", "ANDROID"],
     caution:
-      "국내 대학(원)생은 1년 무료 + 이후 대폭 할인 혜택이 있다. 다만 신청 마감이 정해져 있고 가입 때 결제수단을 등록해야 한다.",
+      "국내 대학(원)생은 1년 무료에 이후 할인까지 받을 수 있어요. 다만 신청 마감이 정해져 있고 가입할 때 결제수단을 등록해야 해요.",
+    aliases: ["제미나이", "제미니", "바드", "bard", "구글"],
   },
   {
     slug: "naver-ai-tab",
@@ -135,14 +155,15 @@ export const SEED_TOOLS: SeedTool[] = [
     alsoFor: ["RESEARCH"],
     origin: "KR",
     summary:
-      "식당을 찾고 지도를 보고 예약까지 한 번에 끝난다. 네이버 안의 장소·예약 정보는 외국 AI가 못 따라온다.",
-    howToStart: "네이버 검색창에서 AI탭을 누르면 된다. 앱 설치도 가입도 따로 필요 없다.",
+      "식당을 찾고 지도를 보고 예약까지 한 번에 끝나요. 네이버 안의 장소·예약 정보는 외국 AI가 못 따라와요.",
+    howToStart: "네이버 검색창에서 AI탭을 누르면 돼요. 앱 설치도 가입도 따로 필요 없어요.",
     pricingKind: "FREE",
-    priceNote: "무료.",
+    priceNote: "무료예요.",
     koreanLevel: "NATIVE",
     siteUrl: "https://www.naver.com",
     platforms: ["WEB", "IOS", "ANDROID"],
-    caution: "이전의 클로바X는 2026년 4월에 종료됐다. 그 자리를 대신하는 서비스다.",
+    caution: "예전의 클로바X는 2026년 4월에 문을 닫았어요. 그 자리를 대신하는 서비스예요.",
+    aliases: ["네이버", "클로바", "클로바X", "하이퍼클로바", "naver"],
   },
 
   // --- 자료조사 · 논문 -----------------------------------------------------
@@ -155,17 +176,18 @@ export const SEED_TOOLS: SeedTool[] = [
     alsoFor: ["NOTE"],
     origin: "GLOBAL",
     summary:
-      "내가 올린 강의자료와 PDF만 읽고 답한다. 인터넷을 뒤지지 않으니 엉뚱한 소리를 덜 한다.",
+      "내가 올린 강의자료랑 PDF만 읽고 답해요. 인터넷을 뒤지지 않으니까 엉뚱한 소리를 덜 해요.",
     howToStart:
-      "구글 계정으로 로그인하고 새 노트북을 만든 뒤, 강의 PDF를 끌어다 놓으면 끝이다.",
+      "구글 계정으로 로그인하고 새 노트북을 만든 다음, 강의 PDF를 끌어다 놓으면 끝이에요.",
     pricingKind: "FREEMIUM",
-    priceNote: "무료만으로도 공부 용도에는 충분하다.",
+    priceNote: "무료만으로도 공부 용도에는 충분해요.",
     studentFree: true,
     koreanLevel: "GOOD",
-    koreanNote: "자료를 팟캐스트처럼 읽어주는 오디오 요약도 한국어를 지원한다.",
+    koreanNote: "자료를 팟캐스트처럼 읽어주는 오디오 요약도 한국어를 지원해요.",
     siteUrl: "https://notebook.google",
     platforms: ["WEB", "IOS", "ANDROID"],
-    caution: "2026년 7월에 이름이 바뀌었다. 예전 이름은 노트북LM(NotebookLM)이다.",
+    caution: "2026년 7월에 이름이 바뀌었어요. 예전 이름은 노트북LM(NotebookLM)이에요.",
+    aliases: ["노트북LM", "notebooklm", "노트북엘엠", "구글 노트북", "notebook lm"],
   },
   {
     slug: "perplexity",
@@ -175,17 +197,18 @@ export const SEED_TOOLS: SeedTool[] = [
     alsoFor: ["CHAT"],
     origin: "GLOBAL",
     summary:
-      "답변 문장마다 출처 링크가 붙는다. 과제에 인용할 때 그 말이 어디서 나왔는지 바로 확인된다.",
-    howToStart: "perplexity.ai에 들어가면 로그인 없이도 기본 검색이 된다.",
+      "답변 문장마다 출처 링크가 붙어요. 과제에 인용할 때 그 말이 어디서 나왔는지 바로 확인돼요.",
+    howToStart: "perplexity.ai에 들어가면 로그인 없이도 기본 검색이 돼요.",
     pricingKind: "FREEMIUM",
-    priceNote: "무료는 기본 검색 위주이고, 깊은 검색은 하루 몇 번으로 제한된다.",
+    priceNote: "무료는 기본 검색 위주고, 깊은 검색은 하루 몇 번으로 제한돼요.",
     studentFree: true,
     koreanLevel: "GOOD",
-    koreanNote: "한국어로 물어도 되지만 출처가 영어 문서 위주로 잡히는 편이다.",
+    koreanNote: "한국어로 물어도 되지만 출처가 영어 문서 위주로 잡히는 편이에요.",
     siteUrl: "https://www.perplexity.ai",
     platforms: ["WEB", "IOS", "ANDROID"],
     caution:
-      "SKT 1년 무료 혜택을 소개하는 글이 아직 많이 남아 있는데 이미 종료된 이벤트다.",
+      "SKT 1년 무료 혜택을 소개하는 글이 아직 많이 남아 있는데, 이미 끝난 이벤트예요.",
+    aliases: ["퍼플렉서티", "perplexity", "펄플렉시티"],
   },
   {
     slug: "liner",
@@ -194,16 +217,17 @@ export const SEED_TOOLS: SeedTool[] = [
     purpose: "RESEARCH",
     origin: "KR",
     summary:
-      "논문을 찾아서 여러 편을 비교표로 정리해 준다. 긴 PDF를 한 장으로 줄이는 것도 된다.",
+      "논문을 찾아서 여러 편을 비교표로 정리해 줘요. 긴 PDF를 한 장으로 줄이는 것도 돼요.",
     howToStart:
-      "구글 계정으로 로그인하면 바로 검색할 수 있다. 크롬 확장을 깔면 웹페이지에 형광펜을 치며 쓸 수 있다.",
+      "구글 계정으로 로그인하면 바로 검색할 수 있어요. 크롬 확장을 깔면 웹페이지에 형광펜을 치면서 쓸 수 있어요.",
     pricingKind: "FREEMIUM",
-    priceNote: "무료는 월 사용량 제한이 있고 광고가 붙는다.",
+    priceNote: "무료는 월 사용량 제한이 있고 광고가 붙어요.",
     studentFree: true,
     koreanLevel: "NATIVE",
-    koreanNote: "한국 회사라 UI·고객지원·공지가 전부 한국어다.",
+    koreanNote: "한국 회사라 화면도 고객지원도 공지도 전부 한국어예요.",
     siteUrl: "https://liner.com/ko",
     platforms: ["WEB", "EXTENSION", "IOS", "ANDROID"],
+    aliases: ["liner", "라이너AI"],
   },
   {
     slug: "scispace",
@@ -212,15 +236,16 @@ export const SEED_TOOLS: SeedTool[] = [
     purpose: "RESEARCH",
     origin: "GLOBAL",
     summary:
-      "영어 논문에서 모르는 문단을 드래그해 한국어로 물어볼 수 있다. 수식과 표도 설명해 준다.",
-    howToStart: "가입 없이도 PDF를 올려 바로 체험해 볼 수 있다.",
+      "영어 논문에서 모르는 문단을 드래그해서 한국어로 물어볼 수 있어요. 수식이랑 표도 설명해 줘요.",
+    howToStart: "가입 없이도 PDF를 올려서 바로 체험해 볼 수 있어요.",
     pricingKind: "FREEMIUM",
-    priceNote: "무료 등급이 있으나 한도가 자료마다 다르게 적혀 있어 직접 확인이 필요하다.",
+    priceNote: "무료 등급이 있는데 한도가 자료마다 다르게 적혀 있어서 직접 확인해 보셔야 해요.",
     koreanLevel: "GOOD",
     koreanNote:
-      "한국어 페이지를 따로 운영한다. 영어 논문을 한국어로 물어볼 수 있는 점이 이 카테고리에서 가장 큰 장점이다.",
+      "한국어 페이지를 따로 운영해요. 영어 논문을 한국어로 물어볼 수 있다는 게 이 분야에서 제일 큰 장점이에요.",
     siteUrl: "https://scispace.com/ko",
     platforms: ["WEB", "EXTENSION"],
+    aliases: ["scispace", "타이프셋", "typeset"],
   },
   {
     slug: "consensus",
@@ -229,15 +254,16 @@ export const SEED_TOOLS: SeedTool[] = [
     purpose: "RESEARCH",
     origin: "GLOBAL",
     summary:
-      "'커피가 건강에 좋나?' 같은 질문을 넣으면 실제 논문들이 찬성인지 반대인지 비율을 그려 준다.",
-    howToStart: "구글 계정으로 로그인한 뒤 영어로 질문을 입력한다.",
+      "'커피가 건강에 좋나?' 같은 질문을 넣으면 실제 논문들이 찬성인지 반대인지 비율을 그려 줘요.",
+    howToStart: "구글 계정으로 로그인한 다음 영어로 질문을 입력하면 돼요.",
     pricingKind: "FREEMIUM",
-    priceNote: "논문 검색 자체는 무료로 제한 없이 된다.",
+    priceNote: "논문 검색 자체는 무료로 제한 없이 돼요.",
     koreanLevel: "NONE",
     koreanNote:
-      "화면이 영어 전용이고 한국어 논문은 거의 잡히지 않는다. 영어로 질문해야 결과가 제대로 나온다.",
+      "화면이 영어 전용이고 한국어 논문은 거의 안 잡혀요. 영어로 질문해야 결과가 제대로 나와요.",
     siteUrl: "https://consensus.app",
     platforms: ["WEB"],
+    aliases: ["consensus"],
   },
 
   // --- 번역 · 글쓰기 -------------------------------------------------------
@@ -247,14 +273,16 @@ export const SEED_TOOLS: SeedTool[] = [
     maker: "DeepL",
     purpose: "TRANSLATE",
     origin: "GLOBAL",
-    summary: "논문이나 보고서처럼 딱딱한 글을 가장 자연스럽게 번역한다.",
-    howToStart: "deepl.com에 들어가 원문을 붙여넣으면 가입 없이 바로 번역된다.",
+    summary: "논문이나 보고서처럼 딱딱한 글을 제일 자연스럽게 번역해 줘요.",
+    howToStart: "deepl.com에 들어가서 원문을 붙여넣으면 가입 없이 바로 번역돼요.",
     pricingKind: "FREEMIUM",
-    priceNote: "무료는 한 번에 넣을 수 있는 글자 수와 파일 수에 제한이 있다.",
+    priceNote: "무료는 한 번에 넣을 수 있는 글자 수랑 파일 수에 제한이 있어요.",
     koreanLevel: "GOOD",
-    koreanNote: "문어체·논문체는 최상급이지만 구어체나 속어는 파파고가 더 자연스럽다는 평이 많다.",
+    koreanNote:
+      "문어체나 논문체는 최상급인데, 구어체나 속어는 파파고가 더 자연스럽다는 평이 많아요.",
     siteUrl: "https://www.deepl.com/ko/",
     platforms: ["WEB", "DESKTOP", "IOS", "ANDROID", "EXTENSION"],
+    aliases: ["deepl", "디플", "딥엘번역"],
   },
   {
     slug: "papago",
@@ -263,15 +291,17 @@ export const SEED_TOOLS: SeedTool[] = [
     developerSlug: "naver",
     purpose: "TRANSLATE",
     origin: "KR",
-    summary: "사진을 찍으면 번역되고 말을 하면 통역된다. 한↔영·중·일 일상 표현이 특히 자연스럽다.",
-    howToStart: "앱을 설치하면 가입 없이 바로 쓸 수 있다.",
+    summary:
+      "사진을 찍으면 번역되고 말을 하면 통역돼요. 한↔영·중·일 일상 표현이 특히 자연스러워요.",
+    howToStart: "앱을 설치하면 가입 없이 바로 쓸 수 있어요.",
     pricingKind: "FREE",
-    priceNote: "개인은 무료.",
+    priceNote: "개인은 무료예요.",
     koreanLevel: "NATIVE",
     siteUrl: "https://papago.naver.com",
     platforms: ["IOS", "ANDROID", "WEB"],
     caution:
-      "2024년 9월부터 웹페이지 통째 번역 기능이 빠졌다. PC에서 그 기능을 쓰려면 네이버 웨일 브라우저가 필요하다.",
+      "2024년 9월부터 웹페이지를 통째로 번역하는 기능이 빠졌어요. PC에서 그 기능을 쓰려면 네이버 웨일 브라우저가 필요해요.",
+    aliases: ["papago", "네이버 번역", "파파고번역"],
   },
   {
     slug: "wrtn",
@@ -280,15 +310,16 @@ export const SEED_TOOLS: SeedTool[] = [
     purpose: "TRANSLATE",
     alsoFor: ["CHAT"],
     origin: "KR",
-    summary: "여러 회사의 AI를 무료로 골라 쓸 수 있는 한국 서비스. 가입이 쉽고 전부 한국어다.",
-    howToStart: "네이버·카카오·구글 계정으로 간편 가입하면 바로 쓸 수 있다.",
+    summary: "여러 회사의 AI를 무료로 골라 쓸 수 있는 한국 서비스예요. 가입이 쉽고 전부 한국어예요.",
+    howToStart: "네이버·카카오·구글 계정으로 간편 가입하면 바로 쓸 수 있어요.",
     pricingKind: "FREE",
-    priceNote: "무료.",
+    priceNote: "무료예요.",
     koreanLevel: "NATIVE",
     siteUrl: "https://wrtn.ai",
     platforms: ["WEB", "IOS", "ANDROID"],
     caution:
-      "회사의 중심이 캐릭터 채팅 쪽으로 옮겨가면서 이 어시스턴트 앱 사용자는 크게 줄었다(2026년 7월 기준 월 23만 명, 1년 전보다 85만 명 감소). '한국 1등 AI'라는 소개는 지금은 맞지 않는다.",
+      "회사의 중심이 캐릭터 채팅 쪽으로 옮겨가면서 이 어시스턴트 앱 사용자는 많이 줄었어요(2026년 7월 기준 월 23만 명, 1년 전보다 85만 명 감소). '한국 1등 AI'라는 소개는 지금은 맞지 않아요.",
+    aliases: ["wrtn", "뤼튼AI", "리튼"],
   },
 
   // --- 발표자료 · 디자인 ---------------------------------------------------
@@ -300,14 +331,15 @@ export const SEED_TOOLS: SeedTool[] = [
     alsoFor: ["IMAGE"],
     origin: "KR",
     summary:
-      "한국인이 가장 많이 쓰는 디자인 사이트의 AI. 이 카테고리에서 한글이 깨지지 않는 게 가장 확실하다.",
-    howToStart: "접속해서 miricle AI → AI 프레젠테이션을 고르고 주제를 입력한다.",
+      "한국인이 제일 많이 쓰는 디자인 사이트의 AI예요. 이 분야에서 한글이 안 깨지는 게 제일 확실해요.",
+    howToStart: "접속해서 miricle AI → AI 프레젠테이션을 고르고 주제를 입력하면 돼요.",
     pricingKind: "FREEMIUM",
-    priceNote: "무료로도 월 몇 번은 만들 수 있고, 파워포인트 파일로 내려받는 것까지 무료다.",
+    priceNote: "무료로도 월 몇 번은 만들 수 있고, 파워포인트 파일로 내려받는 것까지 무료예요.",
     koreanLevel: "NATIVE",
-    koreanNote: "한국어 전용 폰트가 수백 종이라 자간·행간이 어색해지지 않는다.",
+    koreanNote: "한국어 전용 폰트가 수백 종이라 자간이나 행간이 어색해지지 않아요.",
     siteUrl: "https://www.miricanvas.com",
     platforms: ["WEB"],
+    aliases: ["미리디", "miricanvas", "미리 캔버스"],
   },
   {
     slug: "gamma",
@@ -315,16 +347,18 @@ export const SEED_TOOLS: SeedTool[] = [
     maker: "Gamma",
     purpose: "SLIDES",
     origin: "GLOBAL",
-    summary: "주제 한 줄만 쓰면 슬라이드 전체를 만들어 준다. AI PPT 중 가장 유명하다.",
-    howToStart: "가입 후 새로 만들기 → 생성 → 프레젠테이션을 고르고 주제를 입력한다.",
+    summary: "주제 한 줄만 쓰면 슬라이드 전체를 만들어 줘요. AI PPT 중에 제일 유명해요.",
+    howToStart: "가입하고 새로 만들기 → 생성 → 프레젠테이션을 고른 다음 주제를 입력하면 돼요.",
     pricingKind: "FREEMIUM",
-    priceNote: "무료 크레딧을 처음 한 번 주는데 다시 채워지지 않는다. 대략 10개 정도 만들 수 있다.",
+    priceNote:
+      "무료 크레딧을 처음 한 번 주는데 다시 채워지지 않아요. 대략 10개 정도 만들 수 있어요.",
     koreanLevel: "PARTIAL",
     koreanNote:
-      "한국어로 만들어지긴 하지만 자간·행간이 어색하고 긴 문장의 줄바꿈이 부자연스럽다.",
+      "한국어로 만들어지긴 하는데 자간이랑 행간이 어색하고, 긴 문장은 줄바꿈이 부자연스러워요.",
     siteUrl: "https://gamma.app",
     platforms: ["WEB"],
-    caution: "파워포인트 파일로 내보내면 한글 폰트가 깨지는 경우가 있다.",
+    caution: "파워포인트 파일로 내보내면 한글 폰트가 깨지는 경우가 있어요.",
+    aliases: ["gamma", "감마앱", "gamma app"],
   },
   {
     slug: "snapdeck",
@@ -333,15 +367,16 @@ export const SEED_TOOLS: SeedTool[] = [
     purpose: "SLIDES",
     origin: "KR",
     summary:
-      "'그래프 바꿔줘', '더 딱딱한 톤으로' 처럼 대화하듯 지시하면 슬라이드를 계속 고쳐 준다.",
-    howToStart: "가입 후 프롬프트 한 줄로 만들고, 이후에는 채팅으로 수정을 지시한다.",
+      "'그래프 바꿔줘', '더 딱딱한 톤으로'처럼 대화하듯 말하면 슬라이드를 계속 고쳐 줘요.",
+    howToStart: "가입하고 프롬프트 한 줄로 만든 다음, 이후에는 채팅으로 수정을 시키면 돼요.",
     pricingKind: "FREEMIUM",
-    priceNote: "무료는 월 크레딧이 적은 편이다.",
+    priceNote: "무료는 월 크레딧이 적은 편이에요.",
     koreanLevel: "UNKNOWN",
     koreanNote:
-      "한국 팀이 만들었고 한글 폰트 서비스도 따로 운영하지만, 실제 한글 슬라이드 품질을 확인한 자료를 찾지 못했다. 사용자 수의 95% 이상이 해외라는 점도 함께 보아야 한다.",
+      "한국 팀이 만들었고 한글 폰트 서비스도 따로 운영하는데, 실제 한글 슬라이드 품질을 확인할 자료를 찾지 못했어요. 사용자의 95% 이상이 해외라는 점도 같이 보셔야 해요.",
     siteUrl: "https://www.snapdeck.app",
     platforms: ["WEB", "PLUGIN"],
+    aliases: ["snapdeck", "스냅 덱"],
   },
   {
     slug: "canva",
@@ -351,16 +386,18 @@ export const SEED_TOOLS: SeedTool[] = [
     alsoFor: ["IMAGE"],
     origin: "GLOBAL",
     summary:
-      "디자인을 못 해도 포스터·발표자료·SNS 이미지를 만들 수 있다. 템플릿이 가장 많다.",
-    howToStart: "한국어 사이트에 가입한 뒤 만들고 싶은 것을 검색창에 적으면 템플릿을 추천해 준다.",
+      "디자인을 못 해도 포스터나 발표자료, SNS 이미지를 만들 수 있어요. 템플릿이 제일 많아요.",
+    howToStart:
+      "한국어 사이트에 가입한 다음 만들고 싶은 걸 검색창에 적으면 템플릿을 추천해 줘요.",
     pricingKind: "FREEMIUM",
-    priceNote: "AI 기능이 무료 플랜에도 열려 있다. 무료는 AI 사용 횟수에 월 제한이 있다.",
+    priceNote: "AI 기능이 무료 플랜에도 열려 있어요. 무료는 AI 사용 횟수에 월 제한이 있어요.",
     studentFree: true,
     koreanLevel: "GOOD",
     koreanNote:
-      "한국어 화면과 원화 결제를 지원한다. 다만 영문 템플릿을 그대로 쓰면 기본 폰트가 영문이라 한글 폰트로 바꿔줘야 한다.",
+      "한국어 화면이랑 원화 결제를 지원해요. 다만 영문 템플릿을 그대로 쓰면 기본 폰트가 영문이라 한글 폰트로 바꿔주셔야 해요.",
     siteUrl: "https://www.canva.com/ko_kr/",
     platforms: ["WEB", "IOS", "ANDROID", "DESKTOP"],
+    aliases: ["canva", "칸바", "캠바"],
   },
 
   // --- 기록 · 정리 ---------------------------------------------------------
@@ -371,15 +408,16 @@ export const SEED_TOOLS: SeedTool[] = [
     purpose: "NOTE",
     alsoFor: ["TRANSLATE"],
     origin: "GLOBAL",
-    summary: "노트·과제·일정을 한곳에 모아두고 그 안에서 요약과 번역까지 한다.",
-    howToStart: "가입 후 페이지에서 슬래시(/)를 누르고 ai를 입력하면 된다.",
+    summary: "노트랑 과제, 일정을 한곳에 모아두고 그 안에서 요약이랑 번역까지 해요.",
+    howToStart: "가입하고 페이지에서 슬래시(/)를 누른 다음 ai를 입력하면 돼요.",
     pricingKind: "FREEMIUM",
-    priceNote: "학교 이메일로 인증하면 1인 워크스페이스가 무료다. 매년 다시 인증해야 한다.",
+    priceNote: "학교 이메일로 인증하면 1인 워크스페이스가 무료예요. 매년 다시 인증해야 해요.",
     studentFree: true,
     koreanLevel: "GOOD",
     siteUrl: "https://www.notion.com",
     platforms: ["WEB", "DESKTOP", "IOS", "ANDROID", "EXTENSION"],
-    caution: "교육 플랜에 AI 기능이 어디까지 포함되는지는 공식 문서에 명시가 없다.",
+    caution: "교육 플랜에 AI 기능이 어디까지 포함되는지는 공식 문서에 나와 있지 않아요.",
+    aliases: ["notion", "노션", "노숀"],
   },
   {
     slug: "clova-note",
@@ -388,14 +426,16 @@ export const SEED_TOOLS: SeedTool[] = [
     developerSlug: "naver",
     purpose: "NOTE",
     origin: "KR",
-    summary: "녹음만 켜두면 한국어를 알아서 받아 적고 요약까지 해준다. 강의 녹음에 쓰기 좋다.",
-    howToStart: "앱을 깔거나 웹에 들어가 네이버 계정으로 로그인한 뒤 새 노트에서 녹음을 시작한다.",
+    summary: "녹음만 켜두면 한국어를 알아서 받아 적고 요약까지 해줘요. 강의 녹음에 쓰기 좋아요.",
+    howToStart:
+      "앱을 깔거나 웹에 들어가서 네이버 계정으로 로그인한 다음, 새 노트에서 녹음을 시작하면 돼요.",
     pricingKind: "FREE",
     priceNote:
-      "개인은 사실상 무료다. 월 무료 시간이 정해져 있고 데이터 제공에 동의하면 두 배가 된다. 개인용 유료 상품 자체가 없다.",
+      "개인은 사실상 무료예요. 월 무료 시간이 정해져 있고 데이터 제공에 동의하면 두 배가 돼요. 개인용 유료 상품 자체가 없어요.",
     koreanLevel: "NATIVE",
     siteUrl: "https://clovanote.naver.com",
     platforms: ["WEB", "IOS", "ANDROID"],
+    aliases: ["클로바 노트", "clovanote", "네이버 녹음"],
   },
   {
     slug: "tiro",
@@ -405,13 +445,14 @@ export const SEED_TOOLS: SeedTool[] = [
     alsoFor: ["TRANSLATE"],
     origin: "KR",
     summary:
-      "받아 적으면서 동시에 번역까지 된다. 한국어 인식률을 수치로 공개하는 몇 안 되는 서비스다.",
-    howToStart: "앱을 깔거나 웹에 가입하면 체험 시간을 준다.",
+      "받아 적으면서 동시에 번역까지 돼요. 한국어 인식률을 수치로 공개하는 몇 안 되는 서비스예요.",
+    howToStart: "앱을 깔거나 웹에 가입하면 체험 시간을 줘요.",
     pricingKind: "FREEMIUM",
-    priceNote: "무료 체험은 기간과 시간이 정해져 있고, 이후에는 월 사용 시간 단위로 결제한다.",
+    priceNote: "무료 체험은 기간이랑 시간이 정해져 있고, 이후에는 월 사용 시간 단위로 결제해요.",
     koreanLevel: "NATIVE",
     siteUrl: "https://tiro.ooo",
     platforms: ["WEB", "DESKTOP", "IOS", "ANDROID"],
+    aliases: ["tiro", "티로노트"],
   },
 
   // --- 이미지 --------------------------------------------------------------
@@ -426,16 +467,17 @@ export const SEED_TOOLS: SeedTool[] = [
     alsoFor: ["VIDEO", "AUDIO"],
     origin: "GLOBAL",
     summary:
-      "여러 회사의 이미지·영상 모델 수십 개를 한 구독으로 골라 쓰는 곳. 어도비 자체 모델은 저작권이 정리돼 있어 과제나 공모전에 쓰기 안전하다.",
-    howToStart: "어도비 계정으로 로그인하면 웹에서 바로 쓸 수 있다. 포토샵이 없어도 된다.",
+      "여러 회사의 이미지·영상 모델 수십 개를 한 구독으로 골라 쓰는 곳이에요. 어도비가 직접 만든 모델은 저작권이 정리돼 있어서 과제나 공모전에 쓰기 안전해요.",
+    howToStart: "어도비 계정으로 로그인하면 웹에서 바로 쓸 수 있어요. 포토샵이 없어도 돼요.",
     pricingKind: "FREEMIUM",
-    priceNote: "무료로 매일 일정 횟수를 생성할 수 있고 매일 다시 찬다.",
+    priceNote: "무료로 매일 일정 횟수를 만들 수 있고 매일 다시 차요.",
     koreanLevel: "GOOD",
-    koreanNote: "한국어를 포함해 100개 이상 언어로 지시할 수 있다.",
+    koreanNote: "한국어를 포함해서 100개 넘는 언어로 지시할 수 있어요.",
     siteUrl: "https://firefly.adobe.com",
     platforms: ["WEB", "IOS", "ANDROID", "PLUGIN"],
     caution:
-      "'저작권 안전'은 어도비 자체 모델을 쓸 때만 해당한다. 안에 들어 있는 다른 회사 모델은 별개다.",
+      "'저작권 안전'은 어도비가 직접 만든 모델을 쓸 때만 해당해요. 안에 들어 있는 다른 회사 모델은 별개예요.",
+    aliases: ["firefly", "파이어플라이", "어도비", "adobe"],
   },
   {
     slug: "dreamina",
@@ -445,17 +487,18 @@ export const SEED_TOOLS: SeedTool[] = [
     alsoFor: ["VIDEO", "AVATAR"],
     origin: "GLOBAL",
     summary:
-      "캡컷을 만든 회사의 형제 서비스. 바이트댄스가 직접 만든 이미지·영상 모델을 가장 먼저 쓸 수 있는 공식 창구다.",
-    howToStart: "한국어 사이트에 접속해 가입한다.",
+      "캡컷을 만든 회사의 형제 서비스예요. 바이트댄스가 직접 만든 이미지·영상 모델을 제일 먼저 쓸 수 있는 공식 창구예요.",
+    howToStart: "한국어 사이트에 접속해서 가입하면 돼요.",
     pricingKind: "FREEMIUM",
-    priceNote: "매일 무료 크레딧을 준다. 정확한 수량은 공개돼 있지 않다.",
+    priceNote: "매일 무료 크레딧을 줘요. 정확한 수량은 공개돼 있지 않아요.",
     koreanLevel: "PARTIAL",
     koreanNote:
-      "화면은 한국어지만, 한국어로 지시했을 때의 품질과 결과물에 한글이 들어가는지는 확인하지 못했다.",
+      "화면은 한국어인데, 한국어로 지시했을 때의 품질이나 결과물에 한글이 들어가는지는 확인하지 못했어요.",
     siteUrl: "https://dreamina.capcut.com/ko-kr",
     platforms: ["WEB"],
     caution:
-      "'Seedance'로 검색하면 공식이 아닌 제휴 사이트가 잔뜩 나온다. Seedance는 서비스 이름이 아니라 이 안에서 고르는 모델 이름이다.",
+      "'Seedance'로 검색하면 공식이 아닌 제휴 사이트가 잔뜩 나와요. Seedance는 서비스 이름이 아니라 이 안에서 고르는 모델 이름이에요.",
+    aliases: ["dreamina", "드리미나", "시드댄스", "seedance", "즉몽"],
   },
   {
     slug: "midjourney",
@@ -463,17 +506,18 @@ export const SEED_TOOLS: SeedTool[] = [
     maker: "Midjourney",
     purpose: "IMAGE",
     origin: "GLOBAL",
-    summary: "분위기 있고 예술적인 그림에 특화돼 있다. 결과물의 작품성으로는 여전히 기준점이다.",
+    summary: "분위기 있고 예술적인 그림에 특화돼 있어요. 결과물의 작품성으로는 여전히 기준점이에요.",
     howToStart:
-      "이제는 디스코드 없이 웹사이트에서 쓴다. 다만 가입하자마자 결제해야 첫 장을 만들 수 있다.",
+      "이제는 디스코드 없이 웹사이트에서 써요. 다만 가입하자마자 결제해야 첫 장을 만들 수 있어요.",
     pricingKind: "PAID",
-    priceNote: "무료로 써볼 수 있는 방법이 없다. 가장 싼 단계도 매달 내야 한다.",
+    priceNote: "무료로 써볼 방법이 없어요. 가장 싼 단계도 매달 내야 해요.",
     koreanLevel: "NONE",
-    koreanNote: "화면이 영어고 한국어 지시를 잘 못 알아듣는다. 그림 안의 한글도 약하다.",
+    koreanNote: "화면이 영어고 한국어 지시를 잘 못 알아들어요. 그림 안의 한글도 약해요.",
     siteUrl: "https://www.midjourney.com",
     platforms: ["WEB"],
     caution:
-      "무료 체험이 2023년에 없어졌고 환불도 거의 안 된다. 돈을 낼 생각이 없다면 다른 걸 먼저 써보는 게 낫다.",
+      "무료 체험이 2023년에 없어졌고 환불도 거의 안 돼요. 돈 낼 생각이 없으시면 다른 걸 먼저 써보시는 게 나아요.",
+    aliases: ["midjourney", "미드져니", "MJ"],
   },
 
   // --- 영상 ----------------------------------------------------------------
@@ -483,13 +527,14 @@ export const SEED_TOOLS: SeedTool[] = [
     maker: "ByteDance",
     purpose: "VIDEO",
     origin: "GLOBAL",
-    summary: "휴대폰으로 숏폼을 만들 때 가장 많이 쓰는 편집 앱. 자동 자막과 AI 목소리가 들어 있다.",
-    howToStart: "앱을 설치하거나 웹에서 바로 시작한다. 신용카드가 필요 없다.",
+    summary: "휴대폰으로 숏폼 만들 때 제일 많이 쓰는 편집 앱이에요. 자동 자막이랑 AI 목소리가 들어 있어요.",
+    howToStart: "앱을 설치하거나 웹에서 바로 시작하면 돼요. 신용카드가 필요 없어요.",
     pricingKind: "FREEMIUM",
-    priceNote: "기본 편집은 무료로 충분하다.",
+    priceNote: "기본 편집은 무료로 충분해요.",
     koreanLevel: "GOOD",
     siteUrl: "https://www.capcut.com/ko-kr/",
     platforms: ["IOS", "ANDROID", "WEB", "DESKTOP"],
+    aliases: ["capcut", "캡켓", "캡컷프로"],
   },
   {
     slug: "vrew",
@@ -497,16 +542,16 @@ export const SEED_TOOLS: SeedTool[] = [
     maker: "보이저엑스",
     purpose: "VIDEO",
     origin: "KR",
-    summary:
-      "영상에 자막을 자동으로 달아준다. 한국어 음성 인식 정확도가 이 프로그램의 핵심이다.",
-    howToStart: "공식 사이트에서 프로그램을 내려받아 설치하고 회원가입한다.",
+    summary: "영상에 자막을 자동으로 달아줘요. 한국어 음성 인식 정확도가 이 프로그램의 핵심이에요.",
+    howToStart: "공식 사이트에서 프로그램을 내려받아 설치하고 회원가입하면 돼요.",
     pricingKind: "FREEMIUM",
-    priceNote: "무료는 월 분석 시간에 제한이 있고 결과물에 워터마크가 붙는다.",
+    priceNote: "무료는 월 분석 시간에 제한이 있고 결과물에 워터마크가 붙어요.",
     studentFree: true,
     koreanLevel: "NATIVE",
     siteUrl: "https://vrew.ai/ko/",
     platforms: ["DESKTOP", "WEB"],
-    caution: "교육기관 할인이 따로 있다.",
+    caution: "교육기관 할인이 따로 있어요.",
+    aliases: ["vrew", "브루자막", "뷰루"],
   },
   {
     slug: "google-flow",
@@ -515,20 +560,20 @@ export const SEED_TOOLS: SeedTool[] = [
     developerSlug: "google",
     purpose: "VIDEO",
     origin: "GLOBAL",
-    summary: "문장만 쓰면 소리까지 들어간 영상을 만들어 준다. 무료로 매일 몇 편씩 시도해 볼 수 있다.",
+    summary: "문장만 쓰면 소리까지 들어간 영상을 만들어 줘요. 무료로 매일 몇 편씩 시도해 볼 수 있어요.",
     howToStart:
-      "구글 계정으로 로그인한다. 만 18세 이상 인증이 필요하고 크롬이나 엣지에서 열어야 한다.",
+      "구글 계정으로 로그인하면 돼요. 만 18세 이상 인증이 필요하고 크롬이나 엣지에서 열어야 해요.",
     pricingKind: "FREEMIUM",
-    priceNote:
-      "무료로 하루 50크레딧을 주고 매일 다시 찬다. 가벼운 모델 기준 하루 다섯 편 정도다.",
+    priceNote: "무료로 하루 50크레딧을 주고 매일 다시 차요. 가벼운 모델 기준 하루 다섯 편 정도예요.",
     studentFree: true,
     koreanLevel: "GOOD",
     koreanNote:
-      "화면은 한국어를 지원하지만, 구글이 공식적으로 영어로 지시하기를 권하고 다른 언어는 품질이 달라질 수 있다고 안내한다.",
+      "화면은 한국어를 지원하는데, 구글이 공식적으로는 영어로 지시하길 권하고 다른 언어는 품질이 달라질 수 있다고 안내해요.",
     siteUrl: "https://labs.google/flow",
     platforms: ["WEB"],
     caution:
-      "무료 사용 가능 여부를 두고 구글 공식 문서끼리 설명이 엇갈린다(구독 필수라는 문서와 비구독자도 하루 50크레딧이라는 문서). 직접 확인이 필요하다.",
+      "무료로 쓸 수 있는지를 두고 구글 공식 문서끼리 설명이 엇갈려요(구독 필수라는 문서와 비구독자도 하루 50크레딧이라는 문서). 직접 확인해 보셔야 해요.",
+    aliases: ["flow", "플로우", "veo", "비오", "구글 veo"],
   },
   {
     slug: "kling",
@@ -537,14 +582,15 @@ export const SEED_TOOLS: SeedTool[] = [
     purpose: "VIDEO",
     alsoFor: ["IMAGE"],
     origin: "GLOBAL",
-    summary: "사진 한 장을 움직이는 영상으로 바꾸는 용도로 특히 많이 쓴다.",
-    howToStart: "한국어 사이트에서 이메일로 가입한다. 중국 전화번호는 필요 없다.",
+    summary: "사진 한 장을 움직이는 영상으로 바꾸는 용도로 특히 많이 써요.",
+    howToStart: "한국어 사이트에서 이메일로 가입하면 돼요. 중국 전화번호는 필요 없어요.",
     pricingKind: "FREEMIUM",
-    priceNote: "무료 크레딧이 적어서 맛보기 수준이다.",
+    priceNote: "무료 크레딧이 적어서 맛보기 수준이에요.",
     koreanLevel: "GOOD",
-    koreanNote: "메뉴와 기능명까지 한국어로 번역돼 있다.",
+    koreanNote: "메뉴랑 기능 이름까지 한국어로 번역돼 있어요.",
     siteUrl: "https://kling.ai/ko",
     platforms: ["WEB", "IOS", "ANDROID"],
+    aliases: ["kling", "클링AI", "커링"],
   },
   {
     slug: "hailuo",
@@ -553,14 +599,16 @@ export const SEED_TOOLS: SeedTool[] = [
     purpose: "VIDEO",
     origin: "GLOBAL",
     summary:
-      "매일 크레딧이 자동으로 충전돼서 돈을 안 내고도 계속 시도해 볼 수 있다. 사람 동작 표현이 좋은 편이다.",
-    howToStart: "구글이나 애플 계정으로 가입한다. 템플릿을 골라 누르는 놀이 기능이 있어 처음 쓰기 쉽다.",
+      "매일 크레딧이 자동으로 충전돼서 돈을 안 내고도 계속 시도해 볼 수 있어요. 사람 동작 표현이 좋은 편이에요.",
+    howToStart:
+      "구글이나 애플 계정으로 가입하면 돼요. 템플릿을 골라서 누르는 놀이 기능이 있어서 처음 쓰기 쉬워요.",
     pricingKind: "FREEMIUM",
-    priceNote: "가입 시 크레딧을 주고 이후 매일 자동 충전된다. 유료도 이 목록에서 저렴한 축이다.",
+    priceNote: "가입할 때 크레딧을 주고 이후에는 매일 자동으로 충전돼요. 유료도 이 목록에서 저렴한 축이에요.",
     koreanLevel: "PARTIAL",
-    koreanNote: "한국어 지시는 잘 알아듣는 편이지만 화면의 한국어 지원은 확인하지 못했다.",
+    koreanNote: "한국어 지시는 잘 알아듣는 편인데, 화면의 한국어 지원은 확인하지 못했어요.",
     siteUrl: "https://hailuoai.video",
     platforms: ["WEB", "IOS"],
+    aliases: ["hailuo", "하이루", "미니맥스", "minimax"],
   },
   {
     slug: "runway",
@@ -568,15 +616,16 @@ export const SEED_TOOLS: SeedTool[] = [
     maker: "Runway",
     purpose: "VIDEO",
     origin: "GLOBAL",
-    summary: "영상 제작자들이 실제 작업에 쓰는 도구. 생성과 편집을 함께 한다.",
-    howToStart: "웹에 가입하면 체험용 크레딧을 준다.",
+    summary: "영상 제작자들이 실제 작업에 쓰는 도구예요. 생성이랑 편집을 같이 해요.",
+    howToStart: "웹에 가입하면 체험용 크레딧을 줘요.",
     pricingKind: "TRIAL",
-    priceNote: "무료 크레딧은 처음 한 번만 주고 다시 채워지지 않는다.",
+    priceNote: "무료 크레딧은 처음 한 번만 주고 다시 채워지지 않아요.",
     koreanLevel: "NONE",
     siteUrl: "https://runway.com",
     platforms: ["WEB", "IOS"],
     caution:
-      "무료 크레딧으로 5초짜리 영상 두 편 정도 만들면 끝난다. 갱신되지 않으니 '무료로 써본다'는 기대는 하지 않는 게 좋다.",
+      "무료 크레딧으로 5초짜리 영상 두 편 정도 만들면 끝나요. 갱신되지 않으니까 '무료로 써본다'는 기대는 안 하시는 게 좋아요.",
+    aliases: ["runway", "런웨이ML", "runwayml", "gen-3"],
   },
   {
     slug: "higgsfield",
@@ -585,16 +634,19 @@ export const SEED_TOOLS: SeedTool[] = [
     purpose: "VIDEO",
     origin: "GLOBAL",
     summary:
-      "여러 회사의 영상 AI를 한 구독으로 쓰면서, '카메라가 이렇게 움직이는 장면' 같은 효과를 골라 누르는 방식으로 만든다.",
-    howToStart: "웹에 가입한다. 하루짜리 무료 체험이 있지만 신용카드를 먼저 등록해야 한다.",
+      "여러 회사의 영상 AI를 한 구독으로 쓰면서, '카메라가 이렇게 움직이는 장면' 같은 효과를 골라 누르는 방식으로 만들어요.",
+    howToStart: "웹에 가입하면 돼요. 하루짜리 무료 체험이 있는데 신용카드를 먼저 등록해야 해요.",
     pricingKind: "TRIAL",
     priceNote:
-      "무료 플랜으로는 영상을 만들 수 없고, 크레딧은 구독이 있어야 생긴다. 남은 크레딧은 다음 달로 넘어가지 않는다.",
+      "무료 플랜으로는 영상을 만들 수 없고, 크레딧은 구독이 있어야 생겨요. 남은 크레딧은 다음 달로 넘어가지 않아요.",
     koreanLevel: "UNKNOWN",
+    koreanNote:
+      "화면이 영어인 건 확인했는데, 한국어로 지시했을 때 결과가 어떤지는 확인하지 못했어요. 무료로 만들어 볼 수가 없어서 직접 시험해 보지 못했어요.",
     siteUrl: "https://higgsfield.ai",
     platforms: ["WEB"],
     caution:
-      "요금제와 크레딧 소모량이 출처마다 최대 다섯 배까지 다르게 적혀 있다. 결제 전 공식 페이지에서 직접 확인할 것.",
+      "요금제랑 크레딧 소모량이 출처마다 최대 다섯 배까지 다르게 적혀 있어요. 결제 전에 공식 페이지에서 직접 확인해 보세요.",
+    aliases: ["higgsfield", "힉스 필드", "힉시필드"],
   },
 
   // --- 아바타 영상 ---------------------------------------------------------
@@ -605,14 +657,15 @@ export const SEED_TOOLS: SeedTool[] = [
     purpose: "AVATAR",
     origin: "KR",
     summary:
-      "대본만 넣으면 사람이 말하는 것 같은 영상이 나온다. 무료 상태에서도 내 얼굴로 아바타를 하나 만들 수 있다.",
-    howToStart: "한국어 사이트에 가입하고 대본을 입력한다.",
+      "대본만 넣으면 사람이 말하는 것 같은 영상이 나와요. 무료 상태에서도 내 얼굴로 아바타를 하나 만들 수 있어요.",
+    howToStart: "한국어 사이트에 가입하고 대본을 입력하면 돼요.",
     pricingKind: "FREEMIUM",
-    priceNote: "무료로 매달 짧은 영상 몇 편을 만들 수 있고 매월 다시 찬다.",
+    priceNote: "무료로 매달 짧은 영상 몇 편을 만들 수 있고 매월 다시 차요.",
     koreanLevel: "NATIVE",
     siteUrl: "https://www.aistudios.com/ko",
     platforms: ["WEB"],
-    caution: "같은 일을 하는 해외 서비스 HeyGen은 무료 플랜에서 내 얼굴 아바타를 못 만든다.",
+    caution: "같은 일을 하는 해외 서비스 HeyGen은 무료 플랜에서 내 얼굴 아바타를 못 만들어요.",
+    aliases: ["aistudios", "딥브레인", "deepbrain", "AI스튜디오"],
   },
   {
     slug: "heygen",
@@ -620,14 +673,15 @@ export const SEED_TOOLS: SeedTool[] = [
     maker: "HeyGen",
     purpose: "AVATAR",
     origin: "GLOBAL",
-    summary: "말하는 아바타 영상을 만드는 서비스 중 이용자가 가장 많다. 지원 언어 수가 압도적이다.",
-    howToStart: "웹에 가입하고 대본을 입력한다.",
+    summary: "말하는 아바타 영상을 만드는 서비스 중에 사용자가 제일 많아요. 지원 언어 수가 압도적이에요.",
+    howToStart: "웹에 가입하고 대본을 입력하면 돼요.",
     pricingKind: "FREEMIUM",
-    priceNote: "무료로 매달 1분 이내 영상 몇 편을 만들 수 있다.",
+    priceNote: "무료로 매달 1분 이내 영상 몇 편을 만들 수 있어요.",
     koreanLevel: "UNKNOWN",
-    koreanNote: "한국어 사용기는 많지만 공식 문서에서 한국어 지원을 확인하지 못했다.",
+    koreanNote: "한국어 사용기는 많은데 공식 문서에서 한국어 지원을 확인하지는 못했어요.",
     siteUrl: "https://www.heygen.com",
     platforms: ["WEB"],
+    aliases: ["heygen", "헤이겐", "히이젠"],
   },
 
   // --- 음악 · 목소리 -------------------------------------------------------
@@ -637,16 +691,17 @@ export const SEED_TOOLS: SeedTool[] = [
     maker: "Suno",
     purpose: "AUDIO",
     origin: "GLOBAL",
-    summary: "한 줄만 쓰면 가사·멜로디·보컬이 다 들어간 완성곡이 나온다.",
-    howToStart: "웹에 가입하고 만들고 싶은 노래를 설명하면 된다. 설치할 게 없다.",
+    summary: "한 줄만 쓰면 가사랑 멜로디, 보컬이 다 들어간 완성곡이 나와요.",
+    howToStart: "웹에 가입하고 만들고 싶은 노래를 설명하면 돼요. 설치할 게 없어요.",
     pricingKind: "FREEMIUM",
-    priceNote: "무료는 하루 크레딧을 주고 매일 다시 찬다.",
+    priceNote: "무료는 하루 크레딧을 주고 매일 다시 차요.",
     koreanLevel: "GOOD",
-    koreanNote: "한국어 가사로 노래를 만들 수 있다.",
+    koreanNote: "한국어 가사로 노래를 만들 수 있어요.",
     siteUrl: "https://suno.com",
     platforms: ["WEB", "IOS", "ANDROID"],
     caution:
-      "무료로는 만들어 듣는 것만 되고 파일로 내려받을 수 없다. 상업적 이용도 유료부터다.",
+      "무료로는 만들어서 듣는 것만 되고 파일로 내려받을 수 없어요. 상업적으로 쓰는 것도 유료부터예요.",
+    aliases: ["suno", "수노AI", "쑤노"],
   },
   {
     slug: "elevenlabs",
@@ -654,15 +709,16 @@ export const SEED_TOOLS: SeedTool[] = [
     maker: "ElevenLabs",
     purpose: "AUDIO",
     origin: "GLOBAL",
-    summary: "글을 넣으면 사람이 읽는 것처럼 자연스러운 목소리로 바꿔 준다. 영상 나레이션에 많이 쓴다.",
-    howToStart: "웹에 가입해 문장을 넣고 목소리를 고른다.",
+    summary: "글을 넣으면 사람이 읽는 것처럼 자연스러운 목소리로 바꿔 줘요. 영상 나레이션에 많이 써요.",
+    howToStart: "웹에 가입해서 문장을 넣고 목소리를 고르면 돼요.",
     pricingKind: "FREEMIUM",
-    priceNote: "무료로 매달 10분 분량 정도를 만들 수 있고 매월 다시 찬다.",
+    priceNote: "무료로 매달 10분 분량 정도를 만들 수 있고 매월 다시 차요.",
     koreanLevel: "GOOD",
     koreanNote:
-      "한국어를 지원하고 자연스러운 편이다. 숫자와 영문 약어는 한글로 풀어서 넣어야 제대로 읽는다(예: 2026 → 이천이십육).",
+      "한국어를 지원하고 자연스러운 편이에요. 숫자랑 영문 약어는 한글로 풀어서 넣어야 제대로 읽어요(예: 2026 → 이천이십육).",
     siteUrl: "https://elevenlabs.io/ko",
     platforms: ["WEB"],
+    aliases: ["elevenlabs", "일레븐 랩스", "11labs", "엘레븐랩스"],
   },
   {
     slug: "supertone-play",
@@ -671,14 +727,60 @@ export const SEED_TOOLS: SeedTool[] = [
     purpose: "AUDIO",
     origin: "KR",
     summary:
-      "글을 음성으로 바꿔 주는 도구인데, 한국 회사가 한국어를 1순위로 두고 만들어 억양이 목적에 맞다.",
-    howToStart: "가입 없이 먼저 들어볼 수 있고, 체험은 신용카드 등록이 필요 없다.",
+      "글을 음성으로 바꿔 주는 도구인데, 한국 회사가 한국어를 1순위로 두고 만들어서 억양이 목적에 잘 맞아요.",
+    howToStart: "가입 없이 먼저 들어볼 수 있고, 체험할 때 신용카드를 등록하지 않아도 돼요.",
     pricingKind: "FREEMIUM",
-    priceNote: "체험 크레딧을 한 번 주고, 이후에는 글자 수 단위로 결제한다.",
+    priceNote: "체험 크레딧을 한 번 주고, 이후에는 글자 수 단위로 결제해요.",
     koreanLevel: "NATIVE",
-    koreanNote: "지원 언어 20여 개 중 한국어를 기준으로 설계했다.",
+    koreanNote: "지원 언어 20여 개 중에 한국어를 기준으로 설계했어요.",
     siteUrl: "https://www.supertone.ai/play",
     platforms: ["WEB", "DESKTOP"],
+    aliases: ["supertone", "수퍼톤", "슈퍼톤"],
+  },
+
+  // --- 만능 에이전트 -------------------------------------------------------
+  // 대화만 하는 게 아니라 **대신 일까지 해주는** 쪽. 대표 용도를 하나로 정하기
+  // 어려운 종류라 alsoFor를 넉넉히 준다. 그래야 "PPT 만들려면?" 탭에서도 뜬다.
+  {
+    slug: "manus",
+    name: "마누스",
+    maker: "Manus AI",
+    purpose: "CHAT",
+    alsoFor: ["RESEARCH", "SLIDES", "CODE"],
+    origin: "GLOBAL",
+    summary:
+      "답만 주는 게 아니라 시킨 일을 끝까지 대신 해요. 자료를 찾아보고 파일을 만들고 사이트까지 돌아다니면서 결과물을 내놔요.",
+    howToStart: "웹에 가입하고 시킬 일을 한 줄로 적으면 돼요. 앱과 PC 프로그램도 있어요.",
+    pricingKind: "FREEMIUM",
+    priceNote:
+      "무료 플랜이 있고 크레딧은 결제 주기마다 다시 차요. 매일 차는 방식이 아니라서 아껴 써야 해요.",
+    koreanLevel: "GOOD",
+    koreanNote: "공식 문서를 한국어로 운영해요. 한국어로 지시해도 알아들어요.",
+    siteUrl: "https://manus.im",
+    platforms: ["WEB", "DESKTOP", "IOS", "ANDROID"],
+    caution:
+      "일 하나에 크레딧이 꽤 많이 들어가요. 무료 크레딧은 '몇 번 시켜보는' 정도지 계속 쓰는 용도가 아니에요.",
+    aliases: ["manus", "마누스AI", "매너스", "마뉴스"],
+  },
+  {
+    slug: "genspark",
+    name: "젠스파크",
+    maker: "Genspark",
+    purpose: "SLIDES",
+    alsoFor: ["CHAT", "RESEARCH", "IMAGE", "VIDEO"],
+    origin: "GLOBAL",
+    summary:
+      "한국에서는 'PPT 잘 만드는 AI'로 제일 많이 알려졌어요. 발표자료 말고도 문서·이미지·영상까지 한 곳에서 다 돼요.",
+    howToStart: "한국어 사이트에 가입하고 만들고 싶은 걸 적으면 돼요. 앱도 있어요.",
+    pricingKind: "FREEMIUM",
+    priceNote: "무료로도 매일 크레딧을 주고 다음 날 다시 차요.",
+    koreanLevel: "GOOD",
+    koreanNote: "한국어 사이트를 따로 운영하고, 한국어로 만든 발표자료 후기도 많아요.",
+    siteUrl: "https://www.genspark.ai/ko",
+    platforms: ["WEB", "IOS", "ANDROID"],
+    caution:
+      "무료로 주는 크레딧 수량이 출처마다 다르게 적혀 있어요(하루 100 / 200). 공식 요금제 페이지에서 직접 확인해 보세요.",
+    aliases: ["genspark", "젠 스파크", "겐스파크", "잰스파크"],
   },
 
   // --- 코딩 · 앱 만들기 ----------------------------------------------------
@@ -688,17 +790,18 @@ export const SEED_TOOLS: SeedTool[] = [
     maker: "GitHub",
     purpose: "CODE",
     origin: "GLOBAL",
-    summary: "코드를 짜다 멈칫하면 다음 줄을 회색 글씨로 미리 보여준다. 코딩 입문자에게 부담이 가장 적다.",
-    howToStart: "깃허브에 가입해 학생 인증을 받고, VS Code에 확장 프로그램을 설치한다.",
+    summary: "코드를 짜다 멈칫하면 다음 줄을 회색 글씨로 미리 보여줘요. 코딩 입문자한테 부담이 제일 적어요.",
+    howToStart: "깃허브에 가입해서 학생 인증을 받고, VS Code에 확장 프로그램을 설치하면 돼요.",
     pricingKind: "FREEMIUM",
-    priceNote: "학생 인증을 받으면 무료로 쓸 수 있다.",
+    priceNote: "학생 인증을 받으면 무료로 쓸 수 있어요.",
     studentFree: true,
     koreanLevel: "GOOD",
-    koreanNote: "설명은 한국어로 받을 수 있지만 코드 주석과 변수명은 영어가 낫다.",
+    koreanNote: "설명은 한국어로 받을 수 있는데 코드 주석이나 변수명은 영어가 나아요.",
     siteUrl: "https://github.com/features/copilot",
     platforms: ["PLUGIN", "DESKTOP"],
     caution:
-      "2026년 3월부터 학생 플랜에서는 사용할 AI 모델을 직접 고를 수 없고 자동 선택만 된다.",
+      "2026년 3월부터 학생 플랜에서는 쓸 AI 모델을 직접 고를 수 없고 자동 선택만 돼요.",
+    aliases: ["copilot", "코파일럿", "깃헙 코파일럿", "github copilot"],
   },
   {
     slug: "lovable",
@@ -707,14 +810,15 @@ export const SEED_TOOLS: SeedTool[] = [
     purpose: "CODE",
     origin: "GLOBAL",
     summary:
-      "채팅으로 원하는 걸 설명하면 실제로 동작하는 웹사이트가 나오고 주소까지 바로 생긴다. 코딩을 몰라도 된다.",
-    howToStart: "가입하고 만들고 싶은 걸 한국어로 설명하면 된다.",
+      "채팅으로 원하는 걸 설명하면 실제로 동작하는 웹사이트가 나오고 주소까지 바로 생겨요. 코딩을 몰라도 돼요.",
+    howToStart: "가입하고 만들고 싶은 걸 한국어로 설명하면 돼요.",
     pricingKind: "FREEMIUM",
-    priceNote: "무료 크레딧은 하루·월 단위로 정해져 있고 작은 프로젝트 하나 정도 분량이다.",
+    priceNote: "무료 크레딧은 하루·월 단위로 정해져 있고 작은 프로젝트 하나 정도 분량이에요.",
     koreanLevel: "GOOD",
-    koreanNote: "한국어로 지시할 수 있고 결과물의 화면 글자도 한국어로 나온다.",
+    koreanNote: "한국어로 지시할 수 있고 결과물의 화면 글자도 한국어로 나와요.",
     siteUrl: "https://lovable.dev",
     platforms: ["WEB"],
+    aliases: ["lovable", "러버블AI", "로버블"],
   },
   {
     slug: "claude-code",
@@ -724,14 +828,72 @@ export const SEED_TOOLS: SeedTool[] = [
     purpose: "CODE",
     origin: "GLOBAL",
     summary:
-      "터미널에서 '이 버그 고쳐줘'라고 말하면 파일을 직접 읽고 고친다. 자동완성이 아니라 대신 일하는 쪽에 가깝다.",
-    howToStart: "터미널에 설치 명령 한 줄을 붙여넣는다. 웹이나 편집기 확장으로도 쓸 수 있다.",
+      "터미널에서 '이 버그 고쳐줘'라고 말하면 파일을 직접 읽고 고쳐요. 자동완성이 아니라 대신 일해주는 쪽에 가까워요.",
+    howToStart: "터미널에 설치 명령 한 줄을 붙여넣으면 돼요. 웹이나 편집기 확장으로도 쓸 수 있어요.",
     pricingKind: "FREEMIUM",
-    priceNote: "Claude 유료 구독에 포함돼 있어 따로 결제하지 않는다.",
+    priceNote: "Claude 유료 구독에 포함돼 있어서 따로 결제하지 않아도 돼요.",
     koreanLevel: "GOOD",
     siteUrl: "https://www.claude.com/product/claude-code",
     platforms: ["DESKTOP", "WEB", "PLUGIN", "IOS", "ANDROID"],
-    caution: "터미널을 처음 써보는 사람에게는 진입 장벽이 있다. 코딩을 두세 달쯤 해본 뒤가 좋다.",
+    caution: "터미널을 처음 써보시는 분한테는 진입 장벽이 있어요. 코딩을 두세 달쯤 해본 뒤가 좋아요.",
+    aliases: ["claude code", "클코", "cc", "클로드코드"],
+  },
+  {
+    slug: "kiro",
+    name: "키로",
+    maker: "AWS",
+    purpose: "CODE",
+    origin: "GLOBAL",
+    summary:
+      "바로 코드를 짜지 않고 '뭘 만들 건지'를 먼저 문서로 정리한 다음에 그걸 보고 짜요. 혼자 만들다 방향이 엎어지는 걸 줄이려는 방식이에요.",
+    howToStart:
+      "사이트에서 프로그램을 내려받아 설치하고, 구글 같은 소셜 계정이나 AWS Builder ID로 로그인하면 돼요.",
+    pricingKind: "FREEMIUM",
+    priceNote: "무료는 크레딧 50개를 한 번 주는 방식이에요. 매달 다시 채워지지 않아요.",
+    koreanLevel: "UNKNOWN",
+    koreanNote: "한국어 화면 지원 여부를 공식 문서에서 확인하지 못했어요.",
+    siteUrl: "https://kiro.dev",
+    platforms: ["DESKTOP", "WEB", "PLUGIN"],
+    caution:
+      "무료 크레딧 50개는 갱신되지 않아요. 다 쓰면 그 시점부터 유료라서 '무료로 계속 써본다'는 안 돼요.",
+    aliases: ["kiro", "아마존 키로", "aws kiro", "키로IDE"],
+  },
+  {
+    slug: "antigravity",
+    name: "안티그래비티",
+    maker: "Google",
+    developerSlug: "google",
+    purpose: "CODE",
+    origin: "GLOBAL",
+    summary:
+      "AI 여러 개한테 동시에 일을 시키고, 각자 뭘 하고 있는지 한 화면에서 지켜보는 개발 도구예요. 지금은 돈을 안 받아요.",
+    howToStart: "사이트에서 내려받아 설치하면 돼요. 윈도우·맥·리눅스 다 있어요.",
+    pricingKind: "FREE",
+    priceNote: "구글이 무료로 공개하고 있어요. 유료 단계가 아직 없어요.",
+    koreanLevel: "UNKNOWN",
+    koreanNote: "한국어 화면 지원 여부를 공식 문서에서 확인하지 못했어요.",
+    siteUrl: "https://antigravity.google",
+    platforms: ["DESKTOP"],
+    aliases: ["antigravity", "안티그라비티", "구글 안티그래비티", "안티 그래비티"],
+  },
+  {
+    slug: "jules",
+    name: "줄스",
+    maker: "Google",
+    developerSlug: "google",
+    purpose: "CODE",
+    origin: "GLOBAL",
+    summary:
+      "깃허브 저장소를 맡겨두면 혼자 고쳐서 결과를 올려놔요. 내 컴퓨터에 설치하는 게 아니라 구글 쪽에서 돌아가요.",
+    howToStart: "구글 계정으로 로그인하고 깃허브 저장소를 연결한 다음, 시킬 일을 적으면 돼요.",
+    pricingKind: "FREEMIUM",
+    priceNote: "무료로 하루 15번까지 일을 시킬 수 있고 매일 다시 차요.",
+    koreanLevel: "UNKNOWN",
+    koreanNote: "한국어 화면 지원 여부를 공식 문서에서 확인하지 못했어요.",
+    siteUrl: "https://jules.google",
+    platforms: ["WEB"],
+    caution: "깃허브 계정이 있어야 써요. 저장소를 연결하지 않으면 시작 자체가 안 돼요.",
+    aliases: ["jules", "쥴스", "구글 줄스"],
   },
 ];
 

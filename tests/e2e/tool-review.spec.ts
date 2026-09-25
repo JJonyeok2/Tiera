@@ -9,6 +9,7 @@
  * (NODE_ENV=production이면 코드에서 강제로 꺼진다).
  * ------------------------------------------------------------------------- */
 import { expect, test } from "@playwright/test";
+import { TOOL_MIN_REVIEWS_FOR_TIER } from "@/lib/scoring/constants";
 
 const TOOL = "supertone-play";
 
@@ -45,7 +46,12 @@ test("로그인 → 후기 작성 → 점수 생성 → 중복 차단 → 수정
   // 다만 후기 1개로 티어를 단정하지는 않는다.
   // 후기가 사이트에 몇 개뿐이면 전체 평균이 그 몇 개로 만들어져서
   // 베이지안 보정이 아무것도 당기지 못한다 — 수식은 맞는데 결과가 의미 없다.
-  await expect(page.locator("main")).toContainText("후기 3개부터 티어를 매깁니다");
+  // 문장을 통째로 박지 않는다. 말투를 손볼 때마다 테스트가 깨지는데,
+  // 깨진 게 "기준이 틀렸다"인지 "문장을 다듬었다"인지 구분이 안 된다.
+  // 확인할 건 하나다 — **몇 개부터 티어를 매기는지가 화면에 적혀 있는가.**
+  await expect(page.locator("main")).toContainText(
+    new RegExp(`후기\\s*${TOOL_MIN_REVIEWS_FOR_TIER}개부터[^.]*티어`)
+  );
 
   // 평가 안 한 축은 점수가 생기지 않는다 — 억지로 0점을 넣지 않는다
   const scoreBlock = page.locator("main").locator("dl").first();
@@ -73,7 +79,7 @@ test("로그인 → 후기 작성 → 점수 생성 → 중복 차단 → 수정
   // 삭제하면 점수 영역도 같이 사라진다 — 후기 0개인데 점수가 남아 있으면 유령 점수다
   await page.click('button:has-text("내 후기 수정")');
   await page.click('button:has-text("후기 삭제")');
-  await expect(page.locator("main")).toContainText("아직 후기가 없습니다");
+  await expect(page.locator("main")).toContainText("아직 후기가 없어요");
   await page.reload();
   await expect(page.locator("main")).not.toContainText("써 본 사람들");
 });

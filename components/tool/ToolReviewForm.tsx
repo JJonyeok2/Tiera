@@ -63,11 +63,11 @@ export default function ToolReviewForm({
       );
       if (!res.ok) {
         const j = await res.json().catch(() => null);
-        throw new Error(j?.error?.message ?? "저장에 실패했습니다.");
+        throw new Error(j?.error?.message ?? "저장하지 못했어요.");
       }
       await onDone();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "저장에 실패했습니다.");
+      setError(e instanceof Error ? e.message : "저장하지 못했어요.");
     } finally {
       setBusy(false);
     }
@@ -79,10 +79,10 @@ export default function ToolReviewForm({
     setError(null);
     try {
       const res = await fetch(`/api/tool-reviews/${existing.id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("삭제에 실패했습니다.");
+      if (!res.ok) throw new Error("삭제하지 못했어요.");
       await onDone();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "삭제에 실패했습니다.");
+      setError(e instanceof Error ? e.message : "삭제하지 못했어요.");
     } finally {
       setBusy(false);
     }

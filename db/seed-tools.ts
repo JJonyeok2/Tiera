@@ -66,6 +66,7 @@ async function upsertTools(db: Db): Promise<Map<string, string>> {
       logoUrl: t.logoUrl ?? null,
       platforms: t.platforms,
       caution: t.caution ?? null,
+      aliases: t.aliases ?? [],
     };
 
     const [row] = await db
@@ -93,6 +94,7 @@ async function upsertTools(db: Db): Promise<Map<string, string>> {
           logoUrl: values.logoUrl,
           platforms: values.platforms,
           caution: values.caution,
+          aliases: values.aliases,
         },
       })
       .returning({ id: tools.id, createdAt: tools.createdAt });

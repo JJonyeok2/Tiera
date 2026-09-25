@@ -92,7 +92,7 @@ export default async function HomePage({
           <span className="brand-gradient-text"> 모르겠을 때</span>
         </h1>
         <p className="mt-2.5 max-w-xl text-sm leading-relaxed text-[var(--color-text-dim)]">
-          쓸 일부터 고르면 된다. 돈이 드는지, 한국어가 되는지 먼저 적어 뒀다.
+          쓸 일부터 골라보세요. 돈이 드는지, 한국어가 되는지 미리 적어 뒀어요.
         </p>
       </section>
 
@@ -131,7 +131,7 @@ export default async function HomePage({
       {tools.length === 0 ? (
         <div className="mt-5 rounded-2xl border border-[var(--color-line)] bg-[var(--color-surface)] px-6 py-16 text-center">
           <p className="text-sm text-[var(--color-text-dim)]">
-            {filtered ? "조건에 맞는 도구가 없습니다." : "아직 등록된 도구가 없습니다."}
+            {filtered ? "찾으시는 조건에 맞는 도구가 없어요." : "아직 등록된 도구가 없어요."}
           </p>
           {filtered && (
             <Link

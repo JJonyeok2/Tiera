@@ -145,7 +145,7 @@ export default function AboutPage() {
       </section>
 
       <p className="text-xs text-[var(--color-text-mute)]">
-        Tiera는 재미로 보는 AI 티어표입니다. 모델 선택의 유일한 근거로 삼지 마세요.
+        Tiera는 재미로 보는 AI 티어표예요. 이것만 보고 고르지는 마세요.
       </p>
     </article>
   );

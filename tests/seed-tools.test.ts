@@ -82,11 +82,21 @@ describe("도구 시드 — 가격 서술", () => {
 });
 
 describe("도구 시드 — 한국어 정보", () => {
-  it("UNKNOWN이면 왜 모르는지를 적거나, 최소한 지어내지 않는다", () => {
+  it("UNKNOWN이면 왜 모르는지를 적고, 전체에서 차지하는 비율을 넘지 않는다", () => {
     // 모르는 걸 PARTIAL로 적당히 적는 게 이 데이터셋에서 제일 위험한 실수다.
-    // UNKNOWN 자체는 정상 값이므로 막지 않고, 대신 그 수를 눈에 보이게 고정한다.
+    // UNKNOWN 자체는 정상 값이므로 막지 않는다. 대신 두 가지를 강제한다.
+    //
+    // 절대 개수로 상한을 두면 목록이 늘 때마다 테스트가 깨지는데, 깨진 게
+    // "게을러졌다"인지 "도구가 늘었다"인지 구분이 안 된다. 그래서 비율로 둔다.
     const unknown = SEED_TOOLS.filter((t) => t.koreanLevel === "UNKNOWN");
-    expect(unknown.length).toBeLessThanOrEqual(5);
+    const ratio = unknown.length / SEED_TOOLS.length;
+    expect(ratio, `UNKNOWN ${unknown.length}/${SEED_TOOLS.length}`).toBeLessThanOrEqual(0.2);
+
+    // 그리고 UNKNOWN이면 왜 모르는지를 반드시 적는다. 빈칸으로 두면
+    // "확인 중"이 화면에 나가는데 확인한 흔적이 코드 어디에도 남지 않는다.
+    for (const t of unknown) {
+      expect(t.koreanNote?.trim(), `${t.slug}: 왜 모르는지 koreanNote에 적을 것`).toBeTruthy();
+    }
   });
 
   it("국산 도구는 한국어가 UNKNOWN·NONE일 수 없다 — 단 근거를 적은 경우만 예외", () => {
