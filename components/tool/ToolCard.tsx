@@ -3,13 +3,13 @@
  *
  * 모델 쪽 RankingRow와 의도적으로 다르다. 저기는 순위와 점수가 주인공인데,
  * 여기는 **후기가 0개인 상태로 먼저 세상에 나간다.** 점수를 주인공으로 두면
- * 37장이 전부 빈칸으로 시작한다.
+ * 모든 카드가 빈칸으로 시작한다.
  *
  * 카드가 답하는 질문은 "몇 위냐"가 아니라 이 셋이다:
  *   뭘 해주나 · 돈이 드나 · 한국어가 되나
  *
  * 색을 쓰는 규칙 하나:
- *   **용도별로 색을 뿌리지 않는다.** 37장에 10색이면 색종이가 되고, 그 색이
+ *   **용도별로 색을 뿌리지 않는다.** 40여 장에 10색이면 색종이가 되고, 그 색이
  *   아무 정보도 나르지 않는다. 색은 사용자가 실제로 판단에 쓰는 두 가지에만
  *   쓴다 — 돈이 드는가(유료·체험만), 한국어가 되는가. 나머지는 전부 무채색이다.
  *
@@ -47,7 +47,7 @@ export default function ToolCard({ tool, index = 0 }: { tool: ToolListRow; index
   return (
     <Link
       href={`/tools/${tool.slug}`}
-      // 순서대로 아주 짧게 올라온다. 37장이 한 번에 툭 나타나면 깜빡인 것처럼 보인다.
+      // 순서대로 아주 짧게 올라온다. 수십 장이 한 번에 툭 나타나면 깜빡인 것처럼 보인다.
       // 8장까지만 지연을 준다 — 그 뒤까지 기다리게 하면 답답해진다.
       style={{ animationDelay: `${Math.min(index, 8) * 28}ms` }}
       className="tiera-rise group relative flex w-full flex-col overflow-hidden rounded-2xl border border-[var(--color-line)] bg-[var(--color-surface)] p-4 transition duration-200 hover:-translate-y-0.5 hover:border-[var(--color-tier-prism)] hover:shadow-[0_10px_28px_-14px_rgba(0,0,0,0.45)]"
@@ -148,7 +148,7 @@ export default function ToolCard({ tool, index = 0 }: { tool: ToolListRow; index
           {KOREAN_LEVEL_LABEL[tool.koreanLevel]}
         </span>
 
-        {/* 후기 수는 있을 때만. 37장에 "후기 없음"이 반복되면
+        {/* 후기 수는 있을 때만. 카드마다 "후기 없음"이 반복되면
             사이트가 비어 있다는 인상만 남는다. */}
         {tool.reviewCount > 0 && (
           <span className="ml-auto text-[10px] tabular-nums text-[var(--color-text-mute)]">

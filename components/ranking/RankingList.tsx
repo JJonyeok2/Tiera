@@ -45,7 +45,7 @@ export default function RankingList({
       const json = (await res.json()) as { data: Row[] };
       setRows((prev) => [...prev, ...json.data]);
     } catch {
-      setError("더 불러오지 못했습니다.");
+      setError("더 불러오지 못했어요.");
     } finally {
       setLoading(false);
     }

@@ -115,6 +115,23 @@ test("상세는 시작법·가격·한국어·공식링크를 모두 보여준�
   );
 });
 
+test("써보러 가는 버튼이 모바일 첫 화면 안에 있다", async ({ page }) => {
+  // 이 사이트의 목적이 "보고 실제로 써보게" 하는 것이다. 예전엔 공식 사이트
+  // 버튼이 본문 맨 아래에만 있어서 모바일에서 한참 내려야 보였다.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/tools/runway"); // 주의사항이 있는 체험형 도구로 본다
+  const cta = page.locator('main a:has-text("써보러 가기")');
+  await expect(cta).toHaveAttribute("href", /^https:\/\//);
+  const box = await cta.boundingBox();
+  expect(box, "버튼이 보여야 한다").not.toBeNull();
+  expect(box!.y + box!.height).toBeLessThanOrEqual(844);
+
+  // 주의사항보다는 아래여야 한다 — 읽기 전에 나가버리면 경고가 소용없다.
+  const caution = page.getByTestId("tool-caution");
+  const cbox = await caution.boundingBox();
+  expect(cbox!.y).toBeLessThan(box!.y);
+});
+
 test("도구 상세에서 그 도구가 쓰는 모델로 내려갈 수 있다", async ({ page }) => {
   // 일반인 층과 개발자 층을 잇는 유일한 지점이다(23.5).
   await page.goto("/tools/chatgpt");

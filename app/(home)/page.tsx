@@ -19,6 +19,7 @@ import { PURPOSES } from "@/lib/params";
 import type { ToolListRow } from "@/lib/queries";
 import JsonLd from "@/components/seo/JsonLd";
 import { websiteJsonLd } from "@/lib/structured-data";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, shareMeta } from "@/lib/site";
 
 export const revalidate = 300;
 
@@ -35,6 +36,7 @@ export async function generateMetadata({
     // 용도 탭마다 URL이 갈라지지만 내용은 같은 목록의 부분집합이다.
     // canonical을 루트로 고정하지 않으면 크롤러가 중복 문서로 보고 평가를 나눈다.
     alternates: { canonical: "/" },
+    ...shareMeta({ url: "/", title: `${SITE_NAME} — ${SITE_TAGLINE}`, description: SITE_DESCRIPTION }),
     ...(purpose ? { title: `${PURPOSE_LABEL[purpose]} AI 도구` } : {}),
     // 검색 결과는 무한히 생성되는 얕은 페이지라 색인에서 뺀다.
     ...(q ? { robots: { index: false, follow: true } } : {}),
@@ -64,7 +66,7 @@ export default async function HomePage({
   /**
    * 기본 화면은 격자가 아니라 **용도별 섹션**이다.
    *
-   * 37장을 똑같은 박스로 쭉 깔면 어디서 끊어 읽어야 할지가 없다. 제목을 달아
+   * 수십 장을 똑같은 박스로 쭉 깔면 어디서 끊어 읽어야 할지가 없다. 제목을 달아
    * 끊으면 스크롤만 내려도 "이런 것도 있구나"가 되고, 그게 이 사이트가 하려는
    * 일 자체다 — 뭘 써야 할지 모르는 사람이 둘러보는 것.
    *
@@ -84,7 +86,20 @@ export default async function HomePage({
       <JsonLd data={websiteJsonLd()} />
 
       {/* 히어로. 스크롤한 상태에서 탭을 눌러도 제목이 sticky 헤더에 먹히지 않도록
-          scroll-mt를 준다 — 실제로 잘린 채로 보이는 걸 스크린샷에서 확인했다. */}
+          scroll-mt를 준다 — 실제로 잘린 채로 보이는 걸 스크린샷에서 확인했다.
+
+          검색 중에는 히어로를 접는다. 헤더에서 검색어를 친 사람에게 "어떤 AI를
+          써야 할지 모르겠을 때"는 이미 지나간 말이고, 모바일에선 그게 결과를
+          화면 아래로 밀어냈다. 탭을 눌렀을 때는 접지 않는다 — 누른 손가락 밑에서
+          화면이 통째로 위로 튀면 방금 뭘 눌렀는지 놓친다. */}
+      {q ? (
+        <p className="pb-1 pt-7 text-sm text-[var(--color-text-dim)]">
+          {/* 개수는 아래 목록과 같은 값이어야 한다. 탭까지 걸린 상태에서 전체 개수를
+              적으면, 적힌 숫자와 보이는 카드 수가 달라진다. */}
+          <strong className="font-semibold text-[var(--color-text)]">‘{q}’</strong> 검색 결과{" "}
+          <span className="tabular-nums">{tools.length}</span>개
+        </p>
+      ) : (
       <section className="scroll-mt-20 pb-1 pt-9">
         <h1 className="text-[26px] font-bold leading-[1.3] tracking-tight text-[var(--color-text)] sm:text-[30px]">
           어떤 AI를 써야 할지
@@ -95,6 +110,7 @@ export default async function HomePage({
           쓸 일부터 골라보세요. 돈이 드는지, 한국어가 되는지 미리 적어 뒀어요.
         </p>
       </section>
+      )}
 
       <Suspense>
         <PurposeTabs totals={totals} allCount={all.length} />

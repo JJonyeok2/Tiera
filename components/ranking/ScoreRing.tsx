@@ -38,7 +38,7 @@ export default function ScoreRing({
     <span
       className="relative inline-flex shrink-0 items-center justify-center"
       style={{ width: size, height: size }}
-      title={provisional ? "평가 수가 아직 적어 점수가 크게 움직일 수 있습니다" : undefined}
+      title={provisional ? "평가가 아직 적어서 점수가 크게 움직일 수 있어요" : undefined}
     >
       <svg
         viewBox="0 0 110 110"

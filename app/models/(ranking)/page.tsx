@@ -17,6 +17,7 @@ import { CompareProvider } from "@/components/ranking/CompareContext";
 import CompareTray from "@/components/ranking/CompareTray";
 import { getRanking, getScoreTypeTotals } from "@/lib/queries";
 import { parseCountry, parseQuery, parseScope, parseScoreType } from "@/lib/params";
+import { shareMeta } from "@/lib/site";
 
 export const revalidate = 300;
 
@@ -35,6 +36,11 @@ export async function generateMetadata({
     title: "모델 순위",
     description: "벤치마크 성적과 커뮤니티 평가를 나란히 놓고 보는 AI 모델 순위.",
     alternates: { canonical: "/models" },
+    ...shareMeta({
+      url: "/models",
+      title: "AI 모델 순위 — Tiera",
+      description: "벤치마크 점수와 커뮤니티 체감 평가를 나란히 놓고 본 AI 모델 순위예요.",
+    }),
     ...(q ? { robots: { index: false, follow: true } } : {}),
   };
 }
@@ -82,9 +88,9 @@ export default async function ModelsPage({
       <Suspense>
         {scoreType === "COMMUNITY" && total === 0 && !filtered ? (
           <div className="rounded-xl border border-[var(--color-line)] bg-[var(--color-surface)] px-6 py-16 text-center">
-            <p className="text-sm text-[var(--color-text-dim)]">아직 커뮤니티 평가가 없습니다.</p>
+            <p className="text-sm text-[var(--color-text-dim)]">아직 커뮤니티 평가가 없어요.</p>
             <p className="mt-2 text-xs text-[var(--color-text-mute)]">
-              첫 평가를 남겨주세요. 모델 하나에 한 사람이 한 번 평가할 수 있습니다.
+              첫 평가를 남겨주세요. 모델 하나에 한 사람이 한 번 평가할 수 있어요.
             </p>
             <Link
               href="/models?type=BENCHMARK"

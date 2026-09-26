@@ -55,11 +55,11 @@ export default function ReviewForm({
       );
       if (!res.ok) {
         const j = await res.json().catch(() => null);
-        throw new Error(j?.error?.message ?? "저장에 실패했습니다.");
+        throw new Error(j?.error?.message ?? "저장하지 못했어요.");
       }
       await onDone();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "저장에 실패했습니다.");
+      setError(e instanceof Error ? e.message : "저장하지 못했어요.");
     } finally {
       setBusy(false);
     }
@@ -71,10 +71,10 @@ export default function ReviewForm({
     setError(null);
     try {
       const res = await fetch(`/api/reviews/${existing.id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("삭제에 실패했습니다.");
+      if (!res.ok) throw new Error("삭제하지 못했어요.");
       await onDone();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "삭제에 실패했습니다.");
+      setError(e instanceof Error ? e.message : "삭제하지 못했어요.");
     } finally {
       setBusy(false);
     }
@@ -86,7 +86,7 @@ export default function ReviewForm({
         {existing ? "내 평가 수정" : "이 모델 평가하기"}
       </p>
       <p className="mb-3 text-[11px] text-[var(--color-text-mute)]">
-        써본 항목만 평가해 주세요. 건너뛴 항목은 점수 계산에서 빠집니다.
+        써본 항목만 평가해 주세요. 건너뛴 항목은 점수 계산에서 빠져요.
       </p>
 
       {CATEGORY_VALUES.map((c) => (
@@ -123,7 +123,7 @@ export default function ReviewForm({
         <span className="text-xs text-[var(--color-text-dim)]">
           익명으로 남기기
           <span className="mt-0.5 block text-[11px] text-[var(--color-text-mute)]">
-            목록에 이름 대신 &lsquo;익명&rsquo;으로 표시됩니다. 수정·삭제는 그대로 할 수 있어요.
+            목록에 이름 대신 &lsquo;익명&rsquo;으로 나와요. 수정·삭제는 그대로 할 수 있어요.
           </span>
         </span>
       </label>
@@ -153,7 +153,7 @@ export default function ReviewForm({
       </div>
       {!valid && payload.ratings.length === 0 && (
         <p className="mt-2 text-[11px] text-[var(--color-text-mute)]">
-          최소 한 개 카테고리는 평가해야 등록할 수 있습니다.
+          한 가지 이상은 평가해야 등록할 수 있어요.
         </p>
       )}
     </div>

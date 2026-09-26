@@ -7,7 +7,7 @@ import Header from "@/components/site/Header";
 import UserMenu from "@/components/site/UserMenu";
 import { ThemeProvider, themeInitScript } from "@/components/site/ThemeProvider";
 import ThemeToggle from "@/components/site/ThemeToggle";
-import { SITE_DESCRIPTION, SITE_NAME, siteUrl } from "@/lib/site";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, siteUrl } from "@/lib/site";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   // 크롤러가 어떤 도메인을 정본으로 볼지 판단하지 못한다.
   metadataBase: new URL(siteUrl()),
   title: {
-    default: "Tiera — AI 모델 티어표 | 벤치마크 vs 체감 평가",
+    default: `${SITE_NAME} — ${SITE_TAGLINE}`,
     // 하위 페이지는 제목만 넘기면 뒤에 브랜드가 붙는다.
     template: "%s | Tiera",
   },
@@ -31,18 +31,19 @@ export const metadata: Metadata = {
     "AI 모델 순위",
     "AI 티어표",
   ],
-  alternates: { canonical: "/" },
+  // canonical과 og:url은 여기서 정하지 않는다. 레이아웃 값은 하위 페이지가 그대로
+  // 물려받아서, 예전에는 /about·/login이 "정본은 홈"이라고 검색엔진에 알리고 있었다.
+  // 각 페이지가 자기 주소를 직접 적는다.
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
     locale: "ko_KR",
-    url: "/",
-    title: "Tiera — AI 모델 티어표",
+    title: `${SITE_NAME} — ${SITE_TAGLINE}`,
     description: SITE_DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Tiera — AI 모델 티어표",
+    title: `${SITE_NAME} — ${SITE_TAGLINE}`,
     description: SITE_DESCRIPTION,
   },
   robots: {
@@ -79,11 +80,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Suspense>
         <main className="mx-auto w-full max-w-5xl px-4 pb-24 sm:px-6">{children}</main>
         <footer className="mx-auto w-full max-w-5xl px-4 pb-10 text-xs text-[var(--color-text-mute)] sm:px-6">
-          Tiera는 재미로 보는 AI 티어표예요. 점수 산정 방식은{" "}
+          Tiera는 AI 도구를 쓸 일·가격·한국어로 골라보는 곳이에요. 점수 매기는 방식은{" "}
           <a className="underline hover:text-[var(--color-text-dim)]" href="/about">
             여기
           </a>
-          에서 볼 수 있습니다.
+          에 적어 뒀어요.
           <br />
           {/* Artificial Analysis 데이터 이용 약관상 출처 표기는 필수다. 지우지 말 것. */}
           벤치마크 데이터 제공:{" "}

@@ -1,10 +1,10 @@
 "use client";
 /* Header: 상단 바 — 로고 / 검색 / 유틸(테마·계정).
 
-   로고 옆 설명 문구는 뺐다. 바로 아래 ScoreTypeSwitch가 두 축을 이름과 개수까지
-   보여주기 때문에 헤더에서 또 말하면 같은 문장이 화면에 두 번 나온다.
+   로고 옆 설명 문구는 뺐다. 홈은 히어로가, /models는 ScoreTypeSwitch가 바로
+   아래에서 그 페이지가 뭔지 말해주므로 헤더에서 또 말하면 두 번 나온다.
 
-   점수 종류 전환은 여기 있었지만 목록 위로 옮겼다(ScoreTypeSwitch).
+   모델 점수 종류 전환도 여기 있었지만 /models 목록 위로 옮겼다.
    사이트의 핵심 축이 테마·로그인 버튼 옆에 있으면 유틸리티처럼 보인다.
 
    검색어는 URL 쿼리에 반영한다. 공유 가능한 링크가 되어야 하고,
@@ -83,7 +83,11 @@ export default function Header({
           </div>
         )}
 
-        <div className={`flex shrink-0 items-center gap-3 ${searchable ? "" : "ml-auto"}`}>
+        {/* 모바일에서는 검색창이 둘째 줄로 내려가서 첫 줄에 로고와 이 묶음만 남는다.
+            그때 ml-auto가 없으면 로고 바로 옆에 붙어서, 검색창 있는 화면(홈)과
+            없는 화면(상세)에서 버튼 위치가 달라졌다. 데스크톱에서는 검색창이
+            flex-1로 남은 폭을 먹으므로 ml-auto가 있어도 결과가 같다. */}
+        <div className="ml-auto flex shrink-0 items-center gap-3">
           {themeToggle}
           {userMenu}
         </div>

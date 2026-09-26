@@ -14,6 +14,7 @@ import { formatContext, formatPrice, MODALITY_LABEL } from "@/lib/format";
 import ReviewSection from "@/components/review/ReviewSection";
 import { auth } from "@/auth";
 import { getMyReview, listReviews } from "@/lib/reviews";
+import { shareMeta } from "@/lib/site";
 
 // 세션(로그인 여부)에 따라 리뷰 영역이 달라지므로 정적 캐시를 쓰지 않는다.
 export const dynamic = "force-dynamic";
@@ -50,8 +51,7 @@ export async function generateMetadata({
     title,
     description,
     alternates: { canonical: url },
-    openGraph: { type: "article", url, title, description },
-    twitter: { card: "summary_large_image", title, description },
+    ...shareMeta({ url, title, description, type: "article" }),
     ...(hasData ? {} : { robots: { index: false, follow: true } }),
   };
 }
@@ -134,7 +134,7 @@ export default async function ModelPage({ params }: { params: Promise<{ slug: st
 
       <Section title="벤치마크 원본">
         {model.benchmarks.length === 0 ? (
-          <p className="text-xs text-[var(--color-text-mute)]">등록된 벤치마크 결과가 없습니다.</p>
+          <p className="text-xs text-[var(--color-text-mute)]">등록된 벤치마크 결과가 없어요.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[560px] text-sm">

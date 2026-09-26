@@ -94,7 +94,7 @@ export default function ToolReviewForm({
         {existing ? "내 후기 수정" : "써보고 남기기"}
       </p>
       <p className="mb-3 text-[11px] text-[var(--color-text-mute)]">
-        써본 항목만 평가해 주세요. 건너뛴 항목은 점수 계산에서 빠집니다.
+        써본 항목만 평가해 주세요. 건너뛴 항목은 점수 계산에서 빠져요.
       </p>
 
       {TOOL_AXIS_VALUES.map((a) => (
@@ -136,7 +136,7 @@ export default function ToolReviewForm({
         <span className="text-xs text-[var(--color-text-dim)]">
           익명으로 남기기
           <span className="mt-0.5 block text-[11px] text-[var(--color-text-mute)]">
-            목록에 이름 대신 &lsquo;익명&rsquo;으로 표시됩니다. 수정·삭제는 그대로 할 수 있어요.
+            목록에 이름 대신 &lsquo;익명&rsquo;으로 나와요. 수정·삭제는 그대로 할 수 있어요.
           </span>
         </span>
       </label>
@@ -169,7 +169,7 @@ export default function ToolReviewForm({
       </div>
       {!valid && payload.ratings.length === 0 && (
         <p className="mt-2 text-[11px] text-[var(--color-text-mute)]">
-          최소 한 개 항목은 평가해야 등록할 수 있습니다.
+          한 가지 이상은 평가해야 등록할 수 있어요.
         </p>
       )}
     </div>

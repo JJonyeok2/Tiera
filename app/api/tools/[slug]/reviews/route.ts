@@ -41,7 +41,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json(
-      { error: { code: "UNAUTHORIZED", message: "로그인이 필요합니다." } },
+      { error: { code: "UNAUTHORIZED", message: "로그인이 필요해요." } },
       { status: 401 }
     );
   }
@@ -63,7 +63,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
       {
         error: {
           code: "INVALID_INPUT",
-          message: parsed.error.issues[0]?.message ?? "잘못된 입력입니다.",
+          message: parsed.error.issues[0]?.message ?? "입력한 내용을 다시 확인해 주세요.",
         },
       },
       { status: 400 }
@@ -85,7 +85,7 @@ function errorResponse(e: unknown) {
   }
   console.error(e);
   return NextResponse.json(
-    { error: { code: "INTERNAL", message: "처리에 실패했습니다." } },
+    { error: { code: "INTERNAL", message: "처리하지 못했어요. 잠시 후 다시 해주세요." } },
     { status: 500 }
   );
 }

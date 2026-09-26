@@ -10,7 +10,12 @@ import { COUNTRY_LABEL } from "@/lib/labels";
 import { formatContext, MODALITY_LABEL } from "@/lib/format";
 import { TIER_LABEL } from "@/components/tier/tierTokens";
 
-export const metadata: Metadata = { title: "모델 비교 — Tiera" };
+export const metadata: Metadata = {
+  title: "모델 비교",
+  alternates: { canonical: "/compare" },
+  // 비교 결과는 쿼리로 고른 모델 조합마다 달라지는 얇은 페이지라 색인하지 않는다.
+  robots: { index: false, follow: true },
+};
 export const revalidate = 300;
 
 const toKey = (t: string) => t.toLowerCase() as "prism" | "gold" | "silver" | "bronze";
@@ -28,7 +33,7 @@ export default async function ComparePage({
     return (
       <div className="py-20 text-center">
         <p className="text-sm text-[var(--color-text-dim)]">
-          비교하려면 모델을 2개 이상 선택해야 합니다. (최대 {MAX_COMPARE_MODELS}개)
+          비교하려면 모델을 2개 이상 골라 주세요. (최대 {MAX_COMPARE_MODELS}개)
         </p>
         <Link href="/models" className="mt-3 inline-block text-xs text-[var(--color-tier-prism)] hover:underline">
           모델 순위에서 고르기

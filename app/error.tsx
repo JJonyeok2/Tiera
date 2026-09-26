@@ -35,7 +35,7 @@ export default function Error({
 
       <h1 className="mt-5 text-lg font-bold">잠시 문제가 생겼어요</h1>
       <p className="mt-2 text-sm text-[var(--color-text-dim)]">
-        데이터를 불러오지 못했습니다. 잠깐 뒤에 다시 시도하면 대부분 해결됩니다.
+        데이터를 불러오지 못했어요. 잠깐 뒤에 다시 해보면 대부분 괜찮아져요.
       </p>
 
       <div className="mt-6 flex items-center justify-center gap-2">

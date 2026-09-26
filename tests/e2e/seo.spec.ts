@@ -90,4 +90,46 @@ test("OG 이미지가 생성된다", async ({ request }) => {
   expect(res.status()).toBe(200);
   expect(res.headers()["content-type"]).toContain("image/png");
 });
+test("공유 미리보기: 모든 공개 페이지에 이미지가 붙고, 자기 주소를 정본으로 가리킨다", async ({ page }) => {
+  // 페이지가 openGraph를 적으면 Next가 레이아웃 값을 통째로 갈아끼워서,
+  // 예전엔 도구·모델 상세를 공유하면 이미지 없는 빈 카드가 떴다(lib/site.ts shareMeta).
+  // 또 레이아웃의 canonical "/"를 물려받아 /about이 "정본은 홈"이라고 알리고 있었다.
+  const pages = [
+    { path: "/", canonical: /\/$|:\d+$/ },
+    { path: "/models", canonical: /\/models$/ },
+    { path: "/about", canonical: /\/about$/ },
+    { path: "/tools/claude", canonical: /\/tools\/claude$/ },
+  ];
+  for (const p of pages) {
+    await page.goto(p.path);
+    await expect(page.locator('meta[property="og:image"]'), p.path).toHaveCount(1);
+    const canonical = await page.locator('link[rel="canonical"]').getAttribute("href");
+    expect(canonical, p.path).toMatch(p.canonical);
+    const ogUrl = await page.locator('meta[property="og:url"]').getAttribute("content");
+    expect(ogUrl, p.path).toBe(canonical);
+  }
+});
+
+test("도구 상세를 공유하면 사이트 소개가 아니라 그 도구가 나간다", async ({ page }) => {
+  await page.goto("/tools/claude");
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", /Claude/);
+  // 설명은 화면의 "뭘 해주나요"와 같은 문장이어야 한다. 문구를 박지 않고 화면과 대조한다.
+  const desc = (await page.locator('meta[property="og:description"]').getAttribute("content")) ?? "";
+  expect(desc.length).toBeGreaterThan(10);
+  await expect(page.locator("main")).toContainText(desc);
+});
+
+test("사이트 소개가 더 이상 모델 티어표라고 하지 않는다", async ({ page }) => {
+  // 홈은 도구 목록인데 검색 결과·공유 카드는 "AI 모델 티어표"라고 소개하고 있었다.
+  await page.goto("/");
+  const title = await page.title();
+  const desc = await page.locator('meta[name="description"]').getAttribute("content");
+  expect(title).not.toContain("모델 티어표");
+  expect(desc ?? "").not.toContain("모델 티어표");
+});
+
+test("로그인 화면은 색인하지 않는다", async ({ page }) => {
+  await page.goto("/login");
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+});
 /* Footer: tests/e2e/seo.spec.ts */

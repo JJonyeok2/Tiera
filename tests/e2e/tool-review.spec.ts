@@ -149,4 +149,82 @@ test("익명 체크 시 목록에도 API 응답에도 이름이 안 실린다", 
     await fetch(`/api/tool-reviews/${rid}`, { method: "DELETE" });
   }, id);
 });
+test("isAnonymous를 빼고 수정해도 익명이 풀리지 않는다", async ({ page }) => {
+  // 예전에는 `isAnonymous ?? false`라서 이 필드가 빠진 수정 요청 하나에
+  // 익명 후기가 실명으로 바뀌었다. 지금 폼은 항상 보내지만, 다른 클라이언트나
+  // 바뀐 폼이 빼먹는 순간 작성자가 드러난다.
+  const email = `e2e-anon-patch-${Date.now()}@example.com`;
+  await page.goto(`/login?callbackUrl=/tools/${TOOL}`);
+  await page.fill("input[name=email]", email);
+  await page.click('button:has-text("이메일로 계속하기")');
+  await page.waitForURL((u) => u.pathname === `/tools/${TOOL}`);
+
+  const result = await page.evaluate(async (slug) => {
+    const post = await fetch(`/api/tools/${slug}/reviews`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ratings: [{ axis: "EASE", score: 4 }], isAnonymous: true }),
+    });
+    const { data } = await post.json();
+    // isAnonymous 없이 수정
+    const patch = await fetch(`/api/tool-reviews/${data.reviewId}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ratings: [{ axis: "EASE", score: 5 }], comment: "고침" }),
+    });
+    const list = await (await fetch(`/api/tools/${slug}/reviews`)).json();
+    const mine = list.data.find((x: { isMine: boolean }) => x.isMine);
+    await fetch(`/api/tool-reviews/${data.reviewId}`, { method: "DELETE" });
+    return { patch: patch.status, isAnonymous: mine?.isAnonymous, authorName: mine?.authorName };
+  }, TOOL);
+
+  expect(result.patch).toBe(200);
+  expect(result.isAnonymous).toBe(true);
+  // API는 익명 후기의 이름 자리에 "익명"을 넣어 보낸다(lib/tool-reviews.ts).
+  expect(result.authorName).toBe("익명");
+  expect(result.authorName).not.toContain(email.split("@")[0]);
+});
+
+test("동시에 여러 번 등록해도 500이 아니라 409가 난다", async ({ page }) => {
+  // 있는지 확인 → 넣기 사이에 틈이 있어서, 동시에 온 요청이 둘 다 확인을 통과한다.
+  // DB unique 제약이 중복은 막지만, 그 에러를 잡지 않으면 사용자는 500을 받는다.
+  const email = `e2e-race-${Date.now()}@example.com`;
+  await page.goto(`/login?callbackUrl=/tools/${TOOL}`);
+  await page.fill("input[name=email]", email);
+  await page.click('button:has-text("이메일로 계속하기")');
+  await page.waitForURL((u) => u.pathname === `/tools/${TOOL}`);
+
+  const statuses = await page.evaluate(async (slug) => {
+    const send = () =>
+      fetch(`/api/tools/${slug}/reviews`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ratings: [{ axis: "EASE", score: 3 }] }),
+      }).then((r) => r.status);
+    const out = await Promise.all([send(), send(), send(), send(), send()]);
+    const list = await (await fetch(`/api/tools/${slug}/reviews`)).json();
+    const mine = list.data.find((x: { isMine: boolean }) => x.isMine);
+    if (mine) await fetch(`/api/tool-reviews/${mine.id}`, { method: "DELETE" });
+    return out;
+  }, TOOL);
+
+  expect(statuses.filter((s) => s === 201)).toHaveLength(1);
+  // 나머지는 전부 409여야 한다. 429(요청 제한)는 이 테스트가 보려는 게 아니므로 허용.
+  for (const s of statuses.filter((s) => s !== 201)) expect([409, 429]).toContain(s);
+});
+
+test("로그인한 상태에서 callbackUrl로 밖에 나갈 수 없다", async ({ page }) => {
+  const email = `e2e-redirect-${Date.now()}@example.com`;
+  await page.goto(`/login?callbackUrl=/tools/${TOOL}`);
+  await page.fill("input[name=email]", email);
+  await page.click('button:has-text("이메일로 계속하기")');
+  await page.waitForURL((u) => u.pathname === `/tools/${TOOL}`);
+
+  // 브라우저는 /\evil.com을 //evil.com으로 읽는다. lib/safe-redirect.ts 참고.
+  for (const bad of ["/%5Cevil.com", "/%5C/evil.com", "/%09/evil.com", "//evil.com"]) {
+    const res = await page.request.get(`/login?callbackUrl=${bad}`, { maxRedirects: 0 });
+    const loc = res.headers()["location"] ?? "";
+    expect(loc, bad).not.toMatch(/evil\.com/);
+  }
+});
 /* Footer: tests/e2e/tool-review.spec.ts */

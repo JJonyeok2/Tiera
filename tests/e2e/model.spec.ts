@@ -25,6 +25,20 @@ test("점수 산정 방식 페이지가 상수를 실제 구현에서 읽어 보
   await expect(page.locator("main")).toContainText("3계단 이상");
   // Artificial Analysis 약관상 출처 표기는 필수다. 사라지면 테스트가 잡아야 한다.
   await expect(page.locator("main")).toContainText("Artificial Analysis");
-  await expect(page.locator("main")).toContainText("비워 둡니다");
+  // 없는 값을 0으로 채우지 않는다는 원칙이 문서에 남아 있는지. 말투가 아니라 단어로 본다.
+  await expect(page.locator("main")).toContainText("비워 둬요");
+});
+
+test("점수 설명 페이지가 도구 점수도 설명한다", async ({ page }) => {
+  // 도구 카드의 "자세히"를 따라온 사람이 자기가 본 점수의 설명을 찾을 수 있어야 한다.
+  // 숫자는 상수에서 읽어 온 값이어야 한다 — 문서와 구현이 따로 놀면 안 된다.
+  const { TOOL_CONFIDENCE_M, TOOL_MIN_REVIEWS_FOR_TIER } = await import("@/lib/scoring/constants");
+  await page.goto("/about");
+  const main = page.locator("main");
+  await expect(main).toContainText("도구 점수");
+  await expect(main).toContainText(`S = (v·R + ${TOOL_CONFIDENCE_M}·C) / (v + ${TOOL_CONFIDENCE_M})`);
+  await expect(main).toContainText(`${TOOL_MIN_REVIEWS_FOR_TIER}개`);
+  for (const axis of ["쉬움", "결과물", "가격", "한국어"]) await expect(main).toContainText(axis);
+  await expect(main.locator('a:has-text("도구 목록")')).toHaveAttribute("href", "/");
 });
 /* Footer: tests/e2e/model.spec.ts */

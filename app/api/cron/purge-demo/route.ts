@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   } catch (e) {
     console.error(e);
     return NextResponse.json(
-      { error: { code: "PURGE_FAILED", message: "삭제에 실패했습니다." } },
+      { error: { code: "PURGE_FAILED", message: "삭제하지 못했어요." } },
       { status: 500 }
     );
   }

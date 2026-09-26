@@ -6,6 +6,7 @@
  * 애플리케이션에서 전체 모델을 메모리에 올려 정렬하면 페이지네이션과 어긋난다.
  * ------------------------------------------------------------------------- */
 
+import { cache } from "react";
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import type {
@@ -466,7 +467,7 @@ export async function getTools(params: ToolListParams = {}): Promise<ToolListRow
       ${like ? sql`AND (LOWER(t.name) LIKE ${like} OR LOWER(t.maker) LIKE ${like} OR LOWER(t.summary) LIKE ${like} OR LOWER(array_to_string(t.aliases, ' ')) LIKE ${like})` : sql``}
     ORDER BY
       -- 티어를 띄울 만큼 후기가 쌓인 것만 위로 올린다.
-      -- 단순히 "점수가 있으면" 으로 하면 후기 1개짜리가 37개 위에 앉는다.
+      -- 단순히 "점수가 있으면" 으로 하면 후기 1개짜리가 나머지 전부 위에 앉는다.
       (ts.sample_count IS NULL OR ts.sample_count < ${TOOL_MIN_REVIEWS_FOR_TIER}),
       ts.score DESC NULLS LAST,
       -- 그다음 용도 순. enum 선언 순서를 그대로 쓴다(CHAT이 첫 번째).
@@ -536,9 +537,18 @@ export interface ToolDetail extends ToolListRow {
   models: { slug: string; name: string; score: number | null; tier: TierName | null }[];
   /** 축별 점수. 후기가 없으면 빈 객체다 — 0이 아니라 "아직 없음"이다. */
   axisScores: Partial<Record<ToolAxis, { score: number; sampleCount: number }>>;
+  /** 검색용 다른 이름. 화면 본문에는 안 나오고 메타데이터(keywords·JSON-LD)에만 쓴다. */
+  aliases: string[];
 }
 
-export async function getToolDetail(slug: string): Promise<ToolDetail | null> {
+/**
+ * 도구 상세.
+ *
+ * cache()로 감싼다. 상세 페이지는 generateMetadata와 본문이 각자 이걸 부르는데,
+ * 감싸지 않으면 한 번 볼 때마다 같은 쿼리 묶음이 두 번 돈다.
+ * cache()는 요청 하나 안에서만 결과를 공유하므로 사용자 사이에 섞일 일은 없다.
+ */
+export const getToolDetail = cache(async (slug: string): Promise<ToolDetail | null> => {
   const rows = await db.execute<{
     id: string;
     slug: string;
@@ -558,6 +568,7 @@ export async function getToolDetail(slug: string): Promise<ToolDetail | null> {
     logo_url: string | null;
     platforms: Platform[] | string;
     caution: string | null;
+    aliases: string[] | string;
     score: number | null;
     tier: TierName | null;
     review_count: number;
@@ -571,32 +582,35 @@ export async function getToolDetail(slug: string): Promise<ToolDetail | null> {
   const t = rows.rows?.[0];
   if (!t) return null;
 
-  // 축별 점수. OVERALL은 위에서 이미 조인했으므로 나머지 4축만 가져온다.
-  const axes = await db.execute<{ scope: ToolAxis; score: number; sample_count: number }>(sql`
-    SELECT scope, score, sample_count
-    FROM tool_score
-    WHERE tool_id = ${t.id} AND scope <> 'OVERALL'
-  `);
+  // 아래 두 쿼리는 서로 기다릴 이유가 없어서 같이 보낸다.
+  const [axes, models] = await Promise.all([
+    // 축별 점수. OVERALL은 위에서 이미 조인했으므로 나머지 4축만 가져온다.
+    db.execute<{ scope: ToolAxis; score: number; sample_count: number }>(sql`
+      SELECT scope, score, sample_count
+      FROM tool_score
+      WHERE tool_id = ${t.id} AND scope <> 'OVERALL'
+    `),
+    // 이 도구가 쓰는 모델. 벤치마크 점수가 있는 것만, 높은 순으로.
+    db.execute<{
+      slug: string;
+      name: string;
+      score: number | null;
+      tier: TierName | null;
+    }>(sql`
+      SELECT m.slug, m.name, ms.score, ms.tier
+      FROM model m
+      LEFT JOIN model_score ms
+        ON ms.model_id = m.id AND ms.score_type = 'BENCHMARK' AND ms.scope = 'OVERALL'
+      WHERE m.tool_id = ${t.id} AND m.is_published
+      ORDER BY ms.score DESC NULLS LAST, m.name ASC
+      LIMIT 12
+    `),
+  ]);
   const axisScores: Partial<Record<ToolAxis, { score: number; sampleCount: number }>> = {};
   for (const a of axes.rows ?? []) {
     axisScores[a.scope] = { score: Number(a.score), sampleCount: Number(a.sample_count) };
   }
 
-  // 이 도구가 쓰는 모델. 벤치마크 점수가 있는 것만, 높은 순으로.
-  const models = await db.execute<{
-    slug: string;
-    name: string;
-    score: number | null;
-    tier: TierName | null;
-  }>(sql`
-    SELECT m.slug, m.name, ms.score, ms.tier
-    FROM model m
-    LEFT JOIN model_score ms
-      ON ms.model_id = m.id AND ms.score_type = 'BENCHMARK' AND ms.scope = 'OVERALL'
-    WHERE m.tool_id = ${t.id} AND m.is_published
-    ORDER BY ms.score DESC NULLS LAST, m.name ASC
-    LIMIT 12
-  `);
 
   return {
     id: t.id,
@@ -617,13 +631,14 @@ export async function getToolDetail(slug: string): Promise<ToolDetail | null> {
     logoUrl: t.logo_url,
     platforms: parsePgArray(t.platforms) as Platform[],
     caution: t.caution,
+    aliases: parsePgArray(t.aliases),
     score: t.score,
     tier: t.tier,
     reviewCount: Number(t.review_count) || 0,
     models: models.rows ?? [],
     axisScores,
   };
-}
+});
 
 export async function getAllToolSlugs(): Promise<string[]> {
   const r = await db.execute<{ slug: string }>(sql`

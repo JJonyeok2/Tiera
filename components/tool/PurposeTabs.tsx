@@ -11,7 +11,7 @@
  * ------------------------------------------------------------------------- */
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useTransition } from "react";
+import { useEffect, useRef, useTransition } from "react";
 import type { ToolPurpose } from "@/db/schema";
 import { PURPOSE_LABEL } from "@/lib/labels";
 import { PURPOSES, parseToolPurpose } from "@/lib/params";
@@ -28,6 +28,14 @@ export default function PurposeTabs({
   const [pending, startTransition] = useTransition();
 
   const current = parseToolPurpose(params.get("for"));
+  const navRef = useRef<HTMLElement>(null);
+
+  // 모바일에서는 탭이 한 줄로 옆으로 밀린다. 링크로 들어왔거나 뒤로 가기로
+  // 돌아왔을 때 선택된 탭이 화면 밖에 있으면, 뭐가 켜져 있는지 안 보인다.
+  useEffect(() => {
+    const el = navRef.current?.querySelector<HTMLElement>('[aria-current="page"]');
+    el?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [current]);
 
   function select(value: ToolPurpose | undefined) {
     const next = new URLSearchParams(params.toString());
@@ -38,9 +46,15 @@ export default function PurposeTabs({
   }
 
   return (
+    // 모바일에서는 줄바꿈 대신 가로 스크롤이다. 알약 11개가 세 줄로 접히면서
+    // 첫 화면을 탭이 다 차지했다. 좌우 여백까지 끌어와(-mx-4) 오른쪽 끝 탭이
+    // 반쯤 잘려 보이게 두면 "옆으로 더 있다"는 게 따로 표시 없이 읽힌다.
     <nav
+      ref={navRef}
       aria-label="용도"
-      className={`mt-6 flex flex-wrap gap-1.5 transition-opacity ${pending ? "opacity-70" : ""}`}
+      className={`-mx-4 mt-6 flex gap-1.5 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden transition-opacity ${
+        pending ? "opacity-70" : ""
+      }`}
     >
       <Tab active={!current} label="전체" count={allCount} onClick={() => select(undefined)} />
       {PURPOSES.map((p) => (
@@ -77,7 +91,7 @@ function Tab({
       aria-current={active ? "page" : undefined}
       // 선택된 탭은 테두리를 바꾸는 대신 **채운다.** 테두리만 바꾸면 알약 12개
       // 사이에서 어느 게 켜졌는지 한눈에 안 들어왔다.
-      className={`rounded-full px-3 py-1.5 text-xs transition duration-150 ${
+      className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-xs transition duration-150 ${
         active
           ? "bg-[var(--color-text)] font-medium text-[var(--color-bg)]"
           : empty

@@ -33,7 +33,7 @@ export async function GET(req: Request) {
   } catch {
     // 내부 오류 메시지를 그대로 노출하면 스키마 구조가 새어 나간다.
     return NextResponse.json(
-      { error: { code: "RANKING_FAILED", message: "랭킹을 불러오지 못했습니다." } },
+      { error: { code: "RANKING_FAILED", message: "순위를 불러오지 못했어요." } },
       { status: 500 }
     );
   }

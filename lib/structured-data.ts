@@ -58,19 +58,38 @@ export function modelJsonLd(m: ModelDetail): Record<string, unknown> {
  *
  * 모델 쪽과 같은 규칙: **후기가 0개면 aggregateRating을 내보내지 않는다.**
  * 없는 평점을 구조화 데이터로 흘리면 구글에 스팸으로 잡히고, 도메인 단위로
- * 불이익을 받는다. 시드 직후에는 37개 전부 후기가 0개라 이 분기가 기본값이다.
+ * 불이익을 받는다. 시드 직후에는 전부 후기가 0개라 이 분기가 기본값이다.
  *
  * offers도 pricingKind가 FREE일 때만 0원으로 선언한다. FREEMIUM·TRIAL을 0원으로
  * 적으면 "무료"라고 검색 결과에 뜨는데, 런웨이처럼 사실상 유료인 것까지 무료로
  * 광고하게 된다 — 우리가 카드에서 애써 구분한 것을 스스로 뒤집는 꼴이다.
  */
+/** 우리 플랫폼 값을 schema.org operatingSystem 문자열로. 전부 "Web"이라고 적던 걸 고쳤다. */
+function operatingSystems(platforms: ToolDetail["platforms"]): string {
+  const map: Record<string, string> = {
+    WEB: "Web",
+    IOS: "iOS",
+    ANDROID: "Android",
+    // 도구마다 지원 OS가 달라서(리눅스까지 되는 것도, 맥만 되는 것도 있다)
+    // 특정 OS 이름을 박지 않는다. 확인 안 된 걸 적지 않는다는 시드 규칙과 같다.
+    DESKTOP: "Desktop",
+    EXTENSION: "Web browser",
+  };
+  const out = [...new Set(platforms.map((p) => map[p]).filter(Boolean))];
+  return out.length > 0 ? out.join(", ") : "Web";
+}
+
 export function toolJsonLd(t: ToolDetail): Record<string, unknown> {
   const data: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     name: t.name,
-    applicationCategory: "AI 도구",
-    operatingSystem: "Web",
+    // aliases는 alternateName으로 내보내지 않는다. 검색용이라 제작사 이름("앤트로픽")과
+    // 오타까지 섞여 있어서, 그대로 넣으면 "Claude의 다른 이름은 앤트로픽"이라고
+    // 선언하는 셈이 된다. 페이지 keywords에만 쓴다.
+    // schema.org가 정한 값만 인식된다. "AI 도구"는 아무 뜻도 전달하지 못한다.
+    applicationCategory: "BusinessApplication",
+    operatingSystem: operatingSystems(t.platforms),
     url: absoluteUrl(`/tools/${t.slug}`),
     inLanguage: "ko-KR",
     description: t.summary,

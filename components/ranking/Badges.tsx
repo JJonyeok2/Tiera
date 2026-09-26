@@ -23,8 +23,8 @@ export function StatusBadge({ status }: { status: "CERTIFIED" | "PROVISIONAL" })
     <span
       title={
         certified
-          ? "평가 수가 충분해 점수가 안정적입니다"
-          : "평가 수가 아직 적어 점수가 크게 움직일 수 있습니다"
+          ? "평가가 충분히 쌓여서 점수가 안정적이에요"
+          : "평가가 아직 적어서 점수가 크게 움직일 수 있어요"
       }
       className={`rounded px-1.5 py-[2px] text-[10px] font-medium ${
         certified

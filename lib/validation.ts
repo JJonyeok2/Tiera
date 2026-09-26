@@ -12,17 +12,17 @@ export const reviewInputSchema = z.object({
         score: z.number().int().min(1).max(5),
       })
     )
-    .min(1, "최소 한 개 카테고리는 평가해야 합니다.")
+    .min(1, "한 가지 이상은 평가해 주세요.")
     .max(CATEGORY_VALUES.length)
     .refine(
       (arr) => new Set(arr.map((r) => r.category)).size === arr.length,
-      "같은 카테고리를 두 번 보낼 수 없습니다."
+      "같은 항목을 두 번 보낼 수 없어요."
     ),
   isAnonymous: z.boolean().optional(),
   comment: z
     .string()
     .trim()
-    .max(500, "한줄평은 500자까지 쓸 수 있습니다.")
+    .max(500, "한줄평은 500자까지 쓸 수 있어요.")
     .optional()
     .transform((v) => (v && v.length > 0 ? v : null)),
 });
@@ -48,17 +48,17 @@ export const toolReviewInputSchema = z.object({
         score: z.number().int().min(1).max(5),
       })
     )
-    .min(1, "최소 한 개 항목은 평가해야 합니다.")
+    .min(1, "한 가지 이상은 평가해 주세요.")
     .max(TOOL_AXIS_VALUES.length)
     .refine(
       (arr) => new Set(arr.map((r) => r.axis)).size === arr.length,
-      "같은 항목을 두 번 보낼 수 없습니다."
+      "같은 항목을 두 번 보낼 수 없어요."
     ),
   isAnonymous: z.boolean().optional(),
   comment: z
     .string()
     .trim()
-    .max(500, "한줄평은 500자까지 쓸 수 있습니다.")
+    .max(500, "한줄평은 500자까지 쓸 수 있어요.")
     .optional()
     .transform((v) => (v && v.length > 0 ? v : null)),
 });

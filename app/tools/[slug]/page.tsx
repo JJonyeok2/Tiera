@@ -30,6 +30,7 @@ import {
   TOOL_AXIS_LABEL,
   TOOL_AXIS_QUESTION,
 } from "@/lib/labels";
+import { shareMeta } from "@/lib/site";
 
 // 후기는 로그인 사용자마다 "내 후기"가 다르므로 페이지 단위 캐시를 쓰지 않는다.
 export const dynamic = "force-dynamic";
@@ -46,12 +47,20 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const tool = await getToolDetail(slug);
-  if (!tool) return { title: "찾을 수 없음" };
+  if (!tool) return { title: "찾을 수 없는 도구" };
 
+  // 사람들이 실제로 검색하는 말로 제목을 짓는다. "어떤 도구인가"는 아무도 안 친다.
+  const title = `${tool.name} 사용법·가격·한국어 지원`;
+  const url = `/tools/${tool.slug}`;
+  const description = tool.summary;
+
+  // 공유했을 때 사이트 소개가 아니라 이 도구의 이름과 한 줄 설명이 나가야 한다.
   return {
-    title: `${tool.name} — 어떤 도구인가`,
-    description: tool.summary,
-    alternates: { canonical: `/tools/${tool.slug}` },
+    title,
+    description,
+    keywords: [tool.name, ...tool.aliases],
+    alternates: { canonical: url },
+    ...shareMeta({ url, title: `${tool.name} — Tiera`, description, type: "article" }),
   };
 }
 
@@ -129,6 +138,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
       {/* 주의사항은 본문보다 위에 둔다. 밑에 두면 결제하고 나서 읽는다. */}
       {tool.caution && (
         <p
+          data-testid="tool-caution"
           className={`mt-4 rounded-lg border px-4 py-3 text-xs leading-relaxed ${
             payAttention
               ? "border-[var(--color-line)] bg-[var(--color-surface-2)] text-[var(--color-text)]"
@@ -138,6 +148,25 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
           {tool.caution}
         </p>
       )}
+
+      {/* 이 사이트의 목적은 "보고 실제로 써보게" 하는 것인데, 공식 사이트로 가는
+          버튼이 예전에는 본문 맨 아래 "어디서 쓰나요" 안에만 있었다. 모바일에서
+          스크롤을 60% 내려야 나왔다. 주의사항 바로 다음, 첫 화면 안에 둔다.
+          주의사항보다 위로는 올리지 않는다 — 읽기 전에 나가버리면 소용없다. */}
+      <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2.5">
+        <a
+          href={tool.siteUrl}
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-[var(--color-text)] px-4 py-2.5 text-sm font-semibold text-[var(--color-bg)] transition hover:opacity-90"
+        >
+          {tool.name} 써보러 가기
+          <span aria-hidden="true">↗</span>
+        </a>
+        <span className="text-xs text-[var(--color-text-mute)]">
+          {PRICING_LABEL[tool.pricingKind]} · {KOREAN_LEVEL_LABEL[tool.koreanLevel]}
+        </span>
+      </div>
 
       {/* 축별 점수는 후기가 있을 때만 그린다. */}
       {rated.length > 0 && (

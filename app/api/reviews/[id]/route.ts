@@ -16,7 +16,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   const parsed = reviewInputSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json(
-      { error: { code: "INVALID_INPUT", message: parsed.error.issues[0]?.message ?? "잘못된 입력입니다." } },
+      { error: { code: "INVALID_INPUT", message: parsed.error.issues[0]?.message ?? "입력한 내용을 다시 확인해 주세요." } },
       { status: 400 }
     );
   }
@@ -40,7 +40,7 @@ export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string 
 
 function unauthorized() {
   return NextResponse.json(
-    { error: { code: "UNAUTHORIZED", message: "로그인이 필요합니다." } },
+    { error: { code: "UNAUTHORIZED", message: "로그인이 필요해요." } },
     { status: 401 }
   );
 }
@@ -51,6 +51,6 @@ function errorResponse(e: unknown) {
     return NextResponse.json({ error: { code: e.code, message: e.message } }, { status });
   }
   console.error(e);
-  return NextResponse.json({ error: { code: "INTERNAL", message: "처리에 실패했습니다." } }, { status: 500 });
+  return NextResponse.json({ error: { code: "INTERNAL", message: "처리하지 못했어요. 잠시 후 다시 해주세요." } }, { status: 500 });
 }
 /* Footer: app/api/reviews/[id]/route.ts */

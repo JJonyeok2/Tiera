@@ -27,11 +27,52 @@ export function siteUrl(): string {
 }
 
 export const SITE_NAME = "Tiera";
+/**
+ * 사이트 한 줄 소개. 검색 결과 스니펫과 공유 미리보기에 그대로 나간다.
+ *
+ * 모델 순위표 시절 문구("벤치마크 점수와 커뮤니티 체감 평가를 나란히 보는
+ * AI 모델 티어표")가 방향을 바꾼 뒤에도 한참 남아 있었다. 홈에 들어오면
+ * 도구 목록인데 검색 결과에서는 모델 순위표라고 소개하고 있었던 셈이다.
+ */
+export const SITE_TAGLINE = "어떤 AI를 써야 할지 모를 때";
 export const SITE_DESCRIPTION =
-  "벤치마크 점수와 커뮤니티 체감 평가를 나란히 보는 AI 모델 티어표. 미국·중국·한국 개발사 모델을 한 곳에서 비교합니다.";
+  "쓸 일로 골라보는 AI 도구 모음이에요. 무료인지, 한국어가 되는지, 어떻게 시작하는지 먼저 적어 뒀어요.";
 
 /** 절대 URL로 만든다. sitemap·canonical·OG에서 공통으로 쓴다. */
 export function absoluteUrl(path: string): string {
   return `${siteUrl()}${path.startsWith("/") ? path : `/${path}`}`;
+}
+/**
+ * 페이지별 공유 메타데이터(openGraph + twitter).
+ *
+ * Next는 페이지가 openGraph를 적으면 레이아웃의 openGraph를 **통째로 갈아끼운다.**
+ * 합쳐주지 않는다. 그래서 url·title만 적은 페이지는 og:image·siteName·locale이
+ * 전부 빠진 채로 나갔다 — 카톡에 도구 링크를 보내면 이미지 없는 빈 카드가 떴다.
+ * 모든 페이지가 이 함수를 거치게 해서 빠지는 칸이 없게 한다.
+ */
+export function shareMeta(opts: {
+  url: string;
+  title: string;
+  description: string;
+  type?: "website" | "article";
+}) {
+  const image = { url: "/opengraph-image", width: 1200, height: 630, alt: `${SITE_NAME} — ${SITE_TAGLINE}` };
+  return {
+    openGraph: {
+      type: opts.type ?? "website",
+      siteName: SITE_NAME,
+      locale: "ko_KR",
+      url: opts.url,
+      title: opts.title,
+      description: opts.description,
+      images: [image],
+    },
+    twitter: {
+      card: "summary_large_image" as const,
+      title: opts.title,
+      description: opts.description,
+      images: [image.url],
+    },
+  };
 }
 /* Footer: lib/site.ts */

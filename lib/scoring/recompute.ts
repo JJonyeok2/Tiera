@@ -410,7 +410,7 @@ export async function recomputeToolScores(onlyToolId?: string): Promise<void> {
   });
 
   // 도구에는 CERTIFIED/PROVISIONAL 상태를 아직 쓰지 않는다.
-  // 모델 쪽 임계(리뷰 30개)를 그대로 가져오면 37개 전부 영원히 '평가 중'이다.
+  // 모델 쪽 임계(리뷰 30개)를 그대로 가져오면 도구 전부가 영원히 '평가 중'이다.
   // 기준이 설 만큼 후기가 쌓인 뒤에 정한다.
 }
 /* Footer: lib/scoring/recompute.ts */

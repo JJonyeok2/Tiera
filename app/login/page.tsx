@@ -4,17 +4,17 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth, DEV_LOGIN_ENABLED, signIn } from "@/auth";
 import TierStar from "@/components/tier/TierStar";
+import { safeCallback } from "@/lib/safe-redirect";
 
-export const metadata: Metadata = { title: "로그인 — Tiera" };
+export const metadata: Metadata = {
+  title: "로그인",
+  // 검색 결과에 로그인 화면이 뜰 이유가 없다.
+  robots: { index: false, follow: false },
+};
 
 const hasGitHub = Boolean(process.env.AUTH_GITHUB_ID && process.env.AUTH_GITHUB_SECRET);
 const hasGoogle = Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET);
 
-function safeCallback(raw: unknown): string {
-  // 오픈 리다이렉트 방지: 같은 사이트 내부 경로만 허용한다.
-  if (typeof raw !== "string") return "/";
-  return raw.startsWith("/") && !raw.startsWith("//") ? raw : "/";
-}
 
 export default async function LoginPage({
   searchParams,
@@ -32,7 +32,7 @@ export default async function LoginPage({
       </div>
       <h1 className="mt-4 text-xl font-bold">Tiera 로그인</h1>
       <p className="mt-1 text-xs text-[var(--color-text-mute)]">
-        평가를 남기려면 로그인이 필요합니다. 이름은 익명으로 숨길 수 있습니다.
+        후기를 남기려면 로그인이 필요해요. 이름은 익명으로 숨길 수 있어요.
       </p>
 
       <div className="mt-8 space-y-2">
@@ -73,7 +73,7 @@ export default async function LoginPage({
             className="space-y-2 rounded-xl border border-dashed border-[var(--color-line)] p-4 text-left"
           >
             <p className="text-[11px] text-amber-400">
-              개발용 로그인 — 비밀번호를 검사하지 않습니다. 프로덕션에서는 비활성화됩니다.
+              개발용 로그인 — 비밀번호를 검사하지 않아요. 배포 환경에서는 꺼져요.
             </p>
             <input
               name="email"
@@ -90,7 +90,7 @@ export default async function LoginPage({
 
         {!hasGitHub && !hasGoogle && !DEV_LOGIN_ENABLED && (
           <p className="text-xs text-[var(--color-down)]">
-            사용 가능한 로그인 수단이 없습니다. 환경변수를 확인해 주세요.
+            지금은 쓸 수 있는 로그인 방법이 없어요. 환경변수를 확인해 주세요.
           </p>
         )}
       </div>

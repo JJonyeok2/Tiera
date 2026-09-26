@@ -10,7 +10,7 @@ export default function CompareToggle({ slug, name }: { slug: string; name: stri
   return (
     <label
       onClick={(e) => e.stopPropagation()}
-      title={disabled ? `비교는 최대 ${MAX_COMPARE}개까지 가능합니다` : "비교에 추가"}
+      title={disabled ? `비교는 최대 ${MAX_COMPARE}개까지 할 수 있어요` : "비교에 추가"}
       className={`flex shrink-0 items-center ${disabled ? "cursor-not-allowed opacity-35" : "cursor-pointer"}`}
     >
       <input

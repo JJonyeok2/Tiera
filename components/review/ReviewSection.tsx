@@ -60,7 +60,7 @@ export default function ReviewSection({
     } catch {
       // 예전에는 catch 없이 finally만 있었다. 실패해도 목록이 그대로 남아서
       // 사용자는 정렬이 바뀐 줄 알고, 오래된 목록을 최신으로 착각했다.
-      setError("리뷰를 불러오지 못했습니다.");
+      setError("평가를 불러오지 못했어요.");
       setLastAttempt({ sort: nextSort, offset });
     } finally {
       setLoading(false);
@@ -123,7 +123,7 @@ export default function ReviewSection({
       <ul className="space-y-3">
         {items.length === 0 && (
           <li className="py-8 text-center text-xs text-[var(--color-text-mute)]">
-            아직 리뷰가 없습니다. 첫 평가를 남겨보세요.
+            아직 평가가 없어요. 첫 평가를 남겨보세요.
           </li>
         )}
         {items.map((r) => (

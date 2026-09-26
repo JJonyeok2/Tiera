@@ -8,6 +8,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { models, reviewRatings, reviews, users } from "@/db/schema";
 import { recomputeCommunity } from "@/lib/scoring/recompute";
+import { isUniqueViolation } from "@/lib/db-errors";
 import type { ReviewInput } from "@/lib/validation";
 
 export class ReviewError extends Error {
@@ -19,9 +20,11 @@ export class ReviewError extends Error {
   }
 }
 
+const DUPLICATE_MESSAGE = "이미 이 모델을 평가하셨어요. 남긴 평가를 고쳐 주세요.";
+
 async function modelIdBySlug(slug: string): Promise<string> {
   const row = await db.select({ id: models.id }).from(models).where(eq(models.slug, slug)).limit(1);
-  if (!row[0]) throw new ReviewError("MODEL_NOT_FOUND", "모델을 찾을 수 없습니다.");
+  if (!row[0]) throw new ReviewError("MODEL_NOT_FOUND", "모델을 찾을 수 없어요.");
   return row[0].id;
 }
 
@@ -34,19 +37,26 @@ export async function createReview(userId: string, slug: string, input: ReviewIn
     .where(and(eq(reviews.userId, userId), eq(reviews.modelId, modelId)))
     .limit(1);
   if (existing[0]) {
-    throw new ReviewError("DUPLICATE", "이미 이 모델을 평가했습니다. 기존 평가를 수정해 주세요.");
+    throw new ReviewError("DUPLICATE", DUPLICATE_MESSAGE);
   }
 
-  const reviewId = await db.transaction(async (tx) => {
-    const [created] = await tx
-      .insert(reviews)
-      .values({ userId, modelId, comment: input.comment, isAnonymous: input.isAnonymous ?? false })
-      .returning({ id: reviews.id });
-    await tx
-      .insert(reviewRatings)
-      .values(input.ratings.map((r) => ({ reviewId: created.id, ...r })));
-    return created.id;
-  });
+  let reviewId: string;
+  try {
+    reviewId = await db.transaction(async (tx) => {
+      const [created] = await tx
+        .insert(reviews)
+        .values({ userId, modelId, comment: input.comment, isAnonymous: input.isAnonymous ?? false })
+        .returning({ id: reviews.id });
+      await tx
+        .insert(reviewRatings)
+        .values(input.ratings.map((r) => ({ reviewId: created.id, ...r })));
+      return created.id;
+    });
+  } catch (e) {
+    // 위의 확인을 동시에 통과한 두 번째 요청이 여기로 온다. lib/db-errors.ts 참고.
+    if (isUniqueViolation(e)) throw new ReviewError("DUPLICATE", DUPLICATE_MESSAGE);
+    throw e;
+  }
 
   await recomputeCommunity(modelId);
   return { reviewId, modelId };
@@ -58,16 +68,17 @@ export async function updateReview(userId: string, reviewId: string, input: Revi
     .from(reviews)
     .where(eq(reviews.id, reviewId))
     .limit(1);
-  if (!row[0]) throw new ReviewError("NOT_FOUND", "리뷰를 찾을 수 없습니다.");
+  if (!row[0]) throw new ReviewError("NOT_FOUND", "평가를 찾을 수 없어요.");
   // 소유권 검증. 세션 사용자와 리뷰 작성자가 같은지 서버에서 반드시 확인한다.
-  if (row[0].userId !== userId) throw new ReviewError("FORBIDDEN", "본인의 평가만 수정할 수 있습니다.");
+  if (row[0].userId !== userId) throw new ReviewError("FORBIDDEN", "내가 쓴 평가만 고칠 수 있어요.");
 
   await db.transaction(async (tx) => {
     await tx
       .update(reviews)
       .set({
         comment: input.comment,
-        isAnonymous: input.isAnonymous ?? false,
+        // 값이 들어왔을 때만 바꾼다. lib/tool-reviews.ts의 같은 자리 참고.
+        ...(input.isAnonymous !== undefined ? { isAnonymous: input.isAnonymous } : {}),
         updatedAt: new Date(),
       })
       .where(eq(reviews.id, reviewId));
@@ -85,8 +96,8 @@ export async function deleteReview(userId: string, reviewId: string) {
     .from(reviews)
     .where(eq(reviews.id, reviewId))
     .limit(1);
-  if (!row[0]) throw new ReviewError("NOT_FOUND", "리뷰를 찾을 수 없습니다.");
-  if (row[0].userId !== userId) throw new ReviewError("FORBIDDEN", "본인의 평가만 삭제할 수 있습니다.");
+  if (!row[0]) throw new ReviewError("NOT_FOUND", "평가를 찾을 수 없어요.");
+  if (row[0].userId !== userId) throw new ReviewError("FORBIDDEN", "내가 쓴 평가만 지울 수 있어요.");
 
   await db.delete(reviews).where(eq(reviews.id, reviewId));
   await recomputeCommunity(row[0].modelId);
