@@ -46,13 +46,14 @@ export default function PurposeTabs({
   }
 
   return (
-    // 모바일에서는 줄바꿈 대신 가로 스크롤이다. 알약 11개가 세 줄로 접히면서
+    // 화면이 넓지 않으면(lg 미만) 줄바꿈 대신 가로 스크롤이다. 태블릿에서 두 줄로 접히면
+    // 마지막 탭 하나만 아랫줄에 떨어져 어색했다. 알약 11개가 세 줄로 접히면서
     // 첫 화면을 탭이 다 차지했다. 좌우 여백까지 끌어와(-mx-4) 오른쪽 끝 탭이
     // 반쯤 잘려 보이게 두면 "옆으로 더 있다"는 게 따로 표시 없이 읽힌다.
     <nav
       ref={navRef}
       aria-label="용도"
-      className={`-mx-4 mt-6 flex gap-1.5 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden transition-opacity ${
+      className={`-mx-4 mt-6 flex gap-1 overflow-x-auto px-4 [scrollbar-width:none] lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden transition-opacity ${
         pending ? "opacity-70" : ""
       }`}
     >
@@ -91,7 +92,7 @@ function Tab({
       aria-current={active ? "page" : undefined}
       // 선택된 탭은 테두리를 바꾸는 대신 **채운다.** 테두리만 바꾸면 알약 12개
       // 사이에서 어느 게 켜졌는지 한눈에 안 들어왔다.
-      className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-xs transition duration-150 ${
+      className={`shrink-0 whitespace-nowrap rounded-full px-2.5 py-1.5 text-[13px] transition duration-150 ${
         active
           ? "bg-[var(--color-text)] font-medium text-[var(--color-bg)]"
           : empty
@@ -101,7 +102,7 @@ function Tab({
     >
       {label}
       <span
-        className={`ml-1.5 tabular-nums text-[10px] ${
+        className={`ml-1.5 tabular-nums text-[11px] ${
           active ? "opacity-60" : "text-[var(--color-text-mute)]"
         }`}
       >

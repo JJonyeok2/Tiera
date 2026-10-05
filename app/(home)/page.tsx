@@ -93,7 +93,7 @@ export default async function HomePage({
           화면 아래로 밀어냈다. 탭을 눌렀을 때는 접지 않는다 — 누른 손가락 밑에서
           화면이 통째로 위로 튀면 방금 뭘 눌렀는지 놓친다. */}
       {q ? (
-        <p className="pb-1 pt-7 text-sm text-[var(--color-text-dim)]">
+        <p className="pb-1 pt-7 text-[15px] text-[var(--color-text-dim)]">
           {/* 개수는 아래 목록과 같은 값이어야 한다. 탭까지 걸린 상태에서 전체 개수를
               적으면, 적힌 숫자와 보이는 카드 수가 달라진다. */}
           <strong className="font-semibold text-[var(--color-text)]">‘{q}’</strong> 검색 결과{" "}
@@ -101,12 +101,14 @@ export default async function HomePage({
         </p>
       ) : (
       <section className="scroll-mt-20 pb-1 pt-9">
-        <h1 className="text-[26px] font-bold leading-[1.3] tracking-tight text-[var(--color-text)] sm:text-[30px]">
+        {/* 한 가지 색, 한 덩어리 문장이다. 예전엔 "모르겠을 때"만 그라데이션으로 칠했는데,
+            사이트에서 가장 먼저 읽히는 말이 제일 읽기 어려운 글자였다. 강조는 크기와
+            굵기로만 한다. */}
+        <h1 className="text-[27px] font-bold leading-[1.3] tracking-[-0.02em] text-[var(--color-text)] sm:text-[32px]">
           어떤 AI를 써야 할지
-          <br className="sm:hidden" />
-          <span className="brand-gradient-text"> 모르겠을 때</span>
+          <br className="sm:hidden" /> 모르겠을 때
         </h1>
-        <p className="mt-2.5 max-w-xl text-sm leading-relaxed text-[var(--color-text-dim)]">
+        <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-[var(--color-text-dim)]">
           쓸 일부터 골라보세요. 돈이 드는지, 한국어가 되는지 미리 적어 뒀어요.
         </p>
       </section>
@@ -120,14 +122,14 @@ export default async function HomePage({
           같은 알약 모양이면 '용도 탭 하나'로 읽혀서, 한국 필터가 탭 목록에
           섞여 들어간 것처럼 보였다. 여기는 가로선 위의 도구 모음이다. */}
       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-[var(--color-line-soft)] pt-3">
-        <p className="text-[11px] text-[var(--color-text-mute)]">
+        <p className="text-[13px] text-[var(--color-text-mute)]">
           {purpose ? PURPOSE_HINT[purpose] : "쓸 일을 고르거나 검색해 보세요"}
         </p>
 
         <Link
           href={origin === "KR" ? "/" : "/?origin=KR"}
           aria-pressed={origin === "KR"}
-          className={`ml-auto flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] transition ${
+          className={`ml-auto flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[13px] transition ${
             origin === "KR"
               ? "bg-[var(--color-tier-prism)]/12 text-[var(--color-tier-prism)]"
               : "text-[var(--color-text-mute)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text-dim)]"
@@ -152,7 +154,7 @@ export default async function HomePage({
           {filtered && (
             <Link
               href="/"
-              className="mt-4 inline-block rounded-lg border border-[var(--color-line)] px-4 py-2 text-xs text-[var(--color-text-dim)] hover:border-[var(--color-text-mute)]"
+              className="mt-4 inline-block rounded-lg border border-[var(--color-line)] px-4 py-2 text-[13px] text-[var(--color-text-dim)] hover:border-[var(--color-text-mute)]"
             >
               전체 보기
             </Link>
@@ -160,17 +162,17 @@ export default async function HomePage({
         </div>
       ) : sections.length > 0 ? (
         <div className="mt-2">
-          {sections.map((sec, si) => (
-            <Section key={sec.purpose} purpose={sec.purpose} items={sec.items} order={si} />
+          {sections.map((sec) => (
+            <Section key={sec.purpose} purpose={sec.purpose} items={sec.items} />
           ))}
         </div>
       ) : (
         // 탭·검색·필터가 걸린 화면은 섹션으로 나누지 않는다.
         // 이미 한 갈래로 좁힌 결과라 제목을 또 달면 같은 말을 두 번 하는 셈이다.
         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-          {tools.map((t, i) => (
+          {tools.map((t) => (
             <li key={t.slug} className="flex">
-              <ToolCard tool={t} index={i} />
+              <ToolCard tool={t} />
             </li>
           ))}
         </ul>
@@ -181,7 +183,7 @@ export default async function HomePage({
       <div className="mt-12 border-t border-[var(--color-line-soft)] pt-6">
         <Link
           href="/models"
-          className="group inline-flex items-center gap-1.5 text-xs text-[var(--color-text-mute)] transition hover:text-[var(--color-text-dim)]"
+          className="group inline-flex items-center gap-1.5 text-[13px] text-[var(--color-text-mute)] transition hover:text-[var(--color-text-dim)]"
         >
           모델 단위로 보기 — 벤치마크·커뮤니티 순위
           <span
@@ -205,30 +207,26 @@ export default async function HomePage({
 function Section({
   purpose,
   items,
-  order,
 }: {
   purpose: (typeof PURPOSES)[number];
   items: ToolListRow[];
-  order: number;
 }) {
   return (
     <section className="scroll-mt-20 pt-9 first:pt-5">
       <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-        <h2 className="text-[19px] font-bold tracking-tight text-[var(--color-text)]">
+        <h2 className="text-[20px] font-bold tracking-tight text-[var(--color-text)]">
           {PURPOSE_LABEL[purpose]}
         </h2>
-        <span className="text-xs tabular-nums text-[var(--color-text-mute)]">{items.length}</span>
-        <p className="w-full text-xs text-[var(--color-text-mute)] sm:w-auto">
+        <span className="text-[13px] tabular-nums text-[var(--color-text-mute)]">{items.length}</span>
+        <p className="w-full text-[13px] text-[var(--color-text-mute)] sm:w-auto">
           {PURPOSE_HINT[purpose]}
         </p>
       </div>
 
       <ul className="mt-3.5 grid gap-3 sm:grid-cols-2">
-        {items.map((t, i) => (
+        {items.map((t) => (
           <li key={t.slug} className="flex">
-            {/* 지연은 섹션 안에서만 준다. 열 번째 섹션까지 누적하면
-                아래쪽 카드가 한참 뒤에 나타나서 로딩이 끊긴 것처럼 보인다. */}
-            <ToolCard tool={t} index={order === 0 ? i : 0} />
+            <ToolCard tool={t} />
           </li>
         ))}
       </ul>

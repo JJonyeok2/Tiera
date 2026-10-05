@@ -46,20 +46,24 @@
 :root {
   color-scheme: light;
 
-  /* '또렷하게' 방향으로 조정: 카드(흰색)와 배경의 명도 차를 벌리고 선을 진하게.
-     이전 값은 배경 #f6f7f9에 선 #dde1e8이라 카드 경계가 거의 안 보였다. */
-  --c-bg: #eef1f5;
+  /* 2026-10 가독성 정리: 라이트가 기준이다(사용자 피드백 — 라이트가 더 잘 읽힌다).
+     본문 보조색(dim)을 진하게 내리고, 다크 쪽은 이 비율에 맞춰 올렸다.
+     대비 목표(카드 위): 본문 dim ≈ 9.5:1, 흐린 글씨 mute ≈ 5.5:1 — 두 테마가 같다. */
+  --c-bg: #f2f4f7;
   --c-surface: #ffffff;
-  --c-surface-2: #e4e9f0;
-  --c-line: #cbd3de;
-  --c-line-soft: #dfe4ec;
+  --c-surface-2: #e7eaf0;
+  --c-line: #d3d8e0;
+  --c-line-soft: #e3e7ed;
 
-  --c-text: #12161e;
-  --c-text-dim: #495265;
-  --c-text-mute: #6f7a8d;
+  --c-text: #14171d;
+  --c-text-dim: #3d4452;
+  --c-text-mute: #5f6878;
+
+  /* 로고 타일 밝기. 라이트에서는 원본 그대로. */
+  --c-logo-filter: none;
 
   /* 흰 배경에서 읽히도록 명도를 낮춘 티어 색 */
-  --c-prism: #5b45e0;
+  --c-prism: #4a3fd1;
   --c-gold: #96780a;
   --c-silver: #64708a;
   --c-bronze: #a05a1c;
@@ -80,23 +84,29 @@
 
     /* 다크도 같은 이유로 벌렸다. 배경을 더 내리고 카드를 살짝 올린 뒤
        선을 밝혀서, 카드 하나하나가 면으로 읽히게 한다. */
-    --c-bg: #0d1117;
-    --c-surface: #171d26;
-    --c-surface-2: #222a36;
-    --c-line: #333c4b;
-    --c-line-soft: #232b37;
+    /* 예전 다크(#0d1117 위에 #f0f3f8)는 대비 수치는 높았지만 글자가 번져 보였다.
+       거의 검정인 바탕에 거의 흰 글자를 작게 쓰면 획이 퍼진다(halation).
+       바탕을 한 단계 올리고 본문 글자를 살짝 낮춰, 라이트와 같은 비율로 맞췄다.
+       로고 타일도 한 톤 어둡게(brightness) — 순백 사각형 수십 개가 눈을 찔렀다. */
+    --c-bg: #181a1f;
+    --c-surface: #21242a;
+    --c-surface-2: #2b2f36;
+    --c-line: #3c414b;
+    --c-line-soft: #2d3139;
 
-    --c-text: #f0f3f8;
-    --c-text-dim: #b4bdcd;
-    --c-text-mute: #838ea3;
+    --c-text: #e6e8ec;
+    --c-text-dim: #c4c9d2;
+    --c-text-mute: #9aa2ae;
 
-    --c-prism: #8b7aff;
+    --c-logo-filter: brightness(0.9);
+
+    --c-prism: #a9a3ff;
     --c-gold: #ffd83d;
     --c-silver: #ccd2df;
     --c-bronze: #e0913f;
 
-    --c-up: #34d399;
-    --c-down: #f87171;
+    --c-up: #5fcf9d;
+    --c-down: #ef8a8a;
 
     --star-glow: 1;
     --star-outline: none;
@@ -107,23 +117,25 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --c-bg: #0d1117;
-  --c-surface: #171d26;
-  --c-surface-2: #222a36;
-  --c-line: #333c4b;
-  --c-line-soft: #232b37;
+  --c-bg: #181a1f;
+  --c-surface: #21242a;
+  --c-surface-2: #2b2f36;
+  --c-line: #3c414b;
+  --c-line-soft: #2d3139;
 
-  --c-text: #f0f3f8;
-  --c-text-dim: #b4bdcd;
-  --c-text-mute: #838ea3;
+  --c-text: #e6e8ec;
+  --c-text-dim: #c4c9d2;
+  --c-text-mute: #9aa2ae;
 
-  --c-prism: #8b7aff;
+  --c-logo-filter: brightness(0.9);
+
+  --c-prism: #a9a3ff;
   --c-gold: #ffd83d;
   --c-silver: #ccd2df;
   --c-bronze: #e0913f;
 
-  --c-up: #34d399;
-  --c-down: #f87171;
+  --c-up: #5fcf9d;
+  --c-down: #ef8a8a;
 
   --star-glow: 1;
   --star-outline: none;
@@ -148,31 +160,9 @@ body * {
   transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
 }
 
-/* 카드 진입 애니메이션 — 37장이 한 번에 툭 나타나면 화면이 깜빡인 것처럼 보인다.
-   순서대로 아주 짧게 올라오면 '목록이 채워졌다'로 읽힌다.
-   reduced-motion에서는 아래 블록이 통째로 끈다. */
-@keyframes tiera-rise {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-.tiera-rise {
-  animation: tiera-rise 260ms ease-out both;
-}
-
-/* 브랜드 그라데이션 — Figma 브랜드 보드의 PRISM 토큰 (#7B68FF → #FFB868). */
-.brand-gradient-text {
-  background: linear-gradient(90deg, #7b68ff 0%, #ffb868 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
+/* 카드 진입 애니메이션과 브랜드 그라데이션 글자(.brand-gradient-text)는 2026-10에 뺐다.
+   "글자가 너무 화려하다"는 피드백 — 정보를 고르러 온 사람에게 움직이고 번쩍이는
+   글자는 읽기를 방해할 뿐이다. 브랜드 색은 로고 별 하나가 맡는다. */
 
 :where(a, button, input, select, [tabindex]):focus-visible {
   outline: 2px solid var(--c-prism);
@@ -186,13 +176,6 @@ body * {
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
-  }
-  /* 애니메이션을 0으로 줄이면 both 때문에 시작 프레임(투명)에 멈출 수 있다.
-     끌 때는 최종 상태를 직접 박아준다. */
-  .tiera-rise {
-    animation: none !important;
-    opacity: 1;
-    transform: none;
   }
 }
 /* Footer: app/globals.css */

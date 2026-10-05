@@ -85,7 +85,7 @@ export default function ToolReviewSection({
   return (
     <section className="mt-6 border-t border-[var(--color-line-soft)] pt-5">
       <div className="flex flex-wrap items-center gap-3">
-        <h2 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-mute)]">
+        <h2 className="text-[12px] font-semibold uppercase tracking-wider text-[var(--color-text-mute)]">
           후기 <span className="tabular-nums">{count.toLocaleString("ko-KR")}</span>
         </h2>
 
@@ -98,7 +98,7 @@ export default function ToolReviewSection({
                   setSort(s);
                   void load(s, 0);
                 }}
-                className={`rounded px-2 py-1 text-[11px] ${
+                className={`rounded px-2 py-1 text-[12px] ${
                   sort === s
                     ? "bg-[var(--color-surface-2)] text-[var(--color-text)]"
                     : "text-[var(--color-text-mute)] hover:text-[var(--color-text-dim)]"
@@ -115,7 +115,7 @@ export default function ToolReviewSection({
         {!signedIn ? (
           <Link
             href={`/login?callbackUrl=/tools/${slug}`}
-            className="inline-block rounded-lg border border-[var(--color-line)] px-4 py-2 text-xs text-[var(--color-text-dim)] hover:border-[var(--color-text-mute)]"
+            className="inline-block rounded-lg border border-[var(--color-line)] px-4 py-2 text-[13px] text-[var(--color-text-dim)] hover:border-[var(--color-text-mute)]"
           >
             로그인하고 후기 남기기
           </Link>
@@ -132,7 +132,7 @@ export default function ToolReviewSection({
         ) : (
           <button
             onClick={() => setEditing(true)}
-            className="rounded-lg bg-[var(--color-tier-prism)] px-4 py-2 text-xs font-semibold text-white"
+            className="rounded-lg bg-[var(--color-tier-prism)] px-4 py-2 text-[13px] font-semibold text-white"
           >
             {myReview ? "내 후기 수정" : `${toolName} 써보고 남기기`}
           </button>
@@ -141,7 +141,7 @@ export default function ToolReviewSection({
 
       <ul className="mt-4 space-y-3">
         {items.length === 0 && (
-          <li className="py-8 text-center text-xs text-[var(--color-text-mute)]">
+          <li className="py-8 text-center text-[13px] text-[var(--color-text-mute)]">
             아직 후기가 없어요. 첫 후기를 남겨보세요.
           </li>
         )}
@@ -154,21 +154,21 @@ export default function ToolReviewSection({
               {/* 익명이면 서버가 뭘 내려주든 화면은 이름을 쓰지 않는다.
                   쿼리 쪽 익명 처리가 1차 방어선이고 이건 2차다. */}
               <span
-                className={`text-xs font-medium ${
+                className={`text-[13px] font-medium ${
                   r.isAnonymous ? "text-[var(--color-text-mute)]" : "text-[var(--color-text)]"
                 }`}
               >
                 {displayAuthorName(r)}
               </span>
               {r.isMine && (
-                <span className="rounded bg-[var(--color-tier-prism)]/15 px-1.5 py-[2px] text-[10px] text-[var(--color-tier-prism)]">
+                <span className="rounded bg-[var(--color-tier-prism)]/15 px-1.5 py-[2px] text-[12px] text-[var(--color-tier-prism)]">
                   내 후기
                 </span>
               )}
-              <span className="text-[11px] tabular-nums text-[var(--color-text-mute)]">
+              <span className="text-[12px] tabular-nums text-[var(--color-text-mute)]">
                 평균 {r.average.toFixed(1)} / 5
               </span>
-              <time className="ml-auto text-[11px] text-[var(--color-text-mute)]">
+              <time className="ml-auto text-[12px] text-[var(--color-text-mute)]">
                 {r.createdAt.slice(0, 10)}
               </time>
             </div>
@@ -176,7 +176,7 @@ export default function ToolReviewSection({
               {r.ratings.map((x) => (
                 <span
                   key={x.axis}
-                  className="rounded bg-[var(--color-surface-2)] px-1.5 py-[2px] text-[10px] text-[var(--color-text-dim)]"
+                  className="rounded bg-[var(--color-surface-2)] px-1.5 py-[2px] text-[12px] text-[var(--color-text-dim)]"
                 >
                   {TOOL_AXIS_LABEL[x.axis as keyof typeof TOOL_AXIS_LABEL] ?? x.axis} {x.score}
                 </span>
@@ -188,7 +188,7 @@ export default function ToolReviewSection({
       </ul>
 
       {error && (
-        <p className="py-2 text-center text-xs text-[var(--color-down)]">
+        <p className="py-2 text-center text-[13px] text-[var(--color-down)]">
           {error}{" "}
           <button
             onClick={() => void load(lastAttempt?.sort ?? sort, lastAttempt?.offset ?? 0)}
@@ -203,7 +203,7 @@ export default function ToolReviewSection({
         <button
           onClick={() => void load(sort, items.length)}
           disabled={loading}
-          className="mt-3 w-full rounded-lg border border-[var(--color-line)] py-2 text-xs text-[var(--color-text-dim)] hover:border-[var(--color-text-mute)] disabled:opacity-50"
+          className="mt-3 w-full rounded-lg border border-[var(--color-line)] py-2 text-[13px] text-[var(--color-text-dim)] hover:border-[var(--color-text-mute)] disabled:opacity-50"
         >
           {loading ? "불러오는 중…" : "더 보기"}
         </button>

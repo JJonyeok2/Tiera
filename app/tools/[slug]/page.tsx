@@ -86,9 +86,10 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
     tool.tier !== null && tool.score !== null && tool.reviewCount >= TOOL_MIN_REVIEWS_FOR_TIER;
 
   return (
-    <article className="py-7">
+    <article className="max-w-[46rem] py-7">
+      {/* 줄 길이를 묶는다. 넓은 화면에서 한 줄이 70자를 넘어가면 다음 줄 시작을 놓친다. */}
       <JsonLd data={toolJsonLd(tool)} />
-      <Link href="/" className="text-xs text-[var(--color-text-mute)] hover:underline">
+      <Link href="/" className="text-[13px] text-[var(--color-text-mute)] hover:underline">
         ← 도구 목록
       </Link>
 
@@ -110,12 +111,12 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
         <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
           <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text)]">{tool.name}</h1>
           {tool.origin === "KR" && (
-            <span className="rounded border border-[var(--color-tier-prism)] px-1.5 py-0.5 text-[10px] text-[var(--color-tier-prism)]">
+            <span className="rounded-md bg-[var(--color-surface-2)] px-1.5 py-0.5 text-[12px] font-medium text-[var(--color-text-dim)]">
               한국
             </span>
           )}
           {tool.studentFree && (
-            <span className="rounded bg-[var(--color-surface-2)] px-1.5 py-0.5 text-[10px] text-[var(--color-text-dim)]">
+            <span className="rounded-md bg-[var(--color-surface-2)] px-1.5 py-0.5 text-[12px] text-[var(--color-text-dim)]">
               대학생 혜택
             </span>
           )}
@@ -129,7 +130,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
             </span>
           )}
         </div>
-        <p className="mt-1 text-xs text-[var(--color-text-mute)]">
+        <p className="mt-1 text-[13px] text-[var(--color-text-mute)]">
           {tool.maker} · {PURPOSE_LABEL[tool.purpose]}
           {tool.alsoFor.length > 0 && ` · ${tool.alsoFor.map((p) => PURPOSE_LABEL[p]).join(" · ")}`}
         </p>
@@ -140,7 +141,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
       {tool.caution && (
         <p
           data-testid="tool-caution"
-          className={`mt-4 rounded-lg border px-4 py-3 text-xs leading-relaxed ${
+          className={`mt-4 rounded-lg border px-4 py-3 text-[14px] leading-relaxed ${
             payAttention
               ? "border-[var(--color-line)] bg-[var(--color-surface-2)] text-[var(--color-text)]"
               : "border-[var(--color-line-soft)] bg-[var(--color-surface)] text-[var(--color-text-dim)]"
@@ -164,7 +165,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
           {tool.name} 써보러 가기
           <span aria-hidden="true">↗</span>
         </a>
-        <span className="text-xs text-[var(--color-text-mute)]">
+        <span className="text-[13px] text-[var(--color-text-mute)]">
           {PRICING_LABEL[tool.pricingKind]} · {KOREAN_LEVEL_LABEL[tool.koreanLevel]}
         </span>
       </div>
@@ -177,20 +178,20 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
               const s = tool.axisScores[a]!;
               return (
                 <div key={a} className="rounded-lg border border-[var(--color-line)] px-3 py-2.5">
-                  <dt className="text-[11px] text-[var(--color-text-mute)]">
+                  <dt className="text-[12px] text-[var(--color-text-mute)]">
                     {TOOL_AXIS_LABEL[a]}
                   </dt>
                   <dd className="mt-0.5 text-base font-semibold tabular-nums text-[var(--color-text)]">
                     {s.score.toFixed(1)}
                   </dd>
-                  <dd className="text-[10px] text-[var(--color-text-mute)]">
+                  <dd className="text-[12px] text-[var(--color-text-mute)]">
                     {TOOL_AXIS_QUESTION[a]}
                   </dd>
                 </div>
               );
             })}
           </dl>
-          <p className="mt-2 text-[11px] text-[var(--color-text-mute)]">
+          <p className="mt-2 text-[13px] text-[var(--color-text-mute)]">
             {tool.reviewCount < TOOL_MIN_REVIEWS_FOR_TIER
               ? `후기 ${TOOL_MIN_REVIEWS_FOR_TIER}개부터 티어를 매겨요. 지금 숫자는 ${tool.reviewCount}명이 매긴 값 그대로예요.`
               : "후기가 적을수록 점수를 전체 평균 쪽으로 당겨요. 몇 명 의견이 순위를 뒤집지 않게 하려는 보정이에요."}
@@ -232,7 +233,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
           href={tool.siteUrl}
           target="_blank"
           rel="noopener noreferrer nofollow"
-          className="mt-2.5 inline-block rounded-lg border border-[var(--color-line)] px-4 py-2 text-xs text-[var(--color-text-dim)] transition hover:border-[var(--color-text-mute)]"
+          className="mt-2.5 inline-block rounded-lg border border-[var(--color-line)] px-4 py-2 text-[13px] text-[var(--color-text-dim)] transition hover:border-[var(--color-text-mute)]"
         >
           공식 사이트 열기 ↗
         </a>
@@ -249,7 +250,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
               <li key={m.slug}>
                 <Link
                   href={`/models/${m.slug}`}
-                  className="flex items-center gap-2 text-xs text-[var(--color-text-dim)] hover:underline"
+                  className="flex items-center gap-2 text-[14px] text-[var(--color-text-dim)] hover:underline"
                 >
                   {m.tier && (
                     <TierStar
@@ -285,10 +286,12 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mt-6 border-t border-[var(--color-line-soft)] pt-5">
-      <h2 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-mute)]">
+      {/* 제목은 작게, 본문은 크게. 예전엔 본문이 12px이라 제목(11px)과 크기 차이가 없어서
+          어디가 제목이고 어디가 내용인지 덩어리로 안 읽혔다. */}
+      <h2 className="text-[13px] font-semibold text-[var(--color-text-mute)]">
         {title}
       </h2>
-      <div className="mt-2 text-xs leading-relaxed text-[var(--color-text-dim)]">{children}</div>
+      <div className="mt-1.5 text-[15px] leading-[1.7] text-[var(--color-text-dim)]">{children}</div>
     </section>
   );
 }

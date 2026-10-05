@@ -33,7 +33,7 @@ function initial(name: string): string {
   return /[a-z]/.test(c) ? c.toUpperCase() : c;
 }
 
-export default function ToolCard({ tool, index = 0 }: { tool: ToolListRow; index?: number }) {
+export default function ToolCard({ tool }: { tool: ToolListRow }) {
   // 유료·체험만은 무료로 오해하기 쉬운 지점이다. 여기에만 경고색을 쓴다.
   const payAttention = tool.pricingKind === "PAID" || tool.pricingKind === "TRIAL";
   // 한국어를 모르는 것과 안 되는 것은 다르다. 둘 다 눈에 띄어야 하지만
@@ -48,17 +48,10 @@ export default function ToolCard({ tool, index = 0 }: { tool: ToolListRow; index
   return (
     <Link
       href={`/tools/${tool.slug}`}
-      // 순서대로 아주 짧게 올라온다. 수십 장이 한 번에 툭 나타나면 깜빡인 것처럼 보인다.
-      // 8장까지만 지연을 준다 — 그 뒤까지 기다리게 하면 답답해진다.
-      style={{ animationDelay: `${Math.min(index, 8) * 28}ms` }}
-      className="tiera-rise group relative flex w-full flex-col overflow-hidden rounded-2xl border border-[var(--color-line)] bg-[var(--color-surface)] p-4 transition duration-200 hover:-translate-y-0.5 hover:border-[var(--color-tier-prism)] hover:shadow-[0_10px_28px_-14px_rgba(0,0,0,0.45)]"
+      // 진입 애니메이션·호버 들썩임·그라데이션 선은 2026-10에 뺐다("너무 화려하다").
+      // 호버는 테두리 색만 바뀐다 — 어느 카드를 가리키는지만 알려주면 된다.
+      className="group relative flex w-full flex-col overflow-hidden rounded-2xl border border-[var(--color-line)] bg-[var(--color-surface)] p-5 transition-colors duration-150 hover:border-[var(--color-text-mute)]"
     >
-      {/* 호버 시 위쪽에만 브랜드 그라데이션 실선. 카드 전체를 물들이지 않고
-          "이걸 보고 있다"만 표시한다. */}
-      <span
-        aria-hidden="true"
-        className="absolute inset-x-0 top-0 h-px scale-x-0 bg-[linear-gradient(90deg,#7b68ff,#ffb868)] transition-transform duration-300 group-hover:scale-x-100"
-      />
 
       <div className="flex items-start gap-3">
         {tool.logoUrl ? (
@@ -66,7 +59,11 @@ export default function ToolCard({ tool, index = 0 }: { tool: ToolListRow; index
           // Midjourney 등)이 다크 모드의 어두운 타일 위에서 사라졌기 때문이다.
           // 파일 쪽에서 이미 크롭·여백을 맞춰 뒀으므로(scripts/process-logos.py)
           // 여기서는 타일을 꽉 채우기만 한다.
-          <span className="h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-white ring-1 ring-inset ring-black/10">
+          // 다크에서는 --c-logo-filter로 한 톤 어둡게 — 순백 타일 수십 개가 눈부셨다.
+          <span
+            style={{ filter: "var(--c-logo-filter)" }}
+            className="h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-white ring-1 ring-inset ring-black/10"
+          >
             <Image
               src={tool.logoUrl}
               alt=""
@@ -80,9 +77,8 @@ export default function ToolCard({ tool, index = 0 }: { tool: ToolListRow; index
           <span
             aria-hidden="true"
             className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[15px] font-bold ${
-              tool.origin === "KR"
-                ? "bg-[var(--color-tier-prism)]/15 text-[var(--color-tier-prism)] ring-1 ring-inset ring-[var(--color-tier-prism)]/40"
-                : "bg-[var(--color-surface-2)] text-[var(--color-text-dim)] ring-1 ring-inset ring-[var(--color-line)]"
+              // 한국 도구라고 첫 글자 타일까지 색을 칠하지 않는다. "한국" 표시는 이름 옆 배지 하나면 된다.
+              "bg-[var(--color-surface-2)] text-[var(--color-text-dim)] ring-1 ring-inset ring-[var(--color-line)]"
             }`}
           >
             {initial(tool.name)}
@@ -91,21 +87,21 @@ export default function ToolCard({ tool, index = 0 }: { tool: ToolListRow; index
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-            <h3 className="text-base font-bold leading-tight tracking-tight text-[var(--color-text)]">
+            <h3 className="text-[17px] font-bold leading-tight tracking-tight text-[var(--color-text)]">
               {tool.name}
             </h3>
             {tool.origin === "KR" && (
-              <span className="rounded-md bg-[var(--color-tier-prism)]/12 px-1.5 py-px text-[10px] font-medium text-[var(--color-tier-prism)]">
+              <span className="rounded-md bg-[var(--color-surface-2)] px-1.5 py-px text-[12px] font-medium text-[var(--color-text-dim)]">
                 한국
               </span>
             )}
             {tool.studentFree && (
-              <span className="rounded-md bg-[var(--color-surface-2)] px-1.5 py-px text-[10px] text-[var(--color-text-dim)]">
+              <span className="rounded-md bg-[var(--color-surface-2)] px-1.5 py-px text-[12px] text-[var(--color-text-dim)]">
                 대학생 혜택
               </span>
             )}
           </div>
-          <p className="mt-1 truncate text-[11px] text-[var(--color-text-mute)]">
+          <p className="mt-1 truncate text-[13px] text-[var(--color-text-mute)]">
             {tool.maker} · {PURPOSE_LABEL[tool.purpose]}
           </p>
         </div>
@@ -124,13 +120,14 @@ export default function ToolCard({ tool, index = 0 }: { tool: ToolListRow; index
         )}
       </div>
 
-      <p className="mt-3 line-clamp-3 flex-1 text-[13px] leading-relaxed text-[var(--color-text-dim)]">
+      {/* 카드에서 실제로 읽는 문장이라 15px로 올렸다(예전 13px). 다크에서 특히 획이 가늘어 보였다. */}
+      <p className="mt-3 line-clamp-3 flex-1 text-[15px] leading-[1.6] text-[var(--color-text-dim)]">
         {tool.summary}
       </p>
 
-      <div className="mt-3.5 flex flex-wrap items-center gap-1.5 border-t border-[var(--color-line-soft)] pt-3">
+      <div className="mt-4 flex flex-wrap items-center gap-1.5 border-t border-[var(--color-line-soft)] pt-3">
         <span
-          className={`rounded-md px-1.5 py-0.5 text-[10px] font-medium ${
+          className={`rounded-md px-2 py-0.5 text-[12px] font-medium ${
             payAttention
               ? "bg-[var(--color-tier-bronze)]/14 text-[var(--color-tier-bronze)]"
               : tool.pricingKind === "FREE"
@@ -142,7 +139,7 @@ export default function ToolCard({ tool, index = 0 }: { tool: ToolListRow; index
         </span>
 
         <span
-          className={`rounded-md px-1.5 py-0.5 text-[10px] ${
+          className={`rounded-md px-2 py-0.5 text-[12px] ${
             koreanBest
               ? "bg-[var(--color-tier-prism)]/10 text-[var(--color-tier-prism)]"
               : koreanWeak
@@ -156,7 +153,7 @@ export default function ToolCard({ tool, index = 0 }: { tool: ToolListRow; index
         {/* 후기 수는 있을 때만. 카드마다 "후기 없음"이 반복되면
             사이트가 비어 있다는 인상만 남는다. */}
         {tool.reviewCount > 0 && (
-          <span className="ml-auto text-[10px] tabular-nums text-[var(--color-text-mute)]">
+          <span className="ml-auto text-[12px] tabular-nums text-[var(--color-text-mute)]">
             후기 {tool.reviewCount}
           </span>
         )}
@@ -166,7 +163,7 @@ export default function ToolCard({ tool, index = 0 }: { tool: ToolListRow; index
             후기 수가 있으면 그 옆에, 없으면 오른쪽 끝에 붙는다. */}
         <span
           aria-hidden="true"
-          className={`flex items-center gap-0.5 text-[10px] text-[var(--color-text-mute)] transition-colors group-hover:text-[var(--color-tier-prism)] ${
+          className={`flex items-center gap-0.5 text-[12px] text-[var(--color-text-mute)] transition-colors group-hover:text-[var(--color-text)] ${
             tool.reviewCount > 0 ? "" : "ml-auto"
           }`}
         >
@@ -178,7 +175,7 @@ export default function ToolCard({ tool, index = 0 }: { tool: ToolListRow; index
       {/* 무료로 오해하기 쉬운 것은 카드에서 미리 말한다.
           상세로 들어가야 알 수 있게 두면, 가입하고 나서 아는 사람이 생긴다. */}
       {tool.caution && payAttention && (
-        <p className="mt-2.5 rounded-lg bg-[var(--color-surface-2)]/70 px-2.5 py-2 text-[10px] leading-snug text-[var(--color-text-mute)]">
+        <p className="mt-3 rounded-lg bg-[var(--color-surface-2)]/70 px-3 py-2 text-[12px] leading-normal text-[var(--color-text-dim)]">
           {tool.caution}
         </p>
       )}

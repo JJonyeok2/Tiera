@@ -93,7 +93,7 @@ export default function ToolReviewForm({
       <p className="mb-1 text-sm font-semibold text-[var(--color-text)]">
         {existing ? "내 후기 수정" : "써보고 남기기"}
       </p>
-      <p className="mb-3 text-[11px] text-[var(--color-text-mute)]">
+      <p className="mb-3 text-[12px] text-[var(--color-text-mute)]">
         써본 항목만 평가해 주세요. 건너뛴 항목은 점수 계산에서 빠져요.
       </p>
 
@@ -105,14 +105,14 @@ export default function ToolReviewForm({
             onChange={(v) => setRatings((prev) => ({ ...prev, [a]: v ?? undefined }))}
           />
           {/* 축 이름 아래에 질문을 붙인다. 기준이 사람마다 갈리면 점수가 섞인다. */}
-          <p className="mb-1 ml-[76px] text-[11px] text-[var(--color-text-mute)]">
+          <p className="mb-1 ml-[76px] text-[12px] text-[var(--color-text-mute)]">
             {TOOL_AXIS_QUESTION[a]}
           </p>
         </div>
       ))}
 
       <label className="mt-3 block">
-        <span className="text-xs text-[var(--color-text-dim)]">한줄평 (선택)</span>
+        <span className="text-[13px] text-[var(--color-text-dim)]">한줄평 (선택)</span>
         <textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
@@ -121,7 +121,7 @@ export default function ToolReviewForm({
           placeholder="어떤 일에 써봤고 어땠는지 적어주세요."
           className="mt-1 w-full resize-y rounded-lg border border-[var(--color-line)] bg-[var(--color-bg)] px-3 py-2 text-sm placeholder:text-[var(--color-text-mute)] focus:border-[var(--color-tier-prism)] focus:outline-none"
         />
-        <span className="mt-1 block text-right text-[11px] tabular-nums text-[var(--color-text-mute)]">
+        <span className="mt-1 block text-right text-[12px] tabular-nums text-[var(--color-text-mute)]">
           {comment.length} / {REVIEW_COMMENT_MAX}
         </span>
       </label>
@@ -133,27 +133,27 @@ export default function ToolReviewForm({
           onChange={(e) => setAnonymous(e.target.checked)}
           className="mt-[3px] accent-[var(--color-tier-prism)]"
         />
-        <span className="text-xs text-[var(--color-text-dim)]">
+        <span className="text-[13px] text-[var(--color-text-dim)]">
           익명으로 남기기
-          <span className="mt-0.5 block text-[11px] text-[var(--color-text-mute)]">
+          <span className="mt-0.5 block text-[12px] text-[var(--color-text-mute)]">
             목록에 이름 대신 &lsquo;익명&rsquo;으로 나와요. 수정·삭제는 그대로 할 수 있어요.
           </span>
         </span>
       </label>
 
-      {error && <p className="mt-2 text-xs text-[var(--color-down)]">{error}</p>}
+      {error && <p className="mt-2 text-[13px] text-[var(--color-down)]">{error}</p>}
 
       <div className="mt-3 flex items-center gap-2">
         <button
           onClick={submit}
           disabled={!valid || busy}
-          className="rounded-lg bg-[var(--color-tier-prism)] px-4 py-2 text-xs font-semibold text-white disabled:opacity-40"
+          className="rounded-lg bg-[var(--color-tier-prism)] px-4 py-2 text-[13px] font-semibold text-white disabled:opacity-40"
         >
           {busy ? "저장 중…" : existing ? "수정하기" : "후기 등록"}
         </button>
         <button
           onClick={() => void onDone()}
-          className="text-xs text-[var(--color-text-mute)] hover:underline"
+          className="text-[13px] text-[var(--color-text-mute)] hover:underline"
         >
           취소
         </button>
@@ -161,14 +161,14 @@ export default function ToolReviewForm({
           <button
             onClick={remove}
             disabled={busy}
-            className="ml-auto text-xs text-[var(--color-down)] hover:underline disabled:opacity-40"
+            className="ml-auto text-[13px] text-[var(--color-down)] hover:underline disabled:opacity-40"
           >
             후기 삭제
           </button>
         )}
       </div>
       {!valid && payload.ratings.length === 0 && (
-        <p className="mt-2 text-[11px] text-[var(--color-text-mute)]">
+        <p className="mt-2 text-[12px] text-[var(--color-text-mute)]">
           한 가지 이상은 평가해야 등록할 수 있어요.
         </p>
       )}

@@ -6,14 +6,14 @@ export default async function UserMenu() {
   const session = await auth();
   if (!session?.user) {
     return (
-      <Link href="/login" className="text-xs text-[var(--color-text-mute)] hover:text-[var(--color-text-dim)]">
+      <Link href="/login" className="text-[13px] text-[var(--color-text-mute)] hover:text-[var(--color-text-dim)]">
         로그인
       </Link>
     );
   }
   return (
     <div className="flex items-center gap-2">
-      <span className="max-w-[110px] truncate text-xs text-[var(--color-text-dim)]">
+      <span className="max-w-[110px] truncate text-[13px] text-[var(--color-text-dim)]">
         {session.user.name ?? session.user.email}
       </span>
       <form
@@ -22,7 +22,7 @@ export default async function UserMenu() {
           await signOut({ redirectTo: "/" });
         }}
       >
-        <button className="text-xs text-[var(--color-text-mute)] hover:text-[var(--color-text-dim)]">
+        <button className="text-[13px] text-[var(--color-text-mute)] hover:text-[var(--color-text-dim)]">
           로그아웃
         </button>
       </form>
