@@ -15,8 +15,9 @@
  *
  * 로고는 logoUrl이 있을 때만 띄우고, 없으면 이름 첫 글자 타일로 떨어진다.
  * **로고를 직접 그리지 않는다** — 남의 상표를 흉내 내 SVG로 만드는 건 재현이다.
- * logoUrl은 각 서비스가 자기 도메인에 올려둔 파비콘을 받아 self-host한 것이고,
- * scripts/fetch-logos.ts가 채운다. 아직 비어 있으면 첫 글자가 그 자리를 지킨다.
+ * logoUrl은 각 서비스가 공개해 둔 파비콘·앱 아이콘을 받아 크롭한 뒤 self-host한
+ * 것이다(public/logos, 과정은 scripts/process-logos.py 머리말). 못 구한 도구는
+ * 첫 글자가 그 자리를 지킨다.
  * ------------------------------------------------------------------------- */
 
 import Image from "next/image";
@@ -61,13 +62,17 @@ export default function ToolCard({ tool, index = 0 }: { tool: ToolListRow; index
 
       <div className="flex items-start gap-3">
         {tool.logoUrl ? (
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[var(--color-surface-2)] ring-1 ring-inset ring-[var(--color-line)]">
+          // 로고 타일은 테마와 상관없이 흰 바탕이다. 검은 글리프 아이콘(ChatGPT·
+          // Midjourney 등)이 다크 모드의 어두운 타일 위에서 사라졌기 때문이다.
+          // 파일 쪽에서 이미 크롭·여백을 맞춰 뒀으므로(scripts/process-logos.py)
+          // 여기서는 타일을 꽉 채우기만 한다.
+          <span className="h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-white ring-1 ring-inset ring-black/10">
             <Image
               src={tool.logoUrl}
               alt=""
-              width={28}
-              height={28}
-              className="h-7 w-7 object-contain"
+              width={40}
+              height={40}
+              className="h-10 w-10"
               unoptimized
             />
           </span>

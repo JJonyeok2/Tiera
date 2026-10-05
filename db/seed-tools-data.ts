@@ -99,6 +99,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanNote:
       "일상 대화나 글쓰기는 무리 없어요. 학사일정이나 행정 같은 한국 고유 정보는 약한 편이에요. 그림 안에 한글을 넣는 건 지금 여기가 제일 정확해요.",
     siteUrl: "https://chatgpt.com",
+    logoUrl: "/logos/chatgpt.png",
     platforms: ["WEB", "IOS", "ANDROID", "DESKTOP"],
     caution:
       "한국 요금이 미국보다 비싸요. 가장 싼 유료 단계가 미국은 $8인데 한국은 15,000원이에요.",
@@ -119,6 +120,7 @@ export const SEED_TOOLS: SeedTool[] = [
     priceNote: "무료 사용량은 몇 시간 단위로 다시 차요.",
     koreanLevel: "GOOD",
     siteUrl: "https://claude.com",
+    logoUrl: "/logos/claude.png",
     platforms: ["WEB", "IOS", "ANDROID", "DESKTOP"],
     aliases: ["클로드", "앤트로픽", "anthropic"],
   },
@@ -141,6 +143,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanNote:
       "한국어 화면과 음성이 둘 다 자연스럽고, 구글 검색이 붙어 있어서 한국 최신 정보에 강해요.",
     siteUrl: "https://gemini.google.com",
+    logoUrl: "/logos/gemini.png",
     platforms: ["WEB", "IOS", "ANDROID"],
     caution:
       "국내 대학(원)생은 1년 무료에 이후 할인까지 받을 수 있어요. 다만 신청 마감이 정해져 있고 가입할 때 결제수단을 등록해야 해요.",
@@ -161,6 +164,7 @@ export const SEED_TOOLS: SeedTool[] = [
     priceNote: "무료예요.",
     koreanLevel: "NATIVE",
     siteUrl: "https://www.naver.com",
+    logoUrl: "/logos/naver-ai-tab.png",
     platforms: ["WEB", "IOS", "ANDROID"],
     caution: "예전의 클로바X는 2026년 4월에 문을 닫았어요. 그 자리를 대신하는 서비스예요.",
     aliases: ["네이버", "클로바", "클로바X", "하이퍼클로바", "naver"],
@@ -185,6 +189,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanLevel: "GOOD",
     koreanNote: "자료를 팟캐스트처럼 읽어주는 오디오 요약도 한국어를 지원해요.",
     siteUrl: "https://notebook.google",
+    logoUrl: "/logos/gemini-notebook.png",
     platforms: ["WEB", "IOS", "ANDROID"],
     caution: "2026년 7월에 이름이 바뀌었어요. 예전 이름은 노트북LM(NotebookLM)이에요.",
     aliases: ["노트북LM", "notebooklm", "노트북엘엠", "구글 노트북", "notebook lm"],
@@ -205,6 +210,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanLevel: "GOOD",
     koreanNote: "한국어로 물어도 되지만 출처가 영어 문서 위주로 잡히는 편이에요.",
     siteUrl: "https://www.perplexity.ai",
+    logoUrl: "/logos/perplexity.png",
     platforms: ["WEB", "IOS", "ANDROID"],
     caution:
       "SKT 1년 무료 혜택을 소개하는 글이 아직 많이 남아 있는데, 이미 끝난 이벤트예요.",
@@ -226,6 +232,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanLevel: "NATIVE",
     koreanNote: "한국 회사라 화면도 고객지원도 공지도 전부 한국어예요.",
     siteUrl: "https://liner.com/ko",
+    logoUrl: "/logos/liner.png",
     platforms: ["WEB", "EXTENSION", "IOS", "ANDROID"],
     aliases: ["liner", "라이너AI"],
   },
@@ -244,6 +251,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanNote:
       "한국어 페이지를 따로 운영해요. 영어 논문을 한국어로 물어볼 수 있다는 게 이 분야에서 제일 큰 장점이에요.",
     siteUrl: "https://scispace.com/ko",
+    logoUrl: "/logos/scispace.png",
     platforms: ["WEB", "EXTENSION"],
     aliases: ["scispace", "타이프셋", "typeset"],
   },
@@ -262,6 +270,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanNote:
       "화면이 영어 전용이고 한국어 논문은 거의 안 잡혀요. 영어로 질문해야 결과가 제대로 나와요.",
     siteUrl: "https://consensus.app",
+    logoUrl: "/logos/consensus.png",
     platforms: ["WEB"],
     aliases: ["consensus"],
   },
@@ -281,6 +290,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanNote:
       "문어체나 논문체는 최상급인데, 구어체나 속어는 파파고가 더 자연스럽다는 평이 많아요.",
     siteUrl: "https://www.deepl.com/ko/",
+    logoUrl: "/logos/deepl.png",
     platforms: ["WEB", "DESKTOP", "IOS", "ANDROID", "EXTENSION"],
     aliases: ["deepl", "디플", "딥엘번역"],
   },
@@ -298,6 +308,7 @@ export const SEED_TOOLS: SeedTool[] = [
     priceNote: "개인은 무료예요.",
     koreanLevel: "NATIVE",
     siteUrl: "https://papago.naver.com",
+    logoUrl: "/logos/papago.png",
     platforms: ["IOS", "ANDROID", "WEB"],
     caution:
       "2024년 9월부터 웹페이지를 통째로 번역하는 기능이 빠졌어요. PC에서 그 기능을 쓰려면 네이버 웨일 브라우저가 필요해요.",
@@ -316,6 +327,7 @@ export const SEED_TOOLS: SeedTool[] = [
     priceNote: "무료예요.",
     koreanLevel: "NATIVE",
     siteUrl: "https://wrtn.ai",
+    logoUrl: "/logos/wrtn.png",
     platforms: ["WEB", "IOS", "ANDROID"],
     caution:
       "회사의 중심이 캐릭터 채팅 쪽으로 옮겨가면서 이 어시스턴트 앱 사용자는 많이 줄었어요(2026년 7월 기준 월 23만 명, 1년 전보다 85만 명 감소). '한국 1등 AI'라는 소개는 지금은 맞지 않아요.",
@@ -338,6 +350,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanLevel: "NATIVE",
     koreanNote: "한국어 전용 폰트가 수백 종이라 자간이나 행간이 어색해지지 않아요.",
     siteUrl: "https://www.miricanvas.com",
+    logoUrl: "/logos/miricanvas.png",
     platforms: ["WEB"],
     aliases: ["미리디", "miricanvas", "미리 캔버스"],
   },
@@ -356,6 +369,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanNote:
       "한국어로 만들어지긴 하는데 자간이랑 행간이 어색하고, 긴 문장은 줄바꿈이 부자연스러워요.",
     siteUrl: "https://gamma.app",
+    logoUrl: "/logos/gamma.png",
     platforms: ["WEB"],
     caution: "파워포인트 파일로 내보내면 한글 폰트가 깨지는 경우가 있어요.",
     aliases: ["gamma", "감마앱", "gamma app"],
@@ -375,6 +389,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanNote:
       "한국 팀이 만들었고 한글 폰트 서비스도 따로 운영하는데, 실제 한글 슬라이드 품질을 확인할 자료를 찾지 못했어요. 사용자의 95% 이상이 해외라는 점도 같이 보셔야 해요.",
     siteUrl: "https://www.snapdeck.app",
+    logoUrl: "/logos/snapdeck.png",
     platforms: ["WEB", "PLUGIN"],
     aliases: ["snapdeck", "스냅 덱"],
   },
@@ -396,6 +411,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanNote:
       "한국어 화면이랑 원화 결제를 지원해요. 다만 영문 템플릿을 그대로 쓰면 기본 폰트가 영문이라 한글 폰트로 바꿔주셔야 해요.",
     siteUrl: "https://www.canva.com/ko_kr/",
+    logoUrl: "/logos/canva.png",
     platforms: ["WEB", "IOS", "ANDROID", "DESKTOP"],
     aliases: ["canva", "칸바", "캠바"],
   },
@@ -415,6 +431,7 @@ export const SEED_TOOLS: SeedTool[] = [
     studentFree: true,
     koreanLevel: "GOOD",
     siteUrl: "https://www.notion.com",
+    logoUrl: "/logos/notion-ai.png",
     platforms: ["WEB", "DESKTOP", "IOS", "ANDROID", "EXTENSION"],
     caution: "교육 플랜에 AI 기능이 어디까지 포함되는지는 공식 문서에 나와 있지 않아요.",
     aliases: ["notion", "노션", "노숀"],
@@ -451,6 +468,7 @@ export const SEED_TOOLS: SeedTool[] = [
     priceNote: "무료 체험은 기간이랑 시간이 정해져 있고, 이후에는 월 사용 시간 단위로 결제해요.",
     koreanLevel: "NATIVE",
     siteUrl: "https://tiro.ooo",
+    logoUrl: "/logos/tiro.png",
     platforms: ["WEB", "DESKTOP", "IOS", "ANDROID"],
     aliases: ["tiro", "티로노트"],
   },
@@ -474,6 +492,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanLevel: "GOOD",
     koreanNote: "한국어를 포함해서 100개 넘는 언어로 지시할 수 있어요.",
     siteUrl: "https://firefly.adobe.com",
+    logoUrl: "/logos/adobe-firefly.png",
     platforms: ["WEB", "IOS", "ANDROID", "PLUGIN"],
     caution:
       "'저작권 안전'은 어도비가 직접 만든 모델을 쓸 때만 해당해요. 안에 들어 있는 다른 회사 모델은 별개예요.",
@@ -495,6 +514,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanNote:
       "화면은 한국어인데, 한국어로 지시했을 때의 품질이나 결과물에 한글이 들어가는지는 확인하지 못했어요.",
     siteUrl: "https://dreamina.capcut.com/ko-kr",
+    logoUrl: "/logos/dreamina.png",
     platforms: ["WEB"],
     caution:
       "'Seedance'로 검색하면 공식이 아닌 제휴 사이트가 잔뜩 나와요. Seedance는 서비스 이름이 아니라 이 안에서 고르는 모델 이름이에요.",
@@ -514,6 +534,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanLevel: "NONE",
     koreanNote: "화면이 영어고 한국어 지시를 잘 못 알아들어요. 그림 안의 한글도 약해요.",
     siteUrl: "https://www.midjourney.com",
+    logoUrl: "/logos/midjourney.png",
     platforms: ["WEB"],
     caution:
       "무료 체험이 2023년에 없어졌고 환불도 거의 안 돼요. 돈 낼 생각이 없으시면 다른 걸 먼저 써보시는 게 나아요.",
@@ -533,6 +554,7 @@ export const SEED_TOOLS: SeedTool[] = [
     priceNote: "기본 편집은 무료로 충분해요.",
     koreanLevel: "GOOD",
     siteUrl: "https://www.capcut.com/ko-kr/",
+    logoUrl: "/logos/capcut.png",
     platforms: ["IOS", "ANDROID", "WEB", "DESKTOP"],
     aliases: ["capcut", "캡켓", "캡컷프로"],
   },
@@ -549,6 +571,7 @@ export const SEED_TOOLS: SeedTool[] = [
     studentFree: true,
     koreanLevel: "NATIVE",
     siteUrl: "https://vrew.ai/ko/",
+    logoUrl: "/logos/vrew.png",
     platforms: ["DESKTOP", "WEB"],
     caution: "교육기관 할인이 따로 있어요.",
     aliases: ["vrew", "브루자막", "뷰루"],
@@ -569,7 +592,8 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanLevel: "GOOD",
     koreanNote:
       "화면은 한국어를 지원하는데, 구글이 공식적으로는 영어로 지시하길 권하고 다른 언어는 품질이 달라질 수 있다고 안내해요.",
-    siteUrl: "https://labs.google/flow",
+    siteUrl: "https://flow.google.com",
+    logoUrl: "/logos/google-flow.png",
     platforms: ["WEB"],
     caution:
       "무료로 쓸 수 있는지를 두고 구글 공식 문서끼리 설명이 엇갈려요(구독 필수라는 문서와 비구독자도 하루 50크레딧이라는 문서). 직접 확인해 보셔야 해요.",
@@ -589,6 +613,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanLevel: "GOOD",
     koreanNote: "메뉴랑 기능 이름까지 한국어로 번역돼 있어요.",
     siteUrl: "https://kling.ai/ko",
+    logoUrl: "/logos/kling.png",
     platforms: ["WEB", "IOS", "ANDROID"],
     aliases: ["kling", "클링AI", "커링"],
   },
@@ -607,6 +632,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanLevel: "PARTIAL",
     koreanNote: "한국어 지시는 잘 알아듣는 편인데, 화면의 한국어 지원은 확인하지 못했어요.",
     siteUrl: "https://hailuoai.video",
+    logoUrl: "/logos/hailuo.png",
     platforms: ["WEB", "IOS"],
     aliases: ["hailuo", "하이루", "미니맥스", "minimax"],
   },
@@ -622,6 +648,7 @@ export const SEED_TOOLS: SeedTool[] = [
     priceNote: "무료 크레딧은 처음 한 번만 주고 다시 채워지지 않아요.",
     koreanLevel: "NONE",
     siteUrl: "https://runway.com",
+    logoUrl: "/logos/runway.png",
     platforms: ["WEB", "IOS"],
     caution:
       "무료 크레딧으로 5초짜리 영상 두 편 정도 만들면 끝나요. 갱신되지 않으니까 '무료로 써본다'는 기대는 안 하시는 게 좋아요.",
@@ -643,6 +670,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanNote:
       "화면이 영어인 건 확인했는데, 한국어로 지시했을 때 결과가 어떤지는 확인하지 못했어요. 무료로 만들어 볼 수가 없어서 직접 시험해 보지 못했어요.",
     siteUrl: "https://higgsfield.ai",
+    logoUrl: "/logos/higgsfield.png",
     platforms: ["WEB"],
     caution:
       "요금제랑 크레딧 소모량이 출처마다 최대 다섯 배까지 다르게 적혀 있어요. 결제 전에 공식 페이지에서 직접 확인해 보세요.",
@@ -663,6 +691,7 @@ export const SEED_TOOLS: SeedTool[] = [
     priceNote: "무료로 매달 짧은 영상 몇 편을 만들 수 있고 매월 다시 차요.",
     koreanLevel: "NATIVE",
     siteUrl: "https://www.aistudios.com/ko",
+    logoUrl: "/logos/ai-studios.png",
     platforms: ["WEB"],
     caution: "같은 일을 하는 해외 서비스 HeyGen은 무료 플랜에서 내 얼굴 아바타를 못 만들어요.",
     aliases: ["aistudios", "딥브레인", "deepbrain", "AI스튜디오"],
@@ -680,6 +709,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanLevel: "UNKNOWN",
     koreanNote: "한국어 사용기는 많은데 공식 문서에서 한국어 지원을 확인하지는 못했어요.",
     siteUrl: "https://www.heygen.com",
+    logoUrl: "/logos/heygen.png",
     platforms: ["WEB"],
     aliases: ["heygen", "헤이겐", "히이젠"],
   },
@@ -698,6 +728,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanLevel: "GOOD",
     koreanNote: "한국어 가사로 노래를 만들 수 있어요.",
     siteUrl: "https://suno.com",
+    logoUrl: "/logos/suno.png",
     platforms: ["WEB", "IOS", "ANDROID"],
     caution:
       "무료로는 만들어서 듣는 것만 되고 파일로 내려받을 수 없어요. 상업적으로 쓰는 것도 유료부터예요.",
@@ -717,6 +748,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanNote:
       "한국어를 지원하고 자연스러운 편이에요. 숫자랑 영문 약어는 한글로 풀어서 넣어야 제대로 읽어요(예: 2026 → 이천이십육).",
     siteUrl: "https://elevenlabs.io/ko",
+    logoUrl: "/logos/elevenlabs.png",
     platforms: ["WEB"],
     aliases: ["elevenlabs", "일레븐 랩스", "11labs", "엘레븐랩스"],
   },
@@ -734,6 +766,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanLevel: "NATIVE",
     koreanNote: "지원 언어 20여 개 중에 한국어를 기준으로 설계했어요.",
     siteUrl: "https://www.supertone.ai/play",
+    logoUrl: "/logos/supertone-play.png",
     platforms: ["WEB", "DESKTOP"],
     aliases: ["supertone", "수퍼톤", "슈퍼톤"],
   },
@@ -757,6 +790,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanLevel: "GOOD",
     koreanNote: "공식 문서를 한국어로 운영해요. 한국어로 지시해도 알아들어요.",
     siteUrl: "https://manus.im",
+    logoUrl: "/logos/manus.png",
     platforms: ["WEB", "DESKTOP", "IOS", "ANDROID"],
     caution:
       "일 하나에 크레딧이 꽤 많이 들어가요. 무료 크레딧은 '몇 번 시켜보는' 정도지 계속 쓰는 용도가 아니에요.",
@@ -777,6 +811,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanLevel: "GOOD",
     koreanNote: "한국어 사이트를 따로 운영하고, 한국어로 만든 발표자료 후기도 많아요.",
     siteUrl: "https://www.genspark.ai/ko",
+    logoUrl: "/logos/genspark.png",
     platforms: ["WEB", "IOS", "ANDROID"],
     caution:
       "무료로 주는 크레딧 수량이 출처마다 다르게 적혀 있어요(하루 100 / 200). 공식 요금제 페이지에서 직접 확인해 보세요.",
@@ -798,6 +833,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanLevel: "GOOD",
     koreanNote: "설명은 한국어로 받을 수 있는데 코드 주석이나 변수명은 영어가 나아요.",
     siteUrl: "https://github.com/features/copilot",
+    logoUrl: "/logos/github-copilot.png",
     platforms: ["PLUGIN", "DESKTOP"],
     caution:
       "2026년 3월부터 학생 플랜에서는 쓸 AI 모델을 직접 고를 수 없고 자동 선택만 돼요.",
@@ -817,6 +853,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanLevel: "GOOD",
     koreanNote: "한국어로 지시할 수 있고 결과물의 화면 글자도 한국어로 나와요.",
     siteUrl: "https://lovable.dev",
+    logoUrl: "/logos/lovable.png",
     platforms: ["WEB"],
     aliases: ["lovable", "러버블AI", "로버블"],
   },
@@ -834,6 +871,7 @@ export const SEED_TOOLS: SeedTool[] = [
     priceNote: "Claude 유료 구독에 포함돼 있어서 따로 결제하지 않아도 돼요.",
     koreanLevel: "GOOD",
     siteUrl: "https://www.claude.com/product/claude-code",
+    logoUrl: "/logos/claude-code.png",
     platforms: ["DESKTOP", "WEB", "PLUGIN", "IOS", "ANDROID"],
     caution: "터미널을 처음 써보시는 분한테는 진입 장벽이 있어요. 코딩을 두세 달쯤 해본 뒤가 좋아요.",
     aliases: ["claude code", "클코", "cc", "클로드코드"],
@@ -853,6 +891,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanLevel: "UNKNOWN",
     koreanNote: "한국어 화면 지원 여부를 공식 문서에서 확인하지 못했어요.",
     siteUrl: "https://kiro.dev",
+    logoUrl: "/logos/kiro.png",
     platforms: ["DESKTOP", "WEB", "PLUGIN"],
     caution:
       "무료 크레딧 50개는 갱신되지 않아요. 다 쓰면 그 시점부터 유료라서 '무료로 계속 써본다'는 안 돼요.",
@@ -873,6 +912,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanLevel: "UNKNOWN",
     koreanNote: "한국어 화면 지원 여부를 공식 문서에서 확인하지 못했어요.",
     siteUrl: "https://antigravity.google",
+    logoUrl: "/logos/antigravity.png",
     platforms: ["DESKTOP"],
     aliases: ["antigravity", "안티그라비티", "구글 안티그래비티", "안티 그래비티"],
   },
@@ -891,6 +931,7 @@ export const SEED_TOOLS: SeedTool[] = [
     koreanLevel: "UNKNOWN",
     koreanNote: "한국어 화면 지원 여부를 공식 문서에서 확인하지 못했어요.",
     siteUrl: "https://jules.google",
+    logoUrl: "/logos/jules.png",
     platforms: ["WEB"],
     caution: "깃허브 계정이 있어야 써요. 저장소를 연결하지 않으면 시작 자체가 안 돼요.",
     aliases: ["jules", "쥴스", "구글 줄스"],

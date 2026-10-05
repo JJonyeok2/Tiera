@@ -1386,3 +1386,18 @@ tsc / ESLint 0 errors / 단위 **86** / E2E **50**.
   → Upstash 같은 공유 저장소가 필요하다.
 - 보안 헤더(CSP·X-Frame-Options 등) 없음.
 - 로고 0/42 — `npm run logos:fetch`를 네트워크 되는 곳에서 한 번 돌려야 한다.
+
+## 23.12 도구 로고 (2026-09-26)
+
+42개 중 41개에 로고를 넣었다. **직접 그리지 않고**, 각 서비스가 공개한 파비콘·앱 아이콘을
+받아 여백만 자르고 96px로 맞췄다(`scripts/process-logos.py`, 출처는 그 파일 머리말).
+
+- 작업 환경에서 서비스 도메인이 막혀 있어서 대부분 구글 파비콘 변환 서비스로 받았다.
+  한 번 받아 `public/logos`에 두는 것이라 방문자 요청이 구글로 가지 않는다.
+- 해상도가 낮았던 Claude·SciSpace·HeyGen·Copilot·Flow는 공식 페이지에서 직접 받았다.
+  HeyGen은 워드마크에서 마크만 크롭했다.
+- 클로바노트는 못 구했다 — 첫 글자 타일로 나간다.
+- 타일은 테마와 상관없이 **흰 바탕**이다. 검은 글리프(ChatGPT·Midjourney)가 다크 모드에서 사라졌다.
+- 128px로 받은 걸 96px로 줄이고 256색으로 압축해 합계 240KB → 81KB(홈에서 전부 한 번에 뜬다).
+- 구글 플로우 공식 주소가 `labs.google/flow` → `flow.google.com`으로 넘어가 있어서 siteUrl을 고쳤다.
+- `tests/logos.test.ts`: logoUrl과 파일이 서로 맞는지, 전부 96×96 PNG인지 본다.

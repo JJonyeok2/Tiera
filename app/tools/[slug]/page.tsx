@@ -94,13 +94,14 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
 
       <header className="mt-3 flex items-start gap-3.5">
         {tool.logoUrl && (
-          <span className="mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[var(--color-surface-2)] ring-1 ring-inset ring-[var(--color-line)]">
+          // 카드와 같은 규칙: 흰 타일을 꽉 채운다(components/tool/ToolCard.tsx 참고).
+          <span className="mt-0.5 h-12 w-12 shrink-0 overflow-hidden rounded-2xl bg-white ring-1 ring-inset ring-black/10">
             <Image
               src={tool.logoUrl}
               alt=""
-              width={32}
-              height={32}
-              className="h-8 w-8 object-contain"
+              width={48}
+              height={48}
+              className="h-12 w-12"
               unoptimized
             />
           </span>
