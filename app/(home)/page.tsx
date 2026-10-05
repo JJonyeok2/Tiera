@@ -19,7 +19,7 @@ import { PURPOSES } from "@/lib/params";
 import type { ToolListRow } from "@/lib/queries";
 import JsonLd from "@/components/seo/JsonLd";
 import { websiteJsonLd } from "@/lib/structured-data";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, shareMeta } from "@/lib/site";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, shareMeta } from "@/lib/site";
 
 export const revalidate = 300;
 
@@ -36,7 +36,7 @@ export async function generateMetadata({
     // 용도 탭마다 URL이 갈라지지만 내용은 같은 목록의 부분집합이다.
     // canonical을 루트로 고정하지 않으면 크롤러가 중복 문서로 보고 평가를 나눈다.
     alternates: { canonical: "/" },
-    ...shareMeta({ url: "/", title: `${SITE_NAME} — ${SITE_TAGLINE}`, description: SITE_DESCRIPTION }),
+    ...shareMeta({ url: "/", title: `${SITE_NAME} — ${SITE_TITLE}`, description: SITE_DESCRIPTION }),
     ...(purpose ? { title: `${PURPOSE_LABEL[purpose]} AI 도구` } : {}),
     // 검색 결과는 무한히 생성되는 얕은 페이지라 색인에서 뺀다.
     ...(q ? { robots: { index: false, follow: true } } : {}),

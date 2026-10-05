@@ -36,6 +36,20 @@
       "when": 1790352740571,
       "tag": "0004_steep_dust",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791201246866,
+      "tag": "0005_lowly_xorn",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791201718555,
+      "tag": "0006_sour_harry_osborn",
+      "breakpoints": true
     }
   ]
 }

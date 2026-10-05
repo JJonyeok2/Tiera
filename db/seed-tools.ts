@@ -14,6 +14,7 @@
  * ------------------------------------------------------------------------- */
 
 import "dotenv/config";
+import { createHash } from "node:crypto";
 import { eq, isNull, sql } from "drizzle-orm";
 import { developers, models, tools } from "@/db/schema";
 import { DEVELOPER_DEFAULT_TOOL, SEED_TOOLS } from "@/db/seed-tools-data";
@@ -68,10 +69,12 @@ async function upsertTools(db: Db): Promise<Map<string, string>> {
       caution: t.caution ?? null,
       aliases: t.aliases ?? [],
     };
+    // 화면·검색에 나가는 내용의 지문. 이게 달라졌을 때만 updated_at을 올린다.
+    const contentHash = createHash("sha1").update(JSON.stringify(values)).digest("hex");
 
     const [row] = await db
       .insert(tools)
-      .values(values)
+      .values({ ...values, contentHash })
       .onConflictDoUpdate({
         target: tools.slug,
         // status·isPublished·createdAt은 갱신 대상에서 뺀다.
@@ -95,6 +98,10 @@ async function upsertTools(db: Db): Promise<Map<string, string>> {
           platforms: values.platforms,
           caution: values.caution,
           aliases: values.aliases,
+          contentHash,
+          // Postgres의 SET은 전부 **바뀌기 전** 행을 본다. 그래서 같은 문장에서
+          // content_hash를 새 값으로 덮어써도 여기 비교는 옛 해시와 한다.
+          updatedAt: sql`CASE WHEN ${tools.contentHash} IS DISTINCT FROM ${contentHash} THEN now() ELSE ${tools.updatedAt} END`,
         },
       })
       .returning({ id: tools.id, createdAt: tools.createdAt });

@@ -70,6 +70,11 @@ export const toolPurposeEnum = pgEnum("tool_purpose", [
   "VIDEO", // 영상 생성
   "AVATAR", // 말하는 아바타 영상
   "AUDIO", // 음악·목소리
+  // 포트폴리오·홈페이지를 만들어 링크로 공개하는 것. 2026-10 추가(SPEC 23.13).
+  // CODE와 따로 둔 이유: 윅스·프레이머는 코드를 한 줄도 안 보여준다. "코딩" 탭에
+  // 넣으면 코딩을 모르는 사람이 거기까지 찾아 들어가지 않는다. 반대로 볼트·v0처럼
+  // 코드를 짜서 올려주는 도구는 대표 용도를 CODE로 두고 alsoFor로 여기에도 뜨게 한다.
+  "WEBSITE", // 웹사이트·포트폴리오
   "CODE", // 코딩·앱 만들기
 ]);
 
@@ -438,6 +443,21 @@ export const tools = pgTable(
     status: modelStatusEnum("status").notNull().default("PROVISIONAL"),
     isPublished: boolean("is_published").notNull().default(true),
     createdAt: timestamp("created_at").notNull().defaultNow(),
+
+    /**
+     * 내용이 마지막으로 **실제로** 바뀐 시각. sitemap의 lastmod로 나간다.
+     *
+     * 예전 sitemap은 created_at을 썼다. 그래서 설명을 해요체로 다 바꾸고 사이트
+     * 소개를 갈아엎어도 검색엔진 입장에서는 "안 바뀐 페이지"였고, 구글 검색에는
+     * 한참 동안 옛 제목("AI 모델 티어표")이 남아 있었다.
+     *
+     * 시드는 배포마다 돌기 때문에 그냥 now()를 넣으면 매번 "바뀜"이 된다. 그러면
+     * 검색엔진이 우리 lastmod를 믿지 않게 된다. 그래서 content_hash를 같이 두고,
+     * 해시가 달라졌을 때만 이 값을 올린다(db/seed-tools.ts).
+     */
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+    /** 시드 내용의 해시. updatedAt을 올릴지 판단하는 데만 쓴다. */
+    contentHash: text("content_hash"),
   },
   (t) => [
     index("tool_purpose_idx").on(t.purpose),

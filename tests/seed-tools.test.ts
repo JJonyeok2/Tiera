@@ -10,6 +10,7 @@
 import { describe, expect, it } from "vitest";
 import { DEVELOPER_DEFAULT_TOOL, SEED_TOOLS } from "@/db/seed-tools-data";
 import { DEVELOPERS } from "@/db/seed-data";
+import { toolPurposeEnum } from "@/db/schema";
 
 const slugs = SEED_TOOLS.map((t) => t.slug);
 
@@ -136,19 +137,10 @@ describe("도구 시드 — 모델 매핑 규칙 (SPEC 23.4)", () => {
 describe("도구 시드 — 용도", () => {
   it("모든 용도에 최소 1개가 있다", () => {
     // 빈 탭이 화면에 나가면 사이트가 미완성으로 보인다.
+    // 목록을 손으로 적지 않고 enum에서 읽는다. 용도를 새로 만들고 도구를 안 넣으면
+    // 여기서 깨져야 한다 — 예전 목록은 손으로 적혀 있어서 새 용도를 몰랐다.
     const covered = new Set(SEED_TOOLS.map((t) => t.purpose));
-    for (const p of [
-      "CHAT",
-      "RESEARCH",
-      "TRANSLATE",
-      "SLIDES",
-      "NOTE",
-      "IMAGE",
-      "VIDEO",
-      "AVATAR",
-      "AUDIO",
-      "CODE",
-    ]) {
+    for (const p of toolPurposeEnum.enumValues) {
       expect(covered, `'${p}' 용도가 비어 있다`).toContain(p);
     }
   });
@@ -171,8 +163,8 @@ describe("도구 시드 — 용도", () => {
   });
 });
 
-describe("도구 시드 — 국산", () => {
-  it("국산으로 표시한 도구가 실제로 한국 제작사다", () => {
+describe("도구 시드 — 한국 제작", () => {
+  it("한국 제작으로 표시한 도구가 실제로 한국 회사다", () => {
     const KR_MAKERS = [
       "네이버",
       "라이너",
@@ -183,6 +175,7 @@ describe("도구 시드 — 국산", () => {
       "보이저엑스",
       "딥브레인AI",
       "수퍼톤",
+      "위븐", // 재밋. 세종 본사, 사업자등록번호 589-81-02761 (zaemit.kr 하단, 2026-10-05 확인)
     ];
     for (const t of SEED_TOOLS) {
       if (t.origin === "KR") {

@@ -29,7 +29,8 @@
  *    "~한다"로 끝내면 교과서가 된다. 사람이 옆에서 말해주는 톤을 유지한다.
  *    (주석은 예외다. 주석을 읽는 건 개발자지 사용자가 아니다.)
  *
- * 조사일 2026-09-20, 코딩 도구 3종 추가 2026-09-25. 모든 항목 웹 검색으로 확인.
+ * 조사일 2026-09-20, 코딩 도구 3종 추가 2026-09-25, 웹사이트·앱 빌더 8종 추가 2026-10-05.
+ * 모든 항목 웹 검색으로 확인.
  * ------------------------------------------------------------------------- */
 
 import type {
@@ -359,6 +360,7 @@ export const SEED_TOOLS: SeedTool[] = [
     name: "감마",
     maker: "Gamma",
     purpose: "SLIDES",
+    alsoFor: ["WEBSITE"],
     origin: "GLOBAL",
     summary: "주제 한 줄만 쓰면 슬라이드 전체를 만들어 줘요. AI PPT 중에 제일 유명해요.",
     howToStart: "가입하고 새로 만들기 → 생성 → 프레젠테이션을 고른 다음 주제를 입력하면 돼요.",
@@ -398,7 +400,7 @@ export const SEED_TOOLS: SeedTool[] = [
     name: "캔바",
     maker: "Canva",
     purpose: "SLIDES",
-    alsoFor: ["IMAGE"],
+    alsoFor: ["IMAGE", "WEBSITE"],
     origin: "GLOBAL",
     summary:
       "디자인을 못 해도 포스터나 발표자료, SNS 이미지를 만들 수 있어요. 템플릿이 제일 많아요.",
@@ -422,7 +424,7 @@ export const SEED_TOOLS: SeedTool[] = [
     name: "노션 AI",
     maker: "Notion",
     purpose: "NOTE",
-    alsoFor: ["TRANSLATE"],
+    alsoFor: ["TRANSLATE", "WEBSITE"],
     origin: "GLOBAL",
     summary: "노트랑 과제, 일정을 한곳에 모아두고 그 안에서 요약이랑 번역까지 해요.",
     howToStart: "가입하고 페이지에서 슬래시(/)를 누른 다음 ai를 입력하면 돼요.",
@@ -818,6 +820,75 @@ export const SEED_TOOLS: SeedTool[] = [
     aliases: ["genspark", "젠 스파크", "겐스파크", "잰스파크"],
   },
 
+  // --- 웹사이트 · 포트폴리오 ----------------------------------------------
+  // 코드를 안 보여주고 사이트를 만들어 주는 쪽. 코드를 짜서 올려주는 볼트·v0 등은
+  // 아래 코딩 섹션에 두고 alsoFor로 이 탭에도 뜨게 한다(SPEC 23.13).
+  // 아임웹은 뺐다 — 2025년 7월에 무료 플랜이 없어지고 14일 체험만 남았고,
+  // 사업자용이라 포트폴리오 하나 만들려는 사람에게는 맞지 않는다.
+  {
+    slug: "wix",
+    name: "윅스",
+    maker: "Wix",
+    purpose: "WEBSITE",
+    origin: "GLOBAL",
+    summary:
+      "만들고 싶은 사이트를 설명하면 AI가 초안을 만들어 주고, 그다음은 끌어다 놓으면서 고쳐요. 무료로도 바로 주소가 생겨요.",
+    howToStart: "가입하면 바로 시작할 수 있어요. 신용카드는 필요 없어요.",
+    pricingKind: "FREEMIUM",
+    priceNote:
+      "무료로도 사이트를 공개할 수 있어요. 대신 주소가 wixsite.com 아래로 붙고, 내 도메인 연결은 유료예요.",
+    koreanLevel: "GOOD",
+    koreanNote:
+      "편집 화면이 한국어로 나와요. 다만 AI한테 한국어로 설명했을 때 초안이 얼마나 잘 나오는지는 확인하지 못했어요.",
+    siteUrl: "https://www.wix.com/ai-website-builder",
+    logoUrl: "/logos/wix.png",
+    platforms: ["WEB", "IOS", "ANDROID"],
+    caution: "무료 사이트는 맨 위에 윅스 광고 띠가 붙고, 이건 유료로 바꿔야 없어져요.",
+    aliases: ["wix", "윅스닷컴", "윅스 ai", "홈페이지 만들기", "포트폴리오"],
+  },
+  {
+    slug: "framer",
+    name: "프레이머",
+    maker: "Framer",
+    purpose: "WEBSITE",
+    origin: "GLOBAL",
+    summary:
+      "디자인이 세련된 사이트를 만들 때 많이 써요. AI한테 설명하면 페이지 구성부터 글, 이미지까지 한 번에 깔아 줘요.",
+    howToStart: "가입하면 무료 작업 공간에 AI 크레딧을 줘요. 그걸로 먼저 만들어 보면 돼요.",
+    pricingKind: "FREEMIUM",
+    priceNote:
+      "무료로도 사이트를 공개할 수 있어요. 대신 프레이머 하위 주소로 올라가고 'Made in Framer' 표시가 떠요. 내 도메인은 유료예요.",
+    studentFree: true,
+    koreanLevel: "PARTIAL",
+    koreanNote:
+      "화면이 영어예요. 한글 글꼴은 구글 폰트나 직접 올려서 쓸 수 있어요. 한국어로 설명했을 때 AI 결과는 확인하지 못했어요.",
+    siteUrl: "https://www.framer.com/ai/",
+    logoUrl: "/logos/framer.png",
+    platforms: ["WEB"],
+    caution:
+      "대학생은 학교 이메일과 학생증 사진으로 신청하면 유료 기본 플랜을 1년 동안 무료로 쓸 수 있어요. 지금 찾은 학생 혜택 중에 가장 커요.",
+    aliases: ["framer", "프래이머", "프레이머 ai", "포트폴리오"],
+  },
+  {
+    slug: "zaemit",
+    name: "재밋",
+    maker: "위븐",
+    purpose: "WEBSITE",
+    origin: "KR",
+    summary:
+      "한 줄로 설명하면 3분 안에 홈페이지를 만들어 주는 한국 서비스예요. 포트폴리오도 대표 용도로 내세우고 있어요.",
+    howToStart: "카카오·네이버·구글 계정으로 가입하고 만들고 싶은 사이트를 적으면 돼요.",
+    pricingKind: "FREEMIUM",
+    priceNote: "무료 플랜으로도 AI로 만들고 기본 주소로 공개하는 것까지 돼요. 내 도메인 연결은 유료부터예요.",
+    koreanLevel: "NATIVE",
+    siteUrl: "https://zaemit.kr",
+    logoUrl: "/logos/zaemit.png",
+    platforms: ["WEB"],
+    caution:
+      "무료 사이트에 재밋 표시가 붙는지, AI로 몇 번까지 만들 수 있는지는 공식 자료에서 확인하지 못했어요.",
+    aliases: ["zaemit", "재밋ai", "제밋", "위븐", "포트폴리오", "홈페이지 만들기"],
+  },
+
   // --- 코딩 · 앱 만들기 ----------------------------------------------------
   {
     slug: "github-copilot",
@@ -844,6 +915,7 @@ export const SEED_TOOLS: SeedTool[] = [
     name: "러버블",
     maker: "Lovable",
     purpose: "CODE",
+    alsoFor: ["WEBSITE"],
     origin: "GLOBAL",
     summary:
       "채팅으로 원하는 걸 설명하면 실제로 동작하는 웹사이트가 나오고 주소까지 바로 생겨요. 코딩을 몰라도 돼요.",
@@ -887,14 +959,12 @@ export const SEED_TOOLS: SeedTool[] = [
     howToStart:
       "사이트에서 프로그램을 내려받아 설치하고, 구글 같은 소셜 계정이나 AWS Builder ID로 로그인하면 돼요.",
     pricingKind: "FREEMIUM",
-    priceNote: "무료는 크레딧 50개를 한 번 주는 방식이에요. 매달 다시 채워지지 않아요.",
+    priceNote: "무료로 매달 크레딧 50개를 줘요. 쓰고 남은 건 다음 달로 넘어가지 않아요.",
     koreanLevel: "UNKNOWN",
     koreanNote: "한국어 화면 지원 여부를 공식 문서에서 확인하지 못했어요.",
     siteUrl: "https://kiro.dev",
     logoUrl: "/logos/kiro.png",
     platforms: ["DESKTOP", "WEB", "PLUGIN"],
-    caution:
-      "무료 크레딧 50개는 갱신되지 않아요. 다 쓰면 그 시점부터 유료라서 '무료로 계속 써본다'는 안 돼요.",
     aliases: ["kiro", "아마존 키로", "aws kiro", "키로IDE"],
   },
   {
@@ -935,6 +1005,116 @@ export const SEED_TOOLS: SeedTool[] = [
     platforms: ["WEB"],
     caution: "깃허브 계정이 있어야 써요. 저장소를 연결하지 않으면 시작 자체가 안 돼요.",
     aliases: ["jules", "쥴스", "구글 줄스"],
+  },
+  // 말로 설명하면 코드·디자인·배포까지 한 번에 해서 주소를 주는 쪽.
+  // 러버블과 같은 부류다. 전부 웹사이트 탭에도 뜨게 alsoFor에 WEBSITE를 넣는다.
+  // Firebase Studio는 뺐다 — 2026년 6월에 신규 가입이 막혔고 2027년 3월에 닫힌다.
+  {
+    slug: "google-ai-studio",
+    name: "구글 AI 스튜디오",
+    maker: "Google",
+    developerSlug: "google",
+    purpose: "CODE",
+    alsoFor: ["WEBSITE"],
+    origin: "GLOBAL",
+    summary:
+      "만들고 싶은 앱을 말로 설명하면 코드를 짜고, 바로 써볼 수 있는 주소까지 만들어 줘요. 이 분야에서 무료로 시작하기 가장 쉬워요.",
+    howToStart: "구글 계정으로 들어가서 Build 화면에 만들고 싶은 걸 적으면 돼요. 카드 등록은 필요 없어요.",
+    pricingKind: "FREEMIUM",
+    priceNote:
+      "만드는 건 무료예요. 완성한 앱을 공개하는 건 두 개까지 무료고, 그 뒤로는 구글 클라우드 사용료가 나와요.",
+    koreanLevel: "GOOD",
+    koreanNote:
+      "한국어로 설명해도 잘 알아듣고, 공식 문서도 한국어로 나와 있어요. 화면 메뉴가 한국어로 나오는지는 확인하지 못했어요.",
+    siteUrl: "https://aistudio.google.com",
+    logoUrl: "/logos/google-ai-studio.png",
+    platforms: ["WEB"],
+    caution:
+      "내가 공개한 앱을 다른 사람이 쓰면 그 사용량이 내 한도에서 빠져요. 여기저기 많이 돌리기 전에 알아두세요.",
+    aliases: ["ai studio", "aistudio", "구글 ai스튜디오", "에이아이 스튜디오", "바이브 코딩", "vibe coding"],
+  },
+  {
+    slug: "bolt",
+    name: "볼트",
+    maker: "StackBlitz",
+    purpose: "CODE",
+    alsoFor: ["WEBSITE"],
+    origin: "GLOBAL",
+    summary:
+      "웹사이트를 화면부터 서버, 데이터베이스까지 통째로 만들어서 바로 올려줘요.",
+    howToStart: "bolt.new에 가입하고 만들고 싶은 걸 적으면 돼요.",
+    pricingKind: "FREEMIUM",
+    priceNote:
+      "무료 사용량이 매일 다시 차고 월 한도가 따로 있어요. 무료로도 공개할 수 있지만 볼트 표시가 붙고, 내 도메인은 유료예요.",
+    koreanLevel: "UNKNOWN",
+    koreanNote: "한국어 지원 여부를 공식 문서에서 확인하지 못했어요.",
+    siteUrl: "https://bolt.new",
+    logoUrl: "/logos/bolt.png",
+    platforms: ["WEB"],
+    caution: "프로젝트가 커질수록 한 번 고칠 때 드는 사용량이 늘어요. 버그를 고치다 보면 하루치가 금방 끝나요.",
+    aliases: ["bolt", "bolt.new", "볼트뉴", "스택블리츠", "stackblitz"],
+  },
+  {
+    slug: "replit",
+    name: "레플릿",
+    maker: "Replit",
+    purpose: "CODE",
+    alsoFor: ["WEBSITE"],
+    origin: "GLOBAL",
+    summary:
+      "AI 에이전트가 계획을 세우고 코드를 짜고 테스트까지 한 다음, 링크로 올려줘요.",
+    howToStart: "가입하고 Agent에 만들고 싶은 걸 적으면 돼요.",
+    pricingKind: "FREEMIUM",
+    priceNote: "무료는 매일 크레딧이 다시 차고 월 한도가 있어요. 무료로 공개할 수 있는 앱은 하나예요.",
+    koreanLevel: "GOOD",
+    koreanNote: "공식 문서가 한국어로 나와 있고, 한국어로 지시하는 예시도 들어 있어요.",
+    siteUrl: "https://replit.com",
+    logoUrl: "/logos/replit.png",
+    platforms: ["WEB"],
+    caution:
+      "무료로 공개한 앱은 30일 뒤에 자동으로 내려가요. 포트폴리오 링크로 오래 걸어두려면 유료가 필요해요.",
+    aliases: ["replit", "리플릿", "레플잇", "레플릿 에이전트"],
+  },
+  {
+    slug: "v0",
+    name: "v0",
+    maker: "Vercel",
+    purpose: "CODE",
+    alsoFor: ["WEBSITE"],
+    origin: "GLOBAL",
+    summary:
+      "보기 좋은 화면을 만드는 데 특히 강해요. 만든 걸 버셀에 바로 올려서 주소까지 생겨요.",
+    howToStart: "v0.app에 가입하고 만들고 싶은 화면을 설명하면 돼요.",
+    pricingKind: "FREEMIUM",
+    priceNote: "무료는 하루 7번까지 메시지를 보낼 수 있고, 무료로도 버셀에 올릴 수 있어요.",
+    koreanLevel: "UNKNOWN",
+    koreanNote: "한국어 지원 여부를 공식 문서에서 확인하지 못했어요.",
+    siteUrl: "https://v0.app",
+    logoUrl: "/logos/v0.png",
+    platforms: ["WEB"],
+    caution: "하루 7번은 몇 번 고치다 보면 금방 끝나요. 대학생 무료 혜택이 있지만 미국 일부 학교만 해당돼요.",
+    aliases: ["v0", "브이제로", "브이영", "vercel", "버셀"],
+  },
+  {
+    slug: "base44",
+    name: "베이스44",
+    maker: "Wix",
+    purpose: "CODE",
+    alsoFor: ["WEBSITE"],
+    origin: "GLOBAL",
+    summary:
+      "로그인과 데이터베이스가 처음부터 들어간 앱을 말로 만들어요. 회원 가입이 필요한 서비스를 만들 때 편해요.",
+    howToStart: "가입하고 만들고 싶은 앱을 설명하면 돼요.",
+    pricingKind: "FREEMIUM",
+    priceNote: "무료는 매달 메시지 크레딧이 다시 차고, 앱은 다섯 개까지 만들 수 있어요. 내 도메인은 유료예요.",
+    koreanLevel: "UNKNOWN",
+    koreanNote: "한국어 지원 여부를 공식 문서에서 확인하지 못했어요.",
+    siteUrl: "https://base44.com",
+    logoUrl: "/logos/base44.png",
+    platforms: ["WEB"],
+    caution:
+      "무료 크레딧이 한 달에 25번이라 프로젝트 하나 만들기에도 빠듯해요. 코드를 깃허브로 내보내는 것도 유료부터예요.",
+    aliases: ["base44", "베이스 44", "베이스포티포"],
   },
 ];
 

@@ -224,4 +224,13 @@ test("Pretendard가 실제로 적용된다", async ({ page }) => {
   expect(r.family).toContain("Pretendard");
   expect(r.loadedCount).toBeLessThan(92);
 });
+test("용도 탭에서는 그 용도가 본업인 도구가 겸하는 도구보다 먼저 나온다", async ({ page }) => {
+  // 예전엔 enum 순서 때문에 감마(발표자료)·캔바가 웹사이트 탭 맨 위를 차지했다.
+  await page.goto("/?for=WEBSITE");
+  const metas = await page.locator("main ul > li p.truncate").allTextContents();
+  expect(metas.length).toBeGreaterThan(3);
+  const firstGuest = metas.findIndex((m) => !m.includes("웹사이트"));
+  const lastHome = metas.map((m) => m.includes("웹사이트")).lastIndexOf(true);
+  expect(lastHome, metas.join(" / ")).toBeLessThan(firstGuest);
+});
 /* Footer: tests/e2e/tools.spec.ts */

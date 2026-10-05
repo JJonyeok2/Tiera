@@ -17,6 +17,9 @@
 #     heygen               헤더 로고(heygen-logo.png)에서 다이아몬드 마크만 크롭
 #     github-copilot       Copilot 페이지의 octicon-copilot SVG (Primer Octicons)
 #     google-flow          flow.google.com이 선언한 flow_favicon_b.png
+#     zaemit               zaemit.kr 헤더 워드마크 SVG에서 'Z' 마크만 잘라냄 (파비콘과 같은 모양)
+#   2026-10-05 추가분(wix·framer·google-ai-studio·bolt·replit·v0·base44)은 변환 서비스로
+#   180~256px를 받았다.
 #   clova-note는 구하지 못했다(사이트 접근 불가, 변환 서비스에도 없음) —
 #   카드에서 첫 글자 타일로 나간다.
 #
@@ -53,7 +56,7 @@ def process(im: Image.Image) -> tuple[Image.Image, str]:
     alpha = im.split()[3].point(lambda a: 255 if a > 8 else 0)
     im = im.crop(alpha.getbbox() or (0, 0, *im.size))
     w, h = im.size
-    opaque = sum(1 for v in im.split()[3].getdata() if v > 200) / (w * h)
+    opaque = im.split()[3].point(lambda a: 255 if a > 200 else 0).histogram()[255] / (w * h)
 
     # 2-a) 타일형 — 자체 배경이 있는 앱 아이콘. 정사각형으로 꽉 채운다.
     if opaque >= 0.85 and 0.8 <= w / h <= 1.25:

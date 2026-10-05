@@ -7,7 +7,7 @@ import Header from "@/components/site/Header";
 import UserMenu from "@/components/site/UserMenu";
 import { ThemeProvider, themeInitScript } from "@/components/site/ThemeProvider";
 import ThemeToggle from "@/components/site/ThemeToggle";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, siteUrl } from "@/lib/site";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, siteUrl } from "@/lib/site";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   // 크롤러가 어떤 도메인을 정본으로 볼지 판단하지 못한다.
   metadataBase: new URL(siteUrl()),
   title: {
-    default: `${SITE_NAME} — ${SITE_TAGLINE}`,
+    default: `${SITE_NAME} — ${SITE_TITLE}`,
     // 하위 페이지는 제목만 넘기면 뒤에 브랜드가 붙는다.
     template: "%s | Tiera",
   },
@@ -23,13 +23,14 @@ export const metadata: Metadata = {
   applicationName: SITE_NAME,
   // 사이트가 모델 순위표에서 도구 정보방으로 바뀌었는데 키워드는 옛 주제 그대로였다.
   // ('국산'은 화면 문구에서 뺐으므로 여기서도 쓰지 않는다.)
+  // "AI 티어표"·"AI 모델 순위"는 뺐다. 이제 이 사이트는 순위표가 아니라 고르는 법을 알려주는 곳이다.
   keywords: [
     "AI 도구 추천",
     "무료 AI 도구",
     "한국어 AI",
     "대학생 AI",
-    "AI 모델 순위",
-    "AI 티어표",
+    "AI 사용법",
+    "AI 포트폴리오 만들기",
   ],
   // canonical과 og:url은 여기서 정하지 않는다. 레이아웃 값은 하위 페이지가 그대로
   // 물려받아서, 예전에는 /about·/login이 "정본은 홈"이라고 검색엔진에 알리고 있었다.
@@ -38,12 +39,12 @@ export const metadata: Metadata = {
     type: "website",
     siteName: SITE_NAME,
     locale: "ko_KR",
-    title: `${SITE_NAME} — ${SITE_TAGLINE}`,
+    title: `${SITE_NAME} — ${SITE_TITLE}`,
     description: SITE_DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_NAME} — ${SITE_TAGLINE}`,
+    title: `${SITE_NAME} — ${SITE_TITLE}`,
     description: SITE_DESCRIPTION,
   },
   robots: {

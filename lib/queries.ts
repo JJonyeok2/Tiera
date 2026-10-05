@@ -470,6 +470,10 @@ export async function getTools(params: ToolListParams = {}): Promise<ToolListRow
       -- 단순히 "점수가 있으면" 으로 하면 후기 1개짜리가 나머지 전부 위에 앉는다.
       (ts.sample_count IS NULL OR ts.sample_count < ${TOOL_MIN_REVIEWS_FOR_TIER}),
       ts.score DESC NULLS LAST,
+      -- 용도 탭에서는 그 용도가 **본업**인 도구를 먼저 보여준다. 이게 없으면 enum 순서상
+      -- 앞에 있는 감마(발표자료)·캔바가 웹사이트 탭 맨 위를 차지해서, 정작 웹사이트를
+      -- 만들려고 만든 재밋·윅스·프레이머가 아래로 밀렸다(2026-10-05 화면에서 확인).
+      ${purpose ? sql`(t.purpose = ${purpose}::tool_purpose) DESC,` : sql``}
       -- 그다음 용도 순. enum 선언 순서를 그대로 쓴다(CHAT이 첫 번째).
       array_position(enum_range(NULL::tool_purpose), t.purpose),
       (t.origin = 'KR') DESC,  -- 같은 용도 안에서는 국산을 앞에

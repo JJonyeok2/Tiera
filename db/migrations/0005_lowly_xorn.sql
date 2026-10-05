@@ -1,0 +1,1 @@
+ALTER TYPE "public"."tool_purpose" ADD VALUE 'WEBSITE' BEFORE 'CODE';

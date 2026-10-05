@@ -48,11 +48,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           AND EXISTS (SELECT 1 FROM model_score s WHERE s.model_id = m.id)
         ORDER BY m.created_at DESC
       `),
-      db.execute<{ slug: string; created_at: Date }>(sql`
-        SELECT t.slug, t.created_at
+      // created_at이 아니라 updated_at이다. 설명을 고쳐도 lastmod가 그대로면
+      // 검색엔진이 다시 읽으러 올 이유가 없다(db/schema.ts tool.updatedAt 참고).
+      db.execute<{ slug: string; updated_at: Date }>(sql`
+        SELECT t.slug, t.updated_at
         FROM tool t
         WHERE t.is_published
-        ORDER BY t.created_at DESC
+        ORDER BY t.updated_at DESC
       `),
     ]);
 
@@ -63,12 +65,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ),
     ]);
 
+    // 홈은 도구 목록이라, 가장 최근에 바뀐 도구 시각을 홈의 lastmod로 쓴다.
+    const newest = (toolRes.rows ?? [])[0]?.updated_at;
     return [
-      ...staticPages,
+      ...staticPages.map((p) =>
+        p.url === absoluteUrl("/") && newest ? { ...p, lastModified: new Date(newest) } : p
+      ),
       // 도구를 모델보다 위·높은 우선순위로 둔다. 이제 이쪽이 사이트의 정면이다.
       ...(toolRes.rows ?? []).map((t) => ({
         url: absoluteUrl(`/tools/${t.slug}`),
-        lastModified: new Date(t.created_at),
+        lastModified: new Date(t.updated_at),
         changeFrequency: "weekly" as const,
         priority: 0.9,
       })),

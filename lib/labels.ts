@@ -42,6 +42,9 @@ export const PURPOSE_LABEL: Record<ToolPurpose, string> = {
   VIDEO: "영상",
   AVATAR: "아바타 영상",
   AUDIO: "음악·목소리",
+  // "웹사이트·포트폴리오"로 두니 탭이 데스크톱에서도 두 줄로 넘어갔다.
+  // 포트폴리오라는 말은 아래 힌트 줄과 섹션 설명이 맡는다.
+  WEBSITE: "웹사이트",
   CODE: "코딩",
 };
 
@@ -56,6 +59,7 @@ export const PURPOSE_HINT: Record<ToolPurpose, string> = {
   VIDEO: "영상 만들고 자막 넣기",
   AVATAR: "사람이 말하는 영상 만들기",
   AUDIO: "노래 만들고 목소리 입히기",
+  WEBSITE: "포트폴리오·내 소개 사이트 만들고 링크로 공유하기",
   CODE: "코드 짜고 앱 만들기",
 };
 

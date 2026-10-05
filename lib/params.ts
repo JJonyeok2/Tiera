@@ -59,6 +59,7 @@ const PURPOSES: ToolPurpose[] = [
   "VIDEO",
   "AVATAR",
   "AUDIO",
+  "WEBSITE",
   "CODE",
 ];
 
