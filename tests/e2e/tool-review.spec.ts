@@ -54,7 +54,8 @@ test("로그인 → 후기 작성 → 점수 생성 → 중복 차단 → 수정
   );
 
   // 평가 안 한 축은 점수가 생기지 않는다 — 억지로 0점을 넣지 않는다
-  const scoreBlock = page.locator("main").locator("dl").first();
+  // 상세 위쪽에 가격·한국어 요약 판(dl)이 따로 있어서, 점수 판은 이름으로 집는다.
+  const scoreBlock = page.getByTestId("axis-scores");
   await expect(scoreBlock).toContainText("쉬움");
   await expect(scoreBlock).toContainText("한국어");
   await expect(scoreBlock).not.toContainText("결과물");

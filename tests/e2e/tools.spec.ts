@@ -17,7 +17,9 @@ const main = (page: import("@playwright/test").Page) => page.locator("main");
 
 test("홈은 랭킹이 아니라 도구 목록이다", async ({ page }) => {
   await page.goto("/");
-  await expect(main(page).locator("h1")).toContainText("어떤 AI를 써야 할지");
+  // 제목은 사이트가 던지는 질문, 설명 줄이 "모를 때 오는 곳"이라는 상황이다.
+  await expect(main(page).locator("h1")).toContainText("무엇을 하려고");
+  await expect(main(page)).toContainText("어떤 AI를 써야 할지 모르겠을 때");
   // 화면 언어 규칙(23.5): 일반인 화면에 전문 용어가 새어나오면 안 된다
   await expect(page.locator("main")).not.toContainText("벤치마크 N종");
   await expect(page.locator("main")).not.toContainText("괴리");
@@ -25,14 +27,38 @@ test("홈은 랭킹이 아니라 도구 목록이다", async ({ page }) => {
   expect(await cards.count()).toBeGreaterThan(10);
 });
 
+test("첫 화면은 하려는 일부터 고르게 한다", async ({ page }) => {
+  // 고르는 칸은 링크라서 뒤로 가기·새 탭이 그대로 된다. 버튼이면 안 된다.
+  await page.goto("/");
+  const tiles = main(page).locator('nav[aria-label="용도"] a[href^="/?for="]');
+  expect(await tiles.count()).toBeGreaterThanOrEqual(8);
+  // 고른 뒤에는 처음으로 돌아가는 길이 있어야 한다.
+  await tiles.first().click();
+  await expect(page).toHaveURL(/for=/);
+  await expect(
+    main(page).locator('a:has-text("하려는 일 다시 고르기")'),
+  ).toBeVisible();
+});
+
 test("용도 탭이 URL과 목록에 반영된다", async ({ page }) => {
   await page.goto("/");
-  await main(page).locator('nav[aria-label="용도"] button', { hasText: "영상" }).first().click();
+  // 첫 화면의 칸(링크)으로 들어간 뒤, 고른 화면의 탭(버튼)으로 옆 갈래로 옮긴다.
+  await main(page)
+    .locator('nav[aria-label="용도"] a[href="/?for=VIDEO"]')
+    .click();
   await expect(page).toHaveURL(/for=VIDEO/);
+  await expect(page.locator("main ul > li").first()).toBeVisible();
+  await main(page)
+    .locator('nav[aria-label="용도"] button', { hasText: "음악" })
+    .first()
+    .click();
+  await expect(page).toHaveURL(/for=AUDIO/);
   await expect(page.locator("main ul > li").first()).toBeVisible();
 });
 
-test("대표 용도가 아니어도 also_for에 걸리면 그 탭에 뜬다", async ({ page }) => {
+test("대표 용도가 아니어도 also_for에 걸리면 그 탭에 뜬다", async ({
+  page,
+}) => {
   // 이 목록에서 제일 쓸모 있는 답이 "이미 쓰는 챗GPT로도 된다"인데,
   // purpose를 하나만 봤다면 이미지 탭에 ChatGPT가 없다.
   await page.goto("/?for=IMAGE");
@@ -42,9 +68,12 @@ test("대표 용도가 아니어도 also_for에 걸리면 그 탭에 뜬다", as
 test("탭에 적힌 숫자와 실제 목록 개수가 같다", async ({ page }) => {
   // 탭에 5라고 적혀 있는데 눌러서 7개가 나오면 둘 중 하나가 거짓말이다.
   await page.goto("/");
-  const tab = main(page).locator('nav[aria-label="용도"] button:has-text("아바타")');
-  const label = await tab.innerText();
-  const claimed = Number(label.replace(/[^\d]/g, ""));
+  const tab = main(page).locator(
+    'nav[aria-label="용도"] a[href="/?for=AVATAR"]',
+  );
+  // 칸 안의 설명 줄에 숫자가 섞일 수 있어서, 개수 자리만 읽는다.
+  const claimed = Number(await tab.locator("[data-count]").innerText());
+  expect(claimed).toBeGreaterThan(0);
   await tab.click();
   await expect(page).toHaveURL(/for=AVATAR/);
   await expect(page.locator("main ul > li")).toHaveCount(claimed);
@@ -60,7 +89,9 @@ test("한국 필터가 한국 도구만 남긴다", async ({ page }) => {
   }
 });
 
-test("제작사 배지와 한국어 지원 라벨이 서로 다른 말을 쓴다", async ({ page }) => {
+test("제작사 배지와 한국어 지원 라벨이 서로 다른 말을 쓴다", async ({
+  page,
+}) => {
   // 배지는 '어디서 만들었나', 라벨은 '한국어가 되나'다. 둘 다 '한국 서비스'였을 때
   // 같은 뜻으로 읽혔다. 한 카드 안에서 구분이 서는지 본다.
   await page.goto("/?origin=KR");
@@ -83,35 +114,45 @@ test("유료·체험만 도구는 목록에서 미리 경고한다", async ({ pa
   await expect(runway).toContainText(seed!.caution!);
 });
 
-test("TRIAL·PAID 도구는 예외 없이 카드에 주의사항이 붙는다", async ({ page }) => {
+test("TRIAL·PAID 도구는 예외 없이 카드에 주의사항이 붙는다", async ({
+  page,
+}) => {
   // 시드 테스트가 caution의 '존재'를 강제하고, 여기서 그게 '화면에 나오는지'를 본다.
   const risky = SEED_TOOLS.filter(
-    (t) => t.pricingKind === "TRIAL" || t.pricingKind === "PAID"
+    (t) => t.pricingKind === "TRIAL" || t.pricingKind === "PAID",
   );
   expect(risky.length).toBeGreaterThan(0);
 
   for (const t of risky) {
     await page.goto(`/?for=${t.purpose}`);
-    await expect(page.locator("main ul > li", { hasText: t.name })).toContainText(t.caution!);
+    await expect(
+      page.locator("main ul > li", { hasText: t.name }),
+    ).toContainText(t.caution!);
   }
 });
 
-test("한국어를 확인 못한 도구는 빈칸이 아니라 '확인 중'이라고 쓴다", async ({ page }) => {
+test("한국어를 확인 못한 도구는 빈칸이 아니라 '확인 중'이라고 쓴다", async ({
+  page,
+}) => {
   await page.goto("/?for=SLIDES");
-  await expect(page.locator("main ul > li", { hasText: "스냅덱" })).toContainText("한국어 확인 중");
+  await expect(
+    page.locator("main ul > li", { hasText: "스냅덱" }),
+  ).toContainText("한국어 확인 중");
 });
 
 test("상세는 시작법·가격·한국어·공식링크를 모두 보여준다", async ({ page }) => {
   await page.goto("/tools/gemini");
   await expect(page.locator("h1")).toContainText("Gemini");
   const main = page.locator("main");
-  await expect(main).toContainText("뭘 해주나");
+  // 한 줄 소개는 제목 바로 아래에 있다(섹션 제목은 화면 낭독기용으로만 남겼다).
+  const seed = SEED_TOOLS.find((t) => t.slug === "gemini")!;
+  await expect(main).toContainText(seed.summary);
   await expect(main).toContainText("어떻게 시작하나");
   await expect(main).toContainText("돈이 드나");
   await expect(main).toContainText("한국어가 되나");
   await expect(main.locator('a:has-text("공식 사이트 열기")')).toHaveAttribute(
     "href",
-    /^https:\/\//
+    /^https:\/\//,
   );
 });
 
@@ -145,7 +186,9 @@ test("후기가 없으면 별점을 지어내지 않는다", async ({ page }) =>
   await expect(page.locator("main")).toContainText("아직 후기가 없어요");
   // 구조화 데이터에 aggregateRating이 새어나가면 검색엔진 스팸이고
   // 도메인 단위로 불이익을 받는다.
-  const scripts = await page.locator('script[type="application/ld+json"]').allTextContents();
+  const scripts = await page
+    .locator('script[type="application/ld+json"]')
+    .allTextContents();
   for (const raw of scripts) {
     expect(JSON.parse(raw || "{}").aggregateRating).toBeUndefined();
   }
@@ -224,13 +267,22 @@ test("Pretendard가 실제로 적용된다", async ({ page }) => {
   expect(r.family).toContain("Pretendard");
   expect(r.loadedCount).toBeLessThan(92);
 });
-test("용도 탭에서는 그 용도가 본업인 도구가 겸하는 도구보다 먼저 나온다", async ({ page }) => {
+test("용도 탭에서는 그 용도가 본업인 도구가 겸하는 도구보다 먼저 나온다", async ({
+  page,
+}) => {
   // 예전엔 enum 순서 때문에 감마(발표자료)·캔바가 웹사이트 탭 맨 위를 차지했다.
   await page.goto("/?for=WEBSITE");
-  const metas = await page.locator("main ul > li p.truncate").allTextContents();
-  expect(metas.length).toBeGreaterThan(3);
-  const firstGuest = metas.findIndex((m) => !m.includes("웹사이트"));
-  const lastHome = metas.map((m) => m.includes("웹사이트")).lastIndexOf(true);
-  expect(lastHome, metas.join(" / ")).toBeLessThan(firstGuest);
+  const rows = page.locator("main ul > li a[data-purpose]");
+  const purposes = await rows.evaluateAll((els) =>
+    els.map((e) => e.getAttribute("data-purpose")),
+  );
+  expect(purposes.length).toBeGreaterThan(3);
+  const firstGuest = purposes.findIndex((p) => p !== "WEBSITE");
+  const lastHome = purposes.lastIndexOf("WEBSITE");
+  expect(
+    firstGuest,
+    "겸하는 도구도 있어야 정렬을 확인할 수 있다",
+  ).toBeGreaterThan(0);
+  expect(lastHome, purposes.join(" / ")).toBeLessThan(firstGuest);
 });
 /* Footer: tests/e2e/tools.spec.ts */

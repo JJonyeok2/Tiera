@@ -11,7 +11,8 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import PurposeTabs from "@/components/tool/PurposeTabs";
-import ToolCard from "@/components/tool/ToolCard";
+import TaskChooser from "@/components/tool/TaskChooser";
+import ToolList from "@/components/tool/ToolList";
 import { getPurposeTotals, getTools } from "@/lib/queries";
 import { parseQuery, parseToolOrigin, parseToolPurpose } from "@/lib/params";
 import { PURPOSE_HINT, PURPOSE_LABEL } from "@/lib/labels";
@@ -36,7 +37,11 @@ export async function generateMetadata({
     // 용도 탭마다 URL이 갈라지지만 내용은 같은 목록의 부분집합이다.
     // canonical을 루트로 고정하지 않으면 크롤러가 중복 문서로 보고 평가를 나눈다.
     alternates: { canonical: "/" },
-    ...shareMeta({ url: "/", title: `${SITE_NAME} — ${SITE_TITLE}`, description: SITE_DESCRIPTION }),
+    ...shareMeta({
+      url: "/",
+      title: `${SITE_NAME} — ${SITE_TITLE}`,
+      description: SITE_DESCRIPTION,
+    }),
     ...(purpose ? { title: `${PURPOSE_LABEL[purpose]} AI 도구` } : {}),
     // 검색 결과는 무한히 생성되는 얕은 페이지라 색인에서 뺀다.
     ...(q ? { robots: { index: false, follow: true } } : {}),
@@ -61,7 +66,10 @@ export default async function HomePage({
   ]);
 
   const filtered = Boolean(q || origin || purpose);
-  const krCount = all.filter((t) => t.origin === "KR").length;
+  // 토글이 갈래를 유지하므로, 숫자도 지금 보고 있는 갈래 안에서 센다.
+  const krCount = (purpose ? tools : all).filter(
+    (t) => t.origin === "KR",
+  ).length;
 
   /**
    * 기본 화면은 격자가 아니라 **용도별 섹션**이다.
@@ -81,117 +89,149 @@ export default async function HomePage({
           items: tools.filter((t) => t.purpose === p),
         })).filter((s) => s.items.length > 0);
 
+  // 첫 화면(아무것도 고르지 않은 상태)과 고른 뒤의 화면은 할 일이 다르다.
+  // 첫 화면은 "무엇을 하려는지" 고르게 하고, 고른 뒤에는 비교 목록이 주인공이다.
+  const landing = !filtered;
+  const heading = q
+    ? null
+    : purpose
+      ? PURPOSE_LABEL[purpose]
+      : origin === "KR"
+        ? "한국에서 만든 도구"
+        : null;
+
   return (
     <>
       <JsonLd data={websiteJsonLd()} />
 
-      {/* 히어로. 스크롤한 상태에서 탭을 눌러도 제목이 sticky 헤더에 먹히지 않도록
-          scroll-mt를 준다 — 실제로 잘린 채로 보이는 걸 스크린샷에서 확인했다.
-
-          검색 중에는 히어로를 접는다. 헤더에서 검색어를 친 사람에게 "어떤 AI를
-          써야 할지 모르겠을 때"는 이미 지나간 말이고, 모바일에선 그게 결과를
-          화면 아래로 밀어냈다. 탭을 눌렀을 때는 접지 않는다 — 누른 손가락 밑에서
-          화면이 통째로 위로 튀면 방금 뭘 눌렀는지 놓친다. */}
-      {q ? (
-        <p className="pb-1 pt-7 text-[15px] text-[var(--color-text-dim)]">
-          {/* 개수는 아래 목록과 같은 값이어야 한다. 탭까지 걸린 상태에서 전체 개수를
-              적으면, 적힌 숫자와 보이는 카드 수가 달라진다. */}
-          <strong className="font-semibold text-[var(--color-text)]">‘{q}’</strong> 검색 결과{" "}
-          <span className="tabular-nums">{tools.length}</span>개
-        </p>
+      {landing ? (
+        <section className="pt-10">
+          {/* 사이트가 던지는 질문 그대로를 제목으로 쓴다. 아래 칸들이 그 대답이다.
+              예전 제목("어떤 AI를 써야 할지 모르겠을 때")은 상황 설명이라 다음에
+              뭘 하라는 건지가 없었다 — 그 말은 설명 줄로 내려 보냈다. */}
+          <h1 className="text-[30px] font-bold leading-[1.25] tracking-[-0.02em] text-[var(--color-text)] sm:text-[36px]">
+            무엇을 하려고 하세요?
+          </h1>
+          <p className="mt-3 max-w-[36rem] text-[16px] leading-relaxed text-[var(--color-text-dim)]">
+            어떤 AI를 써야 할지 모르겠을 때, 하려는 일부터 고르면 돼요. 돈이
+            드는지, 한국어가 되는지 같이 보여드려요.
+          </p>
+          <TaskChooser tools={all} totals={totals} />
+        </section>
       ) : (
-      <section className="scroll-mt-20 pb-1 pt-9">
-        {/* 한 가지 색, 한 덩어리 문장이다. 예전엔 "모르겠을 때"만 그라데이션으로 칠했는데,
-            사이트에서 가장 먼저 읽히는 말이 제일 읽기 어려운 글자였다. 강조는 크기와
-            굵기로만 한다. */}
-        <h1 className="text-[27px] font-bold leading-[1.3] tracking-[-0.02em] text-[var(--color-text)] sm:text-[32px]">
-          어떤 AI를 써야 할지
-          <br className="sm:hidden" /> 모르겠을 때
-        </h1>
-        <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-[var(--color-text-dim)]">
-          쓸 일부터 골라보세요. 돈이 드는지, 한국어가 되는지 미리 적어 뒀어요.
-        </p>
-      </section>
+        <section className="scroll-mt-20 pt-8">
+          {q ? (
+            <p className="text-[16px] text-[var(--color-text-dim)]">
+              {/* 개수는 아래 목록과 같은 값이어야 한다. 탭까지 걸린 상태에서 전체 개수를
+                  적으면, 적힌 숫자와 보이는 행 수가 달라진다. */}
+              <strong className="font-semibold text-[var(--color-text)]">
+                ‘{q}’
+              </strong>{" "}
+              검색 결과 <span className="tabular-nums">{tools.length}</span>개
+            </p>
+          ) : (
+            <>
+              <Link
+                href="/"
+                className="text-[13px] text-[var(--color-text-mute)] hover:underline"
+              >
+                ← 하려는 일 다시 고르기
+              </Link>
+              <h1 className="mt-2 text-[28px] font-bold leading-[1.25] tracking-[-0.02em] text-[var(--color-text)] sm:text-[32px]">
+                {heading}
+              </h1>
+              {purpose && (
+                <p className="mt-1.5 text-[15px] text-[var(--color-text-dim)]">
+                  {PURPOSE_HINT[purpose]}
+                </p>
+              )}
+            </>
+          )}
+          {/* 고른 뒤에도 옆 갈래로 바로 옮겨 갈 수 있게 작은 탭을 남긴다. */}
+          <Suspense>
+            <PurposeTabs totals={totals} allCount={all.length} />
+          </Suspense>
+        </section>
       )}
 
-      <Suspense>
-        <PurposeTabs totals={totals} allCount={all.length} />
-      </Suspense>
-
-      {/* 탭과 다른 줄, 다른 모양으로 둔다.
-          같은 알약 모양이면 '용도 탭 하나'로 읽혀서, 한국 필터가 탭 목록에
-          섞여 들어간 것처럼 보였다. 여기는 가로선 위의 도구 모음이다. */}
-      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-[var(--color-line-soft)] pt-3">
-        <p className="text-[13px] text-[var(--color-text-mute)]">
-          {purpose ? PURPOSE_HINT[purpose] : "쓸 일을 고르거나 검색해 보세요"}
-        </p>
-
-        <Link
-          href={origin === "KR" ? "/" : "/?origin=KR"}
-          aria-pressed={origin === "KR"}
-          className={`ml-auto flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[13px] transition ${
-            origin === "KR"
-              ? "bg-[var(--color-tier-prism)]/12 text-[var(--color-tier-prism)]"
-              : "text-[var(--color-text-mute)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text-dim)]"
-          }`}
-        >
-          <span
-            aria-hidden="true"
-            className={`h-1.5 w-1.5 rounded-full ${
-              origin === "KR" ? "bg-[var(--color-tier-prism)]" : "bg-[var(--color-text-mute)]/50"
+      {/* 한국 필터는 탭과 다른 줄, 다른 모양으로 둔다. 같은 알약이면 '용도 하나'로 읽혔다.
+          첫 화면에서는 고르는 칸 중 하나(TaskChooser 마지막 칸)가 같은 일을 하므로 빼고,
+          그 자리에 목록 제목만 둔다. */}
+      <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2">
+        {landing ? (
+          <h2 className="text-[20px] font-bold tracking-tight text-[var(--color-text)]">
+            전체 도구
+          </h2>
+        ) : (
+          <Link
+            href={
+              origin === "KR"
+                ? purpose
+                  ? `/?for=${purpose}`
+                  : "/"
+                : `/?origin=KR${purpose ? `&for=${purpose}` : ""}`
+            }
+            aria-pressed={origin === "KR"}
+            className={`ml-auto flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[13px] transition ${
+              origin === "KR"
+                ? "bg-[var(--color-tier-prism)]/12 text-[var(--color-tier-prism)]"
+                : "text-[var(--color-text-mute)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text-dim)]"
             }`}
-          />
-          한국에서 만든 것만
-          <span className="tabular-nums opacity-70">{krCount}</span>
-        </Link>
+          >
+            <span
+              aria-hidden="true"
+              className={`h-1.5 w-1.5 rounded-full ${
+                origin === "KR"
+                  ? "bg-[var(--color-tier-prism)]"
+                  : "bg-[var(--color-text-mute)]/50"
+              }`}
+            />
+            한국에서 만든 것만
+            <span className="tabular-nums opacity-70">{krCount}</span>
+          </Link>
+        )}
       </div>
 
       {tools.length === 0 ? (
-        <div className="mt-5 rounded-2xl border border-[var(--color-line)] bg-[var(--color-surface)] px-6 py-16 text-center">
-          <p className="text-sm text-[var(--color-text-dim)]">
-            {filtered ? "찾으시는 조건에 맞는 도구가 없어요." : "아직 등록된 도구가 없어요."}
+        <div className="mt-3 rounded-2xl border border-[var(--color-line)] bg-[var(--color-surface)] px-6 py-16 text-center">
+          <p className="text-[15px] text-[var(--color-text-dim)]">
+            {filtered
+              ? "찾으시는 조건에 맞는 도구가 없어요."
+              : "아직 등록된 도구가 없어요."}
           </p>
           {filtered && (
             <Link
               href="/"
               className="mt-4 inline-block rounded-lg border border-[var(--color-line)] px-4 py-2 text-[13px] text-[var(--color-text-dim)] hover:border-[var(--color-text-mute)]"
             >
-              전체 보기
+              처음으로
             </Link>
           )}
         </div>
       ) : sections.length > 0 ? (
-        <div className="mt-2">
+        <div>
           {sections.map((sec) => (
-            <Section key={sec.purpose} purpose={sec.purpose} items={sec.items} />
+            <Section
+              key={sec.purpose}
+              purpose={sec.purpose}
+              items={sec.items}
+            />
           ))}
         </div>
       ) : (
-        // 탭·검색·필터가 걸린 화면은 섹션으로 나누지 않는다.
-        // 이미 한 갈래로 좁힌 결과라 제목을 또 달면 같은 말을 두 번 하는 셈이다.
-        <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-          {tools.map((t) => (
-            <li key={t.slug} className="flex">
-              <ToolCard tool={t} />
-            </li>
-          ))}
-        </ul>
+        // 갈래를 고른 화면은 섹션으로 나누지 않는다. 이미 한 갈래라 제목이 겹친다.
+        <div className="mt-3">
+          <ToolList tools={tools} />
+        </div>
       )}
 
-      {/* 개발자용 입구. 일반인은 안 눌러도 되지만, 궁금한 사람은 여기로 내려간다.
-          목록 끝에 붙는 마무리이므로 카드보다 조용해야 한다. */}
-      <div className="mt-12 border-t border-[var(--color-line-soft)] pt-6">
+      {/* 개발자용 입구. 목록 끝의 마무리라 조용해야 한다. */}
+      <div className="mt-14 border-t border-[var(--color-line-soft)] pt-6">
         <Link
           href="/models"
-          className="group inline-flex items-center gap-1.5 text-[13px] text-[var(--color-text-mute)] transition hover:text-[var(--color-text-dim)]"
+          className="text-[13px] text-[var(--color-text-mute)] underline-offset-4 transition hover:text-[var(--color-text-dim)] hover:underline"
         >
-          모델 단위로 보기 — 벤치마크·커뮤니티 순위
-          <span
-            aria-hidden="true"
-            className="transition-transform duration-200 group-hover:translate-x-0.5"
-          >
-            →
-          </span>
+          모델 단위로 보기 — 벤치마크·커뮤니티 순위 →
         </Link>
       </div>
     </>
@@ -212,24 +252,16 @@ function Section({
   items: ToolListRow[];
 }) {
   return (
-    <section className="scroll-mt-20 pt-9 first:pt-5">
-      <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-        <h2 className="text-[20px] font-bold tracking-tight text-[var(--color-text)]">
+    <section id={`sec-${purpose}`} className="scroll-mt-20 pt-8">
+      <div className="mb-3 flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+        <h3 className="text-[17px] font-bold tracking-tight text-[var(--color-text)]">
           {PURPOSE_LABEL[purpose]}
-        </h2>
-        <span className="text-[13px] tabular-nums text-[var(--color-text-mute)]">{items.length}</span>
-        <p className="w-full text-[13px] text-[var(--color-text-mute)] sm:w-auto">
+        </h3>
+        <span className="text-[13px] text-[var(--color-text-mute)]">
           {PURPOSE_HINT[purpose]}
-        </p>
+        </span>
       </div>
-
-      <ul className="mt-3.5 grid gap-3 sm:grid-cols-2">
-        {items.map((t) => (
-          <li key={t.slug} className="flex">
-            <ToolCard tool={t} />
-          </li>
-        ))}
-      </ul>
+      <ToolList tools={items} />
     </section>
   );
 }

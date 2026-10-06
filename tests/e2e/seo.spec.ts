@@ -113,7 +113,7 @@ test("공유 미리보기: 모든 공개 페이지에 이미지가 붙고, 자�
 test("도구 상세를 공유하면 사이트 소개가 아니라 그 도구가 나간다", async ({ page }) => {
   await page.goto("/tools/claude");
   await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", /Claude/);
-  // 설명은 화면의 "뭘 해주나요"와 같은 문장이어야 한다. 문구를 박지 않고 화면과 대조한다.
+  // 설명은 화면 제목 아래 한 줄 소개와 같은 문장이어야 한다. 문구를 박지 않고 화면과 대조한다.
   const desc = (await page.locator('meta[property="og:description"]').getAttribute("content")) ?? "";
   expect(desc.length).toBeGreaterThan(10);
   await expect(page.locator("main")).toContainText(desc);

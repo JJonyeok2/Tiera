@@ -1,8 +1,9 @@
 /* ---------------------------------------------------------------------------
  * Header: /tools/[slug] — 도구 상세. SPEC 23.5.
  *
- * 답해야 하는 질문 순서가 곧 화면 순서다:
- *   뭘 해주나요 → 어떻게 시작하나요 → 돈이 드나요 → 한국어가 되나요 → 이게 쓰는 모델
+ * 첫 화면은 고르는 데 필요한 것만: 뭘 해주나요(한 줄 소개) → 용도 칩 → 가격·한국어·
+ * 쓸 곳 요약 판 → 주의사항 → 써보러 가기. 그 아래가 질문 순서대로의 자세한 설명이다:
+ *   어떻게 시작하나요 → 돈이 드나요 → 한국어가 되나요 → 어디서 쓰나요 → 이게 쓰는 모델
  *
  * "이 도구가 쓰는 모델" 섹션이 일반인 층과 개발자 층을 잇는 유일한 지점이다.
  * 일반인은 안 눌러도 되고, 궁금한 사람은 거기서 벤치마크까지 내려간다.
@@ -11,11 +12,11 @@
  * 회색 "–"로 채운 칸은 사이트가 고장난 것처럼 보인다.
  * ------------------------------------------------------------------------- */
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import TierStar from "@/components/tier/TierStar";
+import ToolLogo from "@/components/tool/ToolLogo";
 import ToolReviewSection from "@/components/tool/ToolReviewSection";
 import JsonLd from "@/components/seo/JsonLd";
 import { toolJsonLd } from "@/lib/structured-data";
@@ -60,11 +61,20 @@ export async function generateMetadata({
     description,
     keywords: [tool.name, ...tool.aliases],
     alternates: { canonical: url },
-    ...shareMeta({ url, title: `${tool.name} — Tiera`, description, type: "article" }),
+    ...shareMeta({
+      url,
+      title: `${tool.name} — Tiera`,
+      description,
+      type: "article",
+    }),
   };
 }
 
-export default async function ToolPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function ToolPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
   const tool = await getToolDetail(slug);
   if (!tool) notFound();
@@ -79,71 +89,103 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
     viewerId ? getMyToolReview(viewerId, slug, tool.id) : Promise.resolve(null),
   ]);
 
-  const payAttention = tool.pricingKind === "PAID" || tool.pricingKind === "TRIAL";
+  const payAttention =
+    tool.pricingKind === "PAID" || tool.pricingKind === "TRIAL";
   const rated = TOOL_AXES.filter((a) => tool.axisScores[a] !== undefined);
-  // 카드와 같은 기준. 표본이 서기 전에는 단정하는 표시를 미룬다.
+  // 목록(components/tool/ToolList.tsx)과 같은 기준. 표본이 서기 전에는 단정하는 표시를 미룬다.
   const showTier =
-    tool.tier !== null && tool.score !== null && tool.reviewCount >= TOOL_MIN_REVIEWS_FOR_TIER;
+    tool.tier !== null &&
+    tool.score !== null &&
+    tool.reviewCount >= TOOL_MIN_REVIEWS_FOR_TIER;
 
   return (
-    <article className="max-w-[46rem] py-7">
-      {/* 줄 길이를 묶는다. 넓은 화면에서 한 줄이 70자를 넘어가면 다음 줄 시작을 놓친다. */}
+    <article className="max-w-[52rem] py-7">
       <JsonLd data={toolJsonLd(tool)} />
-      <Link href="/" className="text-[13px] text-[var(--color-text-mute)] hover:underline">
+      <Link
+        href="/"
+        className="text-[13px] text-[var(--color-text-mute)] hover:underline"
+      >
         ← 도구 목록
       </Link>
 
-      <header className="mt-3 flex items-start gap-3.5">
-        {tool.logoUrl && (
-          // 카드와 같은 규칙: 흰 타일을 꽉 채운다(components/tool/ToolCard.tsx 참고).
-          <span className="mt-0.5 h-12 w-12 shrink-0 overflow-hidden rounded-2xl bg-white ring-1 ring-inset ring-black/10">
-            <Image
-              src={tool.logoUrl}
-              alt=""
-              width={48}
-              height={48}
-              className="h-12 w-12"
-              unoptimized
-            />
-          </span>
-        )}
+      <header className="mt-4 flex items-start gap-4">
+        {/* 목록과 같은 로고 타일을 크게 쓴다(components/tool/ToolLogo.tsx). 로고가 없는
+            도구도 이니셜 타일이 같은 자리를 채워서, 제목 시작 위치가 도구마다 흔들리지 않는다. */}
+        <ToolLogo name={tool.name} logoUrl={tool.logoUrl} size="lg" />
         <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
-          <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text)]">{tool.name}</h1>
-          {tool.origin === "KR" && (
-            <span className="rounded-md bg-[var(--color-surface-2)] px-1.5 py-0.5 text-[12px] font-medium text-[var(--color-text-dim)]">
-              한국
-            </span>
-          )}
-          {tool.studentFree && (
-            <span className="rounded-md bg-[var(--color-surface-2)] px-1.5 py-0.5 text-[12px] text-[var(--color-text-dim)]">
-              대학생 혜택
-            </span>
-          )}
-          {showTier && (
-            <span className="flex items-center gap-1.5">
-              <TierStar
-                tier={tool.tier!.toLowerCase() as "prism" | "gold" | "silver" | "bronze"}
-                size={20}
-              />
-              <span className="text-sm font-semibold tabular-nums">{tool.score!.toFixed(1)}</span>
-            </span>
-          )}
-        </div>
-        <p className="mt-1 text-[13px] text-[var(--color-text-mute)]">
-          {tool.maker} · {PURPOSE_LABEL[tool.purpose]}
-          {tool.alsoFor.length > 0 && ` · ${tool.alsoFor.map((p) => PURPOSE_LABEL[p]).join(" · ")}`}
-        </p>
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+            <h1 className="text-[28px] font-bold leading-tight tracking-[-0.02em] text-[var(--color-text)] sm:text-[30px]">
+              {tool.name}
+            </h1>
+            {tool.origin === "KR" && <Badge>한국</Badge>}
+            {tool.studentFree && <Badge>대학생 혜택</Badge>}
+            {showTier && (
+              <span className="flex items-center gap-1.5">
+                <TierStar
+                  tier={
+                    tool.tier!.toLowerCase() as
+                      "prism" | "gold" | "silver" | "bronze"
+                  }
+                  size={20}
+                />
+                <span className="text-sm font-semibold tabular-nums">
+                  {tool.score!.toFixed(1)}
+                </span>
+              </span>
+            )}
+          </div>
+          <p className="mt-1 text-[14px] text-[var(--color-text-mute)]">
+            {tool.maker}
+          </p>
         </div>
       </header>
 
-      {/* 주의사항은 본문보다 위에 둔다. 밑에 두면 결제하고 나서 읽는다. */}
+      {/* "뭘 해주나요"는 섹션으로 두지 않고 제목 바로 아래 크게 쓴다. 이 도구가 내 일에
+          맞는지가 가장 먼저 궁금한데, 예전엔 요약 판·버튼 아래까지 내려가야 나왔다. */}
+      <h2 className="sr-only">뭘 해주나요</h2>
+      <p className="mt-5 text-[17px] leading-[1.65] text-[var(--color-text)]">
+        {tool.summary}
+      </p>
+
+      {/* 용도는 예전엔 "A · B · C" 회색 글줄이었다. 누르면 그 갈래의 다른 도구로 가는
+          칩으로 바꿨다 — 이 도구가 안 맞을 때 옆 후보로 넘어가는 길이다. */}
+      <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="이런 일에 써요">
+        {[tool.purpose, ...tool.alsoFor].map((p) => (
+          <li key={p}>
+            <Link
+              href={`/?for=${p}`}
+              className="inline-block rounded-full border border-[var(--color-line)] px-2.5 py-1 text-[13px] text-[var(--color-text-dim)] transition hover:border-[var(--color-text-mute)] hover:text-[var(--color-text)]"
+            >
+              {PURPOSE_LABEL[p]}
+            </Link>
+          </li>
+        ))}
+      </ul>
+
+      {/* 고를 때 가장 먼저 보는 세 가지를 한 판에. 자세한 설명은 아래 섹션에 있다. */}
+      <dl className="mt-6 grid grid-cols-1 divide-y divide-[var(--color-line-soft)] rounded-2xl border border-[var(--color-line)] bg-[var(--color-surface)] sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+        <Fact label="가격">
+          <span
+            className={
+              payAttention ? "text-[var(--color-tier-bronze)]" : undefined
+            }
+          >
+            {PRICING_LABEL[tool.pricingKind]}
+          </span>
+        </Fact>
+        <Fact label="한국어">{KOREAN_LEVEL_LABEL[tool.koreanLevel]}</Fact>
+        <Fact label="쓸 수 있는 곳">
+          {tool.platforms.map((p) => PLATFORM_LABEL[p]).join(" · ")}
+        </Fact>
+      </dl>
+
+      {/* 주의사항은 버튼보다 위에 둔다. 밑에 두면 결제하고 나서 읽는다. */}
       {tool.caution && (
         <p
           data-testid="tool-caution"
-          className={`mt-4 rounded-lg border px-4 py-3 text-[14px] leading-relaxed ${
+          className={`mt-4 rounded-xl border px-4 py-3 text-[14px] leading-relaxed ${
             payAttention
-              ? "border-[var(--color-line)] bg-[var(--color-surface-2)] text-[var(--color-text)]"
+              ? "border-[var(--color-tier-bronze)]/40 bg-[var(--color-tier-bronze)]/8 text-[var(--color-text)]"
               : "border-[var(--color-line-soft)] bg-[var(--color-surface)] text-[var(--color-text-dim)]"
           }`}
         >
@@ -151,33 +193,31 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
         </p>
       )}
 
-      {/* 이 사이트의 목적은 "보고 실제로 써보게" 하는 것인데, 공식 사이트로 가는
-          버튼이 예전에는 본문 맨 아래 "어디서 쓰나요" 안에만 있었다. 모바일에서
-          스크롤을 60% 내려야 나왔다. 주의사항 바로 다음, 첫 화면 안에 둔다.
-          주의사항보다 위로는 올리지 않는다 — 읽기 전에 나가버리면 소용없다. */}
-      <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2.5">
-        <a
-          href={tool.siteUrl}
-          target="_blank"
-          rel="noopener noreferrer nofollow"
-          className="inline-flex items-center gap-1.5 rounded-xl bg-[var(--color-text)] px-4 py-2.5 text-sm font-semibold text-[var(--color-bg)] transition hover:opacity-90"
-        >
-          {tool.name} 써보러 가기
-          <span aria-hidden="true">↗</span>
-        </a>
-        <span className="text-[13px] text-[var(--color-text-mute)]">
-          {PRICING_LABEL[tool.pricingKind]} · {KOREAN_LEVEL_LABEL[tool.koreanLevel]}
-        </span>
-      </div>
+      {/* 이 사이트의 목적은 "보고 실제로 써보게" 하는 것이다. 첫 화면 안에 둔다. */}
+      <a
+        href={tool.siteUrl}
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+        className="mt-5 inline-flex items-center gap-1.5 rounded-xl bg-[var(--color-text)] px-5 py-3 text-[15px] font-semibold text-[var(--color-bg)] transition hover:opacity-90"
+      >
+        {tool.name} 써보러 가기
+        <span aria-hidden="true">↗</span>
+      </a>
 
       {/* 축별 점수는 후기가 있을 때만 그린다. */}
       {rated.length > 0 && (
         <Section title={`써 본 사람들 ${tool.reviewCount}명`}>
-          <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <dl
+            data-testid="axis-scores"
+            className="grid grid-cols-2 gap-3 sm:grid-cols-4"
+          >
             {rated.map((a) => {
               const s = tool.axisScores[a]!;
               return (
-                <div key={a} className="rounded-lg border border-[var(--color-line)] px-3 py-2.5">
+                <div
+                  key={a}
+                  className="rounded-lg border border-[var(--color-line)] px-3 py-2.5"
+                >
                   <dt className="text-[12px] text-[var(--color-text-mute)]">
                     {TOOL_AXIS_LABEL[a]}
                   </dt>
@@ -198,10 +238,6 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
           </p>
         </Section>
       )}
-
-      <Section title="뭘 해주나요">
-        <p>{tool.summary}</p>
-      </Section>
 
       {tool.howToStart && (
         <Section title="어떻게 시작하나요">
@@ -254,7 +290,10 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
                 >
                   {m.tier && (
                     <TierStar
-                      tier={m.tier.toLowerCase() as "prism" | "gold" | "silver" | "bronze"}
+                      tier={
+                        m.tier.toLowerCase() as
+                          "prism" | "gold" | "silver" | "bronze"
+                      }
                       size={14}
                     />
                   )}
@@ -283,16 +322,52 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+/**
+ * 설명 한 덩어리. 넓은 화면에서는 제목을 왼쪽 칸에 세우고 본문을 오른쪽에 둔다 —
+ * 제목들이 한 세로줄에 서서, 훑을 때 목차처럼 읽힌다. 좁은 화면에서는 위아래로 쌓인다.
+ */
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
-    <section className="mt-6 border-t border-[var(--color-line-soft)] pt-5">
-      {/* 제목은 작게, 본문은 크게. 예전엔 본문이 12px이라 제목(11px)과 크기 차이가 없어서
-          어디가 제목이고 어디가 내용인지 덩어리로 안 읽혔다. */}
-      <h2 className="text-[13px] font-semibold text-[var(--color-text-mute)]">
+    <section className="mt-7 border-t border-[var(--color-line-soft)] pt-5 md:grid md:grid-cols-[9.5rem_minmax(0,1fr)] md:gap-6">
+      <h2 className="text-[14px] font-semibold text-[var(--color-text)]">
         {title}
       </h2>
-      <div className="mt-1.5 text-[15px] leading-[1.7] text-[var(--color-text-dim)]">{children}</div>
+      <div className="mt-1.5 text-[15px] leading-[1.75] text-[var(--color-text-dim)] md:mt-0">
+        {children}
+      </div>
     </section>
+  );
+}
+
+/** 요약 판의 한 칸. 이름은 작게, 값은 크게 — 값이 먼저 눈에 걸려야 한다. */
+function Fact({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-baseline justify-between gap-3 px-4 py-3 sm:block sm:py-3.5">
+      <dt className="text-[13px] text-[var(--color-text-mute)]">{label}</dt>
+      <dd className="text-right text-[15px] font-semibold text-[var(--color-text)] sm:mt-1 sm:text-left">
+        {children}
+      </dd>
+    </div>
+  );
+}
+
+function Badge({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="rounded-md bg-[var(--color-surface-2)] px-1.5 py-0.5 text-[12px] font-medium text-[var(--color-text-dim)]">
+      {children}
+    </span>
   );
 }
 /* Footer: app/tools/[slug]/page.tsx */
