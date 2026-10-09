@@ -107,12 +107,14 @@ export default async function HomePage({
       <JsonLd data={websiteJsonLd()} />
 
       {landing ? (
+        // 내용은 위에 붙인다. 세로 가운데 정렬은 키 큰 화면에서 위쪽이 텅 비어
+        // "패딩을 너무 줬다"는 인상이었다. 남는 높이는 아래로 보내 목록만 밀어낸다.
         // 첫 화면은 질문과 고르기 칸만으로 화면 높이를 채운다. 목록은 그 아래에서
         // 스크롤하면 떠오른다(components/site/Reveal.tsx). 헤더 높이를 빼야 첫 화면
         // 바닥에 목록 머리가 걸치지 않는다 — 모바일은 검색창이 한 줄 더 있어서 더 크다.
-        <section className="flex min-h-[calc(100svh-7.5rem)] flex-col pb-16 pt-6 sm:pt-8 sm:min-h-[calc(100svh-4.25rem)]">
+        <section className="min-h-[calc(100svh-7.5rem)] pb-16 pt-6 sm:min-h-[calc(100svh-4.25rem)] sm:pt-10">
           {/* 위로 밀려 나갈 때 살짝 물러난다(.scroll-recede, app/globals.css). */}
-          <div className="scroll-recede my-auto">
+          <div className="scroll-recede">
             {/* 사이트가 던지는 질문 그대로를 제목으로 쓴다. 아래 칸들이 그 대답이다.
                 예전 제목("어떤 AI를 써야 할지 모르겠을 때")은 상황 설명이라 다음에
                 뭘 하라는 건지가 없었다 — 그 말은 설명 줄로 내려 보냈다. */}
