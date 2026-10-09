@@ -19,6 +19,7 @@ import { PURPOSE_HINT, PURPOSE_LABEL } from "@/lib/labels";
 import { PURPOSES } from "@/lib/params";
 import type { ToolListRow } from "@/lib/queries";
 import JsonLd from "@/components/seo/JsonLd";
+import Reveal from "@/components/site/Reveal";
 import { websiteJsonLd } from "@/lib/structured-data";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, shareMeta } from "@/lib/site";
 
@@ -105,18 +106,34 @@ export default async function HomePage({
       <JsonLd data={websiteJsonLd()} />
 
       {landing ? (
-        <section className="pt-10">
-          {/* 사이트가 던지는 질문 그대로를 제목으로 쓴다. 아래 칸들이 그 대답이다.
-              예전 제목("어떤 AI를 써야 할지 모르겠을 때")은 상황 설명이라 다음에
-              뭘 하라는 건지가 없었다 — 그 말은 설명 줄로 내려 보냈다. */}
-          <h1 className="text-[30px] font-bold leading-[1.25] tracking-[-0.02em] text-[var(--color-text)] sm:text-[36px]">
-            무엇을 하려고 하세요?
-          </h1>
-          <p className="mt-3 max-w-[36rem] text-[16px] leading-relaxed text-[var(--color-text-dim)]">
-            어떤 AI를 써야 할지 모르겠을 때, 하려는 일부터 고르면 돼요. 돈이
-            드는지, 한국어가 되는지 같이 보여드려요.
-          </p>
-          <TaskChooser tools={all} totals={totals} />
+        // 첫 화면은 질문과 고르기 칸만으로 화면 높이를 채운다. 목록은 그 아래에서
+        // 스크롤하면 떠오른다(components/site/Reveal.tsx). 헤더 높이를 빼야 첫 화면
+        // 바닥에 목록 머리가 걸치지 않는다 — 모바일은 검색창이 한 줄 더 있어서 더 크다.
+        <section className="flex min-h-[calc(100svh-7.5rem)] flex-col pb-5 pt-6 sm:pt-8 sm:min-h-[calc(100svh-4.25rem)]">
+          <div className="my-auto">
+            {/* 사이트가 던지는 질문 그대로를 제목으로 쓴다. 아래 칸들이 그 대답이다.
+                예전 제목("어떤 AI를 써야 할지 모르겠을 때")은 상황 설명이라 다음에
+                뭘 하라는 건지가 없었다 — 그 말은 설명 줄로 내려 보냈다. */}
+            <h1 className="text-[26px] font-bold leading-[1.25] tracking-[-0.02em] text-[var(--color-text)] sm:text-[36px]">
+              무엇을 하려고 하세요?
+            </h1>
+            <p className="mt-2 max-w-[36rem] text-[15px] leading-relaxed text-[var(--color-text-dim)] sm:mt-3 sm:text-[16px]">
+              어떤 AI를 써야 할지 모르겠을 때, 하려는 일부터 고르면 돼요. 돈이
+              드는지, 한국어가 되는지 같이 보여드려요.
+            </p>
+            <TaskChooser tools={all} totals={totals} />
+          </div>
+          {/* 아래에 목록이 더 있다는 걸 알려 주는 한 줄. 첫 화면이 꽉 차 보이면 여기서
+              끝인 줄 안다. */}
+          <a
+            href="#all-tools"
+            className="mx-auto mt-6 flex flex-col items-center gap-1 text-[13px] text-[var(--color-text-mute)] transition hover:text-[var(--color-text-dim)]"
+          >
+            전체 도구 {all.length}개 둘러보기
+            <span aria-hidden="true" className="text-[15px] leading-none">
+              ↓
+            </span>
+          </a>
         </section>
       ) : (
         <section className="scroll-mt-20 pt-8">
@@ -157,7 +174,10 @@ export default async function HomePage({
       {/* 한국 필터는 탭과 다른 줄, 다른 모양으로 둔다. 같은 알약이면 '용도 하나'로 읽혔다.
           첫 화면에서는 고르는 칸 중 하나(TaskChooser 마지막 칸)가 같은 일을 하므로 빼고,
           그 자리에 목록 제목만 둔다. */}
-      <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2">
+      <div
+        id={landing ? "all-tools" : undefined}
+        className="mt-6 flex scroll-mt-20 flex-wrap items-center gap-x-3 gap-y-2"
+      >
         {landing ? (
           <h2 className="text-[20px] font-bold tracking-tight text-[var(--color-text)]">
             전체 도구
@@ -210,12 +230,12 @@ export default async function HomePage({
         </div>
       ) : sections.length > 0 ? (
         <div>
+          {/* 섹션마다 따로 떠오르게 한다. 목록 전체를 한 덩어리로 띄우면 50행이 한 번에
+              나타나서 효과가 없다. */}
           {sections.map((sec) => (
-            <Section
-              key={sec.purpose}
-              purpose={sec.purpose}
-              items={sec.items}
-            />
+            <Reveal key={sec.purpose}>
+              <Section purpose={sec.purpose} items={sec.items} />
+            </Reveal>
           ))}
         </div>
       ) : (

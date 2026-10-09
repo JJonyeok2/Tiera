@@ -32,9 +32,11 @@ export default function TaskChooser({
   const krPreview = kr.filter((t) => t.logoUrl).slice(0, PREVIEW);
 
   return (
-    <nav aria-label="용도" className="mt-7">
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
+    <nav aria-label="용도" className="mt-5 sm:mt-7">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-2.5 lg:grid-cols-4">
         {PURPOSES.map((p) => {
+          // 로고 줄은 넓은 화면에서만 보인다. 좁은 화면에서는 12칸이 2열로 6줄이라,
+          // 로고까지 넣으면 첫 화면을 한참 넘어간다(이름·개수·설명만으로도 고를 수 있다).
           // 본업인 도구를 먼저, 겸하는 도구는 그다음. 목록 정렬과 같은 순서다.
           const inTab = [
             ...tools.filter((t) => t.purpose === p),
@@ -46,9 +48,9 @@ export default function TaskChooser({
             <Link
               key={p}
               href={`/?for=${p}`}
-              className="group flex min-h-[7.5rem] flex-col rounded-2xl border border-[var(--color-line)] bg-[var(--color-surface)] p-4 transition-colors hover:border-[var(--color-text-mute)]"
+              className="group flex flex-col rounded-2xl border border-[var(--color-line)] bg-[var(--color-surface)] p-3.5 transition-colors sm:min-h-[7.5rem] sm:p-4 hover:border-[var(--color-text-mute)]"
             >
-              <span className="text-[17px] font-bold leading-snug tracking-tight text-[var(--color-text)]">
+              <span className="text-[16px] font-bold leading-snug sm:text-[17px] tracking-tight text-[var(--color-text)]">
                 {PURPOSE_LABEL[p]}
                 {/* 개수는 이름 바로 옆에 붙인다. 따로 떨어뜨리면 무슨 숫자인지 읽히지 않는다. */}
                 <span
@@ -63,7 +65,7 @@ export default function TaskChooser({
               </span>
               {preview.length > 0 && (
                 <span
-                  className="mt-auto flex items-center gap-1 pt-3"
+                  className="mt-auto hidden items-center gap-1 pt-3 sm:flex"
                   aria-hidden="true"
                 >
                   {preview.map((t) => (
@@ -84,9 +86,9 @@ export default function TaskChooser({
             "한국어가 제일 잘 되는 걸 원한다"는 것도 고르는 출발점이 되기 때문이다. */}
         <Link
           href="/?origin=KR"
-          className="group flex min-h-[7.5rem] flex-col rounded-2xl border border-dashed border-[var(--color-line)] bg-[var(--color-surface)] p-4 transition-colors hover:border-[var(--color-text-mute)]"
+          className="group flex flex-col rounded-2xl border border-dashed border-[var(--color-line)] bg-[var(--color-surface)] p-3.5 transition-colors sm:min-h-[7.5rem] sm:p-4 hover:border-[var(--color-text-mute)]"
         >
-          <span className="text-[17px] font-bold leading-snug tracking-tight text-[var(--color-text)]">
+          <span className="text-[16px] font-bold leading-snug sm:text-[17px] tracking-tight text-[var(--color-text)]">
             한국에서 만든 도구
             <span className="ml-1.5 text-[13px] font-normal tabular-nums text-[var(--color-text-mute)]">
               {kr.length}
@@ -97,7 +99,7 @@ export default function TaskChooser({
           </span>
           {krPreview.length > 0 && (
             <span
-              className="mt-auto flex items-center gap-1 pt-3"
+              className="mt-auto hidden items-center gap-1 pt-3 sm:flex"
               aria-hidden="true"
             >
               {krPreview.map((t) => (

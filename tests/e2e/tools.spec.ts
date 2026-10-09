@@ -285,4 +285,57 @@ test("용도 탭에서는 그 용도가 본업인 도구가 겸하는 도구보�
   ).toBeGreaterThan(0);
   expect(lastHome, purposes.join(" / ")).toBeLessThan(firstGuest);
 });
+test("첫 화면에는 고르기 칸만 보이고, 목록은 스크롤하면 떠오른다", async ({
+  page,
+}) => {
+  // 첫 화면에 목록 머리가 걸치면 고르기와 목록이 한꺼번에 보여서, 무엇부터
+  // 하라는 화면인지가 흐려졌다.
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/");
+  const vh = 800;
+  const tiles = main(page).locator('nav[aria-label="용도"] a');
+  const n = await tiles.count();
+  expect(n).toBe(12);
+  for (let i = 0; i < n; i++) {
+    const b = await tiles.nth(i).boundingBox();
+    expect(b!.y + b!.height, `칸 ${i}`).toBeLessThanOrEqual(vh);
+  }
+  const listTop = await main(page).locator("#all-tools").boundingBox();
+  expect(listTop!.y).toBeGreaterThanOrEqual(vh);
+
+  // 아래 안내를 누르면 목록으로 내려가고, 내려간 섹션은 다 보이는 상태가 된다.
+  await main(page).locator('a[href="#all-tools"]').click();
+  const firstSection = main(page).locator("#sec-CHAT");
+  await expect(firstSection).toBeInViewport();
+  await expect
+    .poll(() =>
+      firstSection.evaluate(
+        (el) => getComputedStyle(el.parentElement!).opacity,
+      ),
+    )
+    .toBe("1");
+});
+
+test("휴대폰 첫 화면에도 고르기 칸 12개가 다 들어간다", async ({ page }) => {
+  // 좁은 화면은 칸 안의 로고 줄을 빼서 6줄을 한 화면에 넣는다.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  const tiles = main(page).locator('nav[aria-label="용도"] a');
+  expect(await tiles.count()).toBe(12);
+  const last = await tiles.last().boundingBox();
+  expect(last!.y + last!.height).toBeLessThanOrEqual(844);
+});
+
+test("움직임 줄이기 설정이면 목록을 숨기지 않는다", async ({ browser }) => {
+  const ctx = await browser.newContext({ reducedMotion: "reduce" });
+  const page = await ctx.newPage();
+  await page.goto("/");
+  const last = page.locator("main section[id^='sec-']").last();
+  await expect
+    .poll(() =>
+      last.evaluate((el) => getComputedStyle(el.parentElement!).opacity),
+    )
+    .toBe("1");
+  await ctx.close();
+});
 /* Footer: tests/e2e/tools.spec.ts */
