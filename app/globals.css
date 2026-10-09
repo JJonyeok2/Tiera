@@ -16,6 +16,11 @@
    빌드 산출물에서 폰트 블록이 한군데 모여 있어야 찾기 쉽다. */
 @import "./pretendard.css";
 
+/* 키 큰 넓은 화면(노트북 세로 820px 이상). 홈 고르기 칸이 빈 높이를 채우며 커질 때
+   글자·로고도 같이 키운다(components/tool/TaskChooser.tsx). 칸만 커지고 안쪽이
+   그대로면 칸 속이 휑해 보인다. */
+@custom-variant tall (@media (min-width: 640px) and (min-height: 820px));
+
 @theme {
   --color-bg: var(--c-bg);
   --color-surface: var(--c-surface);

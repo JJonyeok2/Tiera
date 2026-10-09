@@ -332,6 +332,19 @@ test("둘러보기 버튼은 떠 있다가 목록이 보이면 사라진다", as
   await expect(cue).toHaveCSS("opacity", "1");
 });
 
+test("키 큰 화면에서는 고르기 칸이 남는 높이를 채운다", async ({ page }) => {
+  // 칸이 위에만 몰리고 아래가 휑하게 비어 보였다.
+  await page.setViewportSize({ width: 1048, height: 940 });
+  await page.goto("/");
+  const tiles = main(page).locator('nav[aria-label="용도"] a');
+  const first = await tiles.first().boundingBox();
+  const last = await tiles.last().boundingBox();
+  expect(first!.height).toBeGreaterThan(160);
+  // 마지막 줄이 떠 있는 버튼 바로 위까지 내려온다(바닥 여백 100px 이내).
+  expect(940 - (last!.y + last!.height)).toBeLessThan(100);
+  expect(last!.y + last!.height).toBeLessThanOrEqual(940);
+});
+
 test("휴대폰 첫 화면에도 고르기 칸 12개가 다 들어간다", async ({ page }) => {
   // 좁은 화면은 칸 안의 로고 줄을 빼서 6줄을 한 화면에 넣는다.
   await page.setViewportSize({ width: 390, height: 844 });

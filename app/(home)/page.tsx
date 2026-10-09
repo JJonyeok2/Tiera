@@ -112,9 +112,9 @@ export default async function HomePage({
         // 첫 화면은 질문과 고르기 칸만으로 화면 높이를 채운다. 목록은 그 아래에서
         // 스크롤하면 떠오른다(components/site/Reveal.tsx). 헤더 높이를 빼야 첫 화면
         // 바닥에 목록 머리가 걸치지 않는다 — 모바일은 검색창이 한 줄 더 있어서 더 크다.
-        <section className="min-h-[calc(100svh-7.5rem)] pb-16 pt-6 sm:min-h-[calc(100svh-4.25rem)] sm:pt-10">
+        <section className="min-h-[calc(100svh-7.5rem)] pb-16 pt-6 sm:flex sm:min-h-[calc(100svh-4.25rem)] sm:flex-col sm:pt-10">
           {/* 위로 밀려 나갈 때 살짝 물러난다(.scroll-recede, app/globals.css). */}
-          <div className="scroll-recede">
+          <div className="scroll-recede sm:flex sm:flex-1 sm:flex-col">
             {/* 사이트가 던지는 질문 그대로를 제목으로 쓴다. 아래 칸들이 그 대답이다.
                 예전 제목("어떤 AI를 써야 할지 모르겠을 때")은 상황 설명이라 다음에
                 뭘 하라는 건지가 없었다 — 그 말은 설명 줄로 내려 보냈다. */}

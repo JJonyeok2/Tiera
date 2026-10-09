@@ -32,8 +32,14 @@ export default function TaskChooser({
   const krPreview = kr.filter((t) => t.logoUrl).slice(0, PREVIEW);
 
   return (
-    <nav aria-label="용도" className="mt-5 sm:mt-7">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-2.5 lg:grid-cols-4">
+    <nav
+      aria-label="용도"
+      className="mt-5 sm:mt-7 sm:flex sm:flex-1 sm:flex-col"
+    >
+      {/* 넓은 화면에서는 격자가 첫 화면의 남는 높이를 다 받고(flex-1), 줄마다 똑같이
+          나눈다(auto-rows-fr). 아래가 휑하게 비어 보였다. 너무 큰 화면에서 칸이
+          풍선처럼 커지지 않게 높이에 상한을 둔다. */}
+      <div className="grid grid-cols-2 gap-2 sm:flex-1 sm:auto-rows-fr sm:grid-cols-3 sm:gap-2.5 lg:max-h-[46rem] lg:grid-cols-4 tall:gap-3">
         {PURPOSES.map((p) => {
           // 로고 줄은 넓은 화면에서만 보인다. 좁은 화면에서는 12칸이 2열로 6줄이라,
           // 로고까지 넣으면 첫 화면을 한참 넘어간다(이름·개수·설명만으로도 고를 수 있다).
@@ -48,24 +54,24 @@ export default function TaskChooser({
             <Link
               key={p}
               href={`/?for=${p}`}
-              className="group flex flex-col rounded-2xl border border-[var(--color-line)] bg-[var(--color-surface)] p-3.5 transition-colors sm:min-h-[7.5rem] sm:p-4 hover:border-[var(--color-text-mute)]"
+              className="group flex flex-col rounded-2xl border border-[var(--color-line)] bg-[var(--color-surface)] p-3.5 transition-colors hover:border-[var(--color-text-mute)] sm:min-h-[7.5rem] sm:p-4 tall:p-5"
             >
-              <span className="text-[16px] font-bold leading-snug sm:text-[17px] tracking-tight text-[var(--color-text)]">
+              <span className="text-[16px] font-bold leading-snug tracking-tight sm:text-[17px] tall:text-[20px] text-[var(--color-text)]">
                 {PURPOSE_LABEL[p]}
                 {/* 개수는 이름 바로 옆에 붙인다. 따로 떨어뜨리면 무슨 숫자인지 읽히지 않는다. */}
                 <span
                   data-count
-                  className="ml-1.5 text-[13px] font-normal tabular-nums text-[var(--color-text-mute)]"
+                  className="ml-1.5 text-[13px] font-normal tabular-nums tall:text-[15px] text-[var(--color-text-mute)]"
                 >
                   {count}
                 </span>
               </span>
-              <span className="mt-1 text-[13px] leading-snug text-[var(--color-text-mute)]">
+              <span className="mt-1 text-[13px] leading-snug text-[var(--color-text-mute)] tall:mt-1.5 tall:text-[14px]">
                 {PURPOSE_HINT[p]}
               </span>
               {preview.length > 0 && (
                 <span
-                  className="mt-auto hidden items-center gap-1 pt-3 sm:flex"
+                  className="mt-auto hidden items-center gap-1 pt-3 sm:flex tall:gap-1.5"
                   aria-hidden="true"
                 >
                   {preview.map((t) => (
@@ -74,6 +80,7 @@ export default function TaskChooser({
                       name={t.name}
                       logoUrl={t.logoUrl}
                       size="sm"
+                      className="tall:h-9 tall:w-9 tall:rounded-lg"
                     />
                   ))}
                 </span>
@@ -86,20 +93,20 @@ export default function TaskChooser({
             "한국어가 제일 잘 되는 걸 원한다"는 것도 고르는 출발점이 되기 때문이다. */}
         <Link
           href="/?origin=KR"
-          className="group flex flex-col rounded-2xl border border-dashed border-[var(--color-line)] bg-[var(--color-surface)] p-3.5 transition-colors sm:min-h-[7.5rem] sm:p-4 hover:border-[var(--color-text-mute)]"
+          className="group flex flex-col rounded-2xl border border-dashed border-[var(--color-line)] bg-[var(--color-surface)] p-3.5 transition-colors hover:border-[var(--color-text-mute)] sm:min-h-[7.5rem] sm:p-4 tall:p-5"
         >
-          <span className="text-[16px] font-bold leading-snug sm:text-[17px] tracking-tight text-[var(--color-text)]">
+          <span className="text-[16px] font-bold leading-snug tracking-tight sm:text-[17px] tall:text-[20px] text-[var(--color-text)]">
             한국에서 만든 도구
-            <span className="ml-1.5 text-[13px] font-normal tabular-nums text-[var(--color-text-mute)]">
+            <span className="ml-1.5 text-[13px] font-normal tabular-nums tall:text-[15px] text-[var(--color-text-mute)]">
               {kr.length}
             </span>
           </span>
-          <span className="mt-1 text-[13px] leading-snug text-[var(--color-text-mute)]">
+          <span className="mt-1 text-[13px] leading-snug text-[var(--color-text-mute)] tall:mt-1.5 tall:text-[14px]">
             한국어가 제일 자연스러운 것부터
           </span>
           {krPreview.length > 0 && (
             <span
-              className="mt-auto hidden items-center gap-1 pt-3 sm:flex"
+              className="mt-auto hidden items-center gap-1 pt-3 sm:flex tall:gap-1.5"
               aria-hidden="true"
             >
               {krPreview.map((t) => (
@@ -108,6 +115,7 @@ export default function TaskChooser({
                   name={t.name}
                   logoUrl={t.logoUrl}
                   size="sm"
+                  className="tall:h-9 tall:w-9 tall:rounded-lg"
                 />
               ))}
             </span>
