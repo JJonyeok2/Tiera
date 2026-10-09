@@ -1,6 +1,10 @@
 /* ---------------------------------------------------------------------------
  * Header: 스크롤해서 닿으면 떠오르는 상자.
  *
+ * 두 겹이다. 스크롤 타임라인을 지원하는 브라우저(크롬·엣지·사파리 최신)는 CSS
+ * `.scroll-grow`가 스크롤에 맞춰 크기를 키운다(app/globals.css). 지원하지 않는
+ * 브라우저(파이어폭스 등)는 아래 JS가 한 번 떠오르게 한다.
+ *
  * 홈 첫 화면은 "하려는 일 고르기"만 보여주고, 그 아래 전체 목록은 내려가면서
  * 한 묶음씩 나타나게 한다. 첫 화면에 목록 머리가 걸쳐 보이면 고르기 칸과 목록이
  * 한꺼번에 눈에 들어와서, 무엇부터 하라는 화면인지가 흐려졌다.
@@ -36,6 +40,9 @@ export default function Reveal({
     if (!el) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     if (typeof IntersectionObserver === "undefined") return;
+    // 스크롤 타임라인을 지원하면 CSS(.scroll-grow)가 맡는다. 둘이 같이 돌면
+    // 숨겼다 띄우는 것과 크기 키우기가 겹쳐서 덜컹거린다.
+    if (CSS.supports?.("animation-timeline: view()")) return;
     // 이미 화면 안(또는 위)에 있으면 건드리지 않는다.
     if (el.getBoundingClientRect().top < window.innerHeight) return;
 
@@ -62,7 +69,7 @@ export default function Reveal({
         : "";
 
   return (
-    <div ref={ref} className={`${motion} ${className}`.trim()}>
+    <div ref={ref} className={`scroll-grow ${motion} ${className}`.trim()}>
       {children}
     </div>
   );

@@ -110,7 +110,8 @@ export default async function HomePage({
         // 스크롤하면 떠오른다(components/site/Reveal.tsx). 헤더 높이를 빼야 첫 화면
         // 바닥에 목록 머리가 걸치지 않는다 — 모바일은 검색창이 한 줄 더 있어서 더 크다.
         <section className="flex min-h-[calc(100svh-7.5rem)] flex-col pb-5 pt-6 sm:pt-8 sm:min-h-[calc(100svh-4.25rem)]">
-          <div className="my-auto">
+          {/* 위로 밀려 나갈 때 살짝 물러난다(.scroll-recede, app/globals.css). */}
+          <div className="scroll-recede my-auto">
             {/* 사이트가 던지는 질문 그대로를 제목으로 쓴다. 아래 칸들이 그 대답이다.
                 예전 제목("어떤 AI를 써야 할지 모르겠을 때")은 상황 설명이라 다음에
                 뭘 하라는 건지가 없었다 — 그 말은 설명 줄로 내려 보냈다. */}
@@ -176,7 +177,8 @@ export default async function HomePage({
           그 자리에 목록 제목만 둔다. */}
       <div
         id={landing ? "all-tools" : undefined}
-        className="mt-6 flex scroll-mt-20 flex-wrap items-center gap-x-3 gap-y-2"
+        // 첫 화면에서는 목록 제목도 섹션들과 같이 커지며 들어온다(app/globals.css).
+        className={`mt-6 flex scroll-mt-20 flex-wrap items-center gap-x-3 gap-y-2 ${landing ? "scroll-grow" : ""}`}
       >
         {landing ? (
           <h2 className="text-[20px] font-bold tracking-tight text-[var(--color-text)]">

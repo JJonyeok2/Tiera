@@ -326,6 +326,23 @@ test("휴대폰 첫 화면에도 고르기 칸 12개가 다 들어간다", async
   expect(last!.y + last!.height).toBeLessThanOrEqual(844);
 });
 
+test("목록 섹션은 아래에서 작게 들어와 올라올수록 제 크기가 된다", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/");
+  const wrap = main(page).locator("#sec-RESEARCH").locator("xpath=..");
+  const scaleOf = () =>
+    wrap.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).a);
+  // 섹션 윗변이 화면 바닥 바로 위에 오게 내린다 → 아직 작다.
+  await wrap.evaluate((el) => {
+    const top = el.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo(0, top - window.innerHeight + 40);
+  });
+  await expect.poll(scaleOf).toBeLessThan(0.95);
+  // 화면 위쪽까지 올리면 원래 크기.
+  await wrap.evaluate((el) => el.scrollIntoView({ block: "start" }));
+  await expect.poll(scaleOf).toBeCloseTo(1, 2);
+});
+
 test("움직임 줄이기 설정이면 목록을 숨기지 않는다", async ({ browser }) => {
   const ctx = await browser.newContext({ reducedMotion: "reduce" });
   const page = await ctx.newPage();

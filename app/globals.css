@@ -38,8 +38,9 @@
   /* Pretendard가 먼저다. 예전 스택은 Pretendard를 Segoe UI 뒤에 뒀는데,
      웹폰트로 싣지도 않았으면서 뒤에 두기까지 해서 윈도우에서는 한 번도
      쓰이지 않았다. 뒤쪽은 폰트를 받는 동안(swap)과 실패했을 때의 대비책이다. */
-  --font-sans: "Pretendard Variable", Pretendard, ui-sans-serif, system-ui,
-    -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-sans:
+    "Pretendard Variable", Pretendard, ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
 }
 
 /* --- 1. 라이트 (기본) ---------------------------------------------------- */
@@ -157,7 +158,10 @@ body {
 /* 테마 전환 시 색이 툭 바뀌지 않도록. reduced-motion에서는 아래에서 꺼진다. */
 body,
 body * {
-  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
 }
 
 /* 카드 진입 애니메이션과 브랜드 그라데이션 글자(.brand-gradient-text)는 2026-10에 뺐다.
@@ -168,6 +172,55 @@ body * {
   outline: 2px solid var(--c-prism);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* ---------------------------------------------------------------------------
+   스크롤에 묶인 효과 (홈 첫 화면 → 전체 목록). SPEC 23.17.
+
+   스크롤 위치가 곧 진행도다 — 시간으로 재생되는 애니메이션이 아니라서, 멈추면
+   멈춘 자리에서 서 있고 거꾸로 올리면 거꾸로 돈다.
+   - .scroll-grow  : 목록 섹션. 화면 아래로 들어올 때 작고 옅게 시작해서, 화면의
+                     30%쯤까지 올라오면 제 크기·제 색이 된다.
+   - .scroll-recede: 첫 화면(고르기 칸). 위로 밀려 나갈 때 살짝 작아지고 옅어진다.
+                     목록이 "앞으로 나오는" 느낌은 뒤가 물러나야 산다.
+
+   CSS 스크롤 타임라인을 지원하는 브라우저에서만 켠다. 지원하지 않으면 이 블록이
+   통째로 무시되고, components/site/Reveal.tsx의 떠오르기(JS)가 대신 돈다.
+   움직임 줄이기 설정이면 둘 다 꺼진다.
+   ------------------------------------------------------------------------- */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .scroll-grow {
+      animation: tiera-grow linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 30%;
+      transform-origin: 50% 0%;
+    }
+    .scroll-recede {
+      animation: tiera-recede linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 80%;
+      transform-origin: 50% 100%;
+    }
+  }
+}
+
+@keyframes tiera-grow {
+  from {
+    transform: scale(0.86);
+    opacity: 0.25;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes tiera-recede {
+  to {
+    transform: scale(0.94);
+    opacity: 0.35;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
