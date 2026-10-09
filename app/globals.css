@@ -223,6 +223,22 @@ body * {
   }
 }
 
+/* "둘러보기" 버튼의 화살표만 천천히 오르내린다(components/site/ScrollCue.tsx).
+   움직임 줄이기 설정이면 아래 규칙이 길이를 0으로 만들어 멈춘다. */
+.tiera-float {
+  animation: tiera-float 1.8s ease-in-out infinite;
+}
+
+@keyframes tiera-float {
+  0%,
+  100% {
+    transform: translateY(-1px);
+  }
+  50% {
+    transform: translateY(3px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

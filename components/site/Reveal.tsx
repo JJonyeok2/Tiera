@@ -65,7 +65,7 @@ export default function Reveal({
     phase === "waiting"
       ? "translate-y-5 opacity-0"
       : phase === "shown"
-        ? "translate-y-0 opacity-100 transition-[opacity,transform] duration-500 ease-out"
+        ? "translate-y-0 opacity-100 transition-[opacity,translate] duration-500 ease-out"
         : "";
 
   return (

@@ -316,6 +316,22 @@ test("첫 화면에는 고르기 칸만 보이고, 목록은 스크롤하면 떠
     .toBe("1");
 });
 
+test("둘러보기 버튼은 떠 있다가 목록이 보이면 사라진다", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/");
+  const cue = main(page).locator('a[href="#all-tools"]');
+  await expect(cue).toHaveCSS("position", "fixed");
+  await expect(cue).toHaveCSS("opacity", "1");
+  await cue.click();
+  await expect(page).toHaveURL(/#all-tools$/);
+  await expect(main(page).locator("#all-tools")).toBeInViewport();
+  await expect(cue).toHaveCSS("opacity", "0");
+  await expect(cue).toHaveAttribute("tabindex", "-1");
+  // 다시 맨 위로 올라가면 돌아온다.
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expect(cue).toHaveCSS("opacity", "1");
+});
+
 test("휴대폰 첫 화면에도 고르기 칸 12개가 다 들어간다", async ({ page }) => {
   // 좁은 화면은 칸 안의 로고 줄을 빼서 6줄을 한 화면에 넣는다.
   await page.setViewportSize({ width: 390, height: 844 });
@@ -326,12 +342,16 @@ test("휴대폰 첫 화면에도 고르기 칸 12개가 다 들어간다", async
   expect(last!.y + last!.height).toBeLessThanOrEqual(844);
 });
 
-test("목록 섹션은 아래에서 작게 들어와 올라올수록 제 크기가 된다", async ({ page }) => {
+test("목록 섹션은 아래에서 작게 들어와 올라올수록 제 크기가 된다", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto("/");
   const wrap = main(page).locator("#sec-RESEARCH").locator("xpath=..");
   const scaleOf = () =>
-    wrap.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).a);
+    wrap.evaluate(
+      (el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).a,
+    );
   // 섹션 윗변이 화면 바닥 바로 위에 오게 내린다 → 아직 작다.
   await wrap.evaluate((el) => {
     const top = el.getBoundingClientRect().top + window.scrollY;

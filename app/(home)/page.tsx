@@ -20,6 +20,7 @@ import { PURPOSES } from "@/lib/params";
 import type { ToolListRow } from "@/lib/queries";
 import JsonLd from "@/components/seo/JsonLd";
 import Reveal from "@/components/site/Reveal";
+import ScrollCue from "@/components/site/ScrollCue";
 import { websiteJsonLd } from "@/lib/structured-data";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, shareMeta } from "@/lib/site";
 
@@ -109,7 +110,7 @@ export default async function HomePage({
         // 첫 화면은 질문과 고르기 칸만으로 화면 높이를 채운다. 목록은 그 아래에서
         // 스크롤하면 떠오른다(components/site/Reveal.tsx). 헤더 높이를 빼야 첫 화면
         // 바닥에 목록 머리가 걸치지 않는다 — 모바일은 검색창이 한 줄 더 있어서 더 크다.
-        <section className="flex min-h-[calc(100svh-7.5rem)] flex-col pb-5 pt-6 sm:pt-8 sm:min-h-[calc(100svh-4.25rem)]">
+        <section className="flex min-h-[calc(100svh-7.5rem)] flex-col pb-16 pt-6 sm:pt-8 sm:min-h-[calc(100svh-4.25rem)]">
           {/* 위로 밀려 나갈 때 살짝 물러난다(.scroll-recede, app/globals.css). */}
           <div className="scroll-recede my-auto">
             {/* 사이트가 던지는 질문 그대로를 제목으로 쓴다. 아래 칸들이 그 대답이다.
@@ -124,17 +125,8 @@ export default async function HomePage({
             </p>
             <TaskChooser tools={all} totals={totals} />
           </div>
-          {/* 아래에 목록이 더 있다는 걸 알려 주는 한 줄. 첫 화면이 꽉 차 보이면 여기서
-              끝인 줄 안다. */}
-          <a
-            href="#all-tools"
-            className="mx-auto mt-6 flex flex-col items-center gap-1 text-[13px] text-[var(--color-text-mute)] transition hover:text-[var(--color-text-dim)]"
-          >
-            전체 도구 {all.length}개 둘러보기
-            <span aria-hidden="true" className="text-[15px] leading-none">
-              ↓
-            </span>
-          </a>
+          {/* 아래에 목록이 더 있다는 걸 알려 주는 떠 있는 버튼. 목록이 보이면 사라진다. */}
+          <ScrollCue count={all.length} />
         </section>
       ) : (
         <section className="scroll-mt-20 pt-8">
