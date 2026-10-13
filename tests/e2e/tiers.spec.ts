@@ -80,4 +80,20 @@ test("헤더에서 어디서든 티어표로 갈 수 있다", async ({ page }) =
     "page",
   );
 });
+test("네 티어 모두 색 띠가 보인다(라이트·다크)", async ({ browser }) => {
+  // 실버만 색 변수가 CSS에서 빠져 투명해진 적이 있다(tierTokens.ts tierVar 주석).
+  for (const colorScheme of ["light", "dark"] as const) {
+    const ctx = await browser.newContext({ colorScheme });
+    const page = await ctx.newPage();
+    await page.goto("/tiers");
+    const colors = await page
+      .locator("main section[data-tier] > span[aria-hidden]")
+      .evaluateAll((els) =>
+        els.map((e) => getComputedStyle(e).backgroundColor),
+      );
+    expect(colors).toHaveLength(4);
+    for (const c of colors) expect(c, colorScheme).not.toBe("rgba(0, 0, 0, 0)");
+    await ctx.close();
+  }
+});
 /* Footer: tests/e2e/tiers.spec.ts */

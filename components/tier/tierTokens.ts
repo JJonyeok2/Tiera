@@ -9,7 +9,7 @@ export type Tier = (typeof TIERS)[number];
 
 /** 티어 대표색 - 배지 테두리, 점수 링, 텍스트에 사용 */
 export const TIER_COLOR: Record<Tier, string> = {
-  prism: "#7B68FF",          // 그라데이션 시작점. 필/텍스트는 TIER_GRADIENT 사용
+  prism: "#7B68FF", // 그라데이션 시작점. 필/텍스트는 TIER_GRADIENT 사용
   gold: "#FFD700",
   silver: "#C0C6D4",
   bronze: "#CD7F32",
@@ -49,7 +49,11 @@ export const TIER_RING_STOPS: Record<Tier, { o: number; c: string }[]> = {
  * 예를 들어 #FFD700은 흰 배경에서 대비 1.4:1이라 글자로는 안 보인다.
  * 실제 값은 globals.css가 테마별로 정의한다.
  */
-export const tierVar = (tier: Tier) => `var(--color-tier-${tier})`;
+export const tierVar = (tier: Tier) => `var(--c-${tier})`;
+// ⚠️ `--color-tier-*`(@theme)를 가리키면 안 된다. Tailwind v4는 소스에 글자 그대로
+// 등장하는 테마 변수만 CSS로 내보내는데, 여기서는 이름을 템플릿으로 조립하므로
+// 감지되지 않는다. 실제로 --color-tier-silver가 통째로 빠져서 티어표 실버 줄의
+// 색 띠와 라벨이 투명해졌다(2026-10). 테마별 원본 토큰(--c-*)은 :root에 늘 있다.
 
 export const TIER_LABEL: Record<Tier, string> = {
   prism: "PRISM",
@@ -115,16 +119,32 @@ export const FACET_POINTS = [
 ] as const;
 
 /** 각 패싯의 그라데이션 축 (userSpaceOnUse) - 팁에서 중심 방향 */
-export const FACET_AXIS: readonly (readonly [number, number, number, number])[] = [
-  [256, 64, 256, 230], [256, 64, 256, 230],
-  [440, 198, 256, 230], [440, 198, 256, 230],
-  [370, 416, 256, 230], [370, 416, 256, 230],
-  [142, 416, 256, 230], [142, 416, 256, 230],
-  [72, 198, 256, 230], [72, 198, 256, 230],
+export const FACET_AXIS: readonly (readonly [
+  number,
+  number,
+  number,
+  number,
+])[] = [
+  [256, 64, 256, 230],
+  [256, 64, 256, 230],
+  [440, 198, 256, 230],
+  [440, 198, 256, 230],
+  [370, 416, 256, 230],
+  [370, 416, 256, 230],
+  [142, 416, 256, 230],
+  [142, 416, 256, 230],
+  [72, 198, 256, 230],
+  [72, 198, 256, 230],
 ];
 
 /** 중심에서 각 뿔로 뻗는 능선 하이라이트 */
-export const SPINES: readonly (readonly [number, number, number, number, number])[] = [
+export const SPINES: readonly (readonly [
+  number,
+  number,
+  number,
+  number,
+  number,
+])[] = [
   // x1, y1, strokeWidth, opacity, spines[] 인덱스
   [256, 70, 2, 0.9, 0],
   [436, 201, 1.5, 0.75, 1],
@@ -163,67 +183,230 @@ export function glowFilter(tier: Tier, size: number): string {
 export const TIER_ART: Record<Tier, TierArt> = {
   prism: {
     facets: [
-      [{ o: 0, c: "#FFFFFF" }, { o: 30, c: "#D0F8FF" }, { o: 70, c: "#79B8FF" }, { o: 100, c: "#6C5CE7" }],
-      [{ o: 0, c: "#FFFFFF" }, { o: 35, c: "#FFEAA7" }, { o: 70, c: "#FF9FF3" }, { o: 100, c: "#E056FD" }],
-      [{ o: 0, c: "#FFF3E0" }, { o: 40, c: "#FFB868" }, { o: 80, c: "#FF6584" }, { o: 100, c: "#C0392B" }],
-      [{ o: 0, c: "#FF8AA2" }, { o: 50, c: "#E6528D" }, { o: 100, c: "#C91C93" }],
-      [{ o: 0, c: "#FF89DD" }, { o: 50, c: "#CC5F7E" }, { o: 100, c: "#733FDA" }],
-      [{ o: 0, c: "#B46BCF" }, { o: 60, c: "#982DDD" }, { o: 100, c: "#801FCD" }],
-      [{ o: 0, c: "#828BEB" }, { o: 60, c: "#4C53CE" }, { o: 100, c: "#3540BD" }],
-      [{ o: 0, c: "#00FCFD" }, { o: 45, c: "#4B97E3" }, { o: 100, c: "#4127BD" }],
-      [{ o: 0, c: "#3ED6F6" }, { o: 60, c: "#20A7E9" }, { o: 100, c: "#1780C0" }],
-      [{ o: 0, c: "#E0FBFC" }, { o: 40, c: "#54A0FF" }, { o: 100, c: "#5F27CD" }],
+      [
+        { o: 0, c: "#FFFFFF" },
+        { o: 30, c: "#D0F8FF" },
+        { o: 70, c: "#79B8FF" },
+        { o: 100, c: "#6C5CE7" },
+      ],
+      [
+        { o: 0, c: "#FFFFFF" },
+        { o: 35, c: "#FFEAA7" },
+        { o: 70, c: "#FF9FF3" },
+        { o: 100, c: "#E056FD" },
+      ],
+      [
+        { o: 0, c: "#FFF3E0" },
+        { o: 40, c: "#FFB868" },
+        { o: 80, c: "#FF6584" },
+        { o: 100, c: "#C0392B" },
+      ],
+      [
+        { o: 0, c: "#FF8AA2" },
+        { o: 50, c: "#E6528D" },
+        { o: 100, c: "#C91C93" },
+      ],
+      [
+        { o: 0, c: "#FF89DD" },
+        { o: 50, c: "#CC5F7E" },
+        { o: 100, c: "#733FDA" },
+      ],
+      [
+        { o: 0, c: "#B46BCF" },
+        { o: 60, c: "#982DDD" },
+        { o: 100, c: "#801FCD" },
+      ],
+      [
+        { o: 0, c: "#828BEB" },
+        { o: 60, c: "#4C53CE" },
+        { o: 100, c: "#3540BD" },
+      ],
+      [
+        { o: 0, c: "#00FCFD" },
+        { o: 45, c: "#4B97E3" },
+        { o: 100, c: "#4127BD" },
+      ],
+      [
+        { o: 0, c: "#3ED6F6" },
+        { o: 60, c: "#20A7E9" },
+        { o: 100, c: "#1780C0" },
+      ],
+      [
+        { o: 0, c: "#E0FBFC" },
+        { o: 40, c: "#54A0FF" },
+        { o: 100, c: "#5F27CD" },
+      ],
     ],
     spines: ["#FFFFFF", "#FFF0F5", "#E6FFFF", "#B83B5E", "#2575FC"],
     core: "#FFFFFF",
-    },
+  },
   gold: {
     facets: [
-      [{ o: 0, c: "#FFF8D6" }, { o: 45, c: "#FFE066" }, { o: 100, c: "#FFC000" }],
-      [{ o: 0, c: "#FFFDF0" }, { o: 40, c: "#FFD700" }, { o: 100, c: "#CC9900" }],
-      [{ o: 0, c: "#FFF6CC" }, { o: 55, c: "#FFCE00" }, { o: 100, c: "#D49B00" }],
-      [{ o: 0, c: "#FFC21D" }, { o: 65, c: "#F9B400" }, { o: 100, c: "#D29600" }],
-      [{ o: 0, c: "#FFD83A" }, { o: 50, c: "#FEBA00" }, { o: 100, c: "#CB9300" }],
-      [{ o: 0, c: "#FFC223" }, { o: 60, c: "#FFB807" }, { o: 100, c: "#EDAA00" }],
-      [{ o: 0, c: "#FFC52B" }, { o: 50, c: "#FFBA0B" }, { o: 100, c: "#F1AD00" }],
-      [{ o: 0, c: "#FFE57E" }, { o: 50, c: "#FFDD24" }, { o: 100, c: "#EEB000" }],
-      [{ o: 0, c: "#FFC219" }, { o: 60, c: "#F6B200" }, { o: 100, c: "#D49800" }],
-      [{ o: 0, c: "#FFFBEB" }, { o: 40, c: "#FFE266" }, { o: 100, c: "#FFD700" }],
+      [
+        { o: 0, c: "#FFF8D6" },
+        { o: 45, c: "#FFE066" },
+        { o: 100, c: "#FFC000" },
+      ],
+      [
+        { o: 0, c: "#FFFDF0" },
+        { o: 40, c: "#FFD700" },
+        { o: 100, c: "#CC9900" },
+      ],
+      [
+        { o: 0, c: "#FFF6CC" },
+        { o: 55, c: "#FFCE00" },
+        { o: 100, c: "#D49B00" },
+      ],
+      [
+        { o: 0, c: "#FFC21D" },
+        { o: 65, c: "#F9B400" },
+        { o: 100, c: "#D29600" },
+      ],
+      [
+        { o: 0, c: "#FFD83A" },
+        { o: 50, c: "#FEBA00" },
+        { o: 100, c: "#CB9300" },
+      ],
+      [
+        { o: 0, c: "#FFC223" },
+        { o: 60, c: "#FFB807" },
+        { o: 100, c: "#EDAA00" },
+      ],
+      [
+        { o: 0, c: "#FFC52B" },
+        { o: 50, c: "#FFBA0B" },
+        { o: 100, c: "#F1AD00" },
+      ],
+      [
+        { o: 0, c: "#FFE57E" },
+        { o: 50, c: "#FFDD24" },
+        { o: 100, c: "#EEB000" },
+      ],
+      [
+        { o: 0, c: "#FFC219" },
+        { o: 60, c: "#F6B200" },
+        { o: 100, c: "#D49800" },
+      ],
+      [
+        { o: 0, c: "#FFFBEB" },
+        { o: 40, c: "#FFE266" },
+        { o: 100, c: "#FFD700" },
+      ],
     ],
     spines: ["#FFFDEB", "#FFF7D1", "#FFF9DB", "#C79200", "#E6A800"],
     core: "#FFFFFF",
-    },
+  },
   silver: {
     facets: [
-      [{ o: 0, c: "#FFFFFF" }, { o: 50, c: "#E2E8F0" }, { o: 100, c: "#CBD5E1" }],
-      [{ o: 0, c: "#F8FAFC" }, { o: 40, c: "#CBD5E1" }, { o: 100, c: "#94A3B8" }],
-      [{ o: 0, c: "#FFFFFF" }, { o: 60, c: "#E2E8F0" }, { o: 100, c: "#94A3B8" }],
-      [{ o: 0, c: "#AEB9C9" }, { o: 70, c: "#8795A9" }, { o: 100, c: "#687C99" }],
-      [{ o: 0, c: "#D2DBE5" }, { o: 50, c: "#A3B0C2" }, { o: 100, c: "#77879D" }],
-      [{ o: 0, c: "#9AA6B6" }, { o: 60, c: "#7F90A9" }, { o: 100, c: "#6982A5" }],
-      [{ o: 0, c: "#BBC4D2" }, { o: 50, c: "#9AA6B6" }, { o: 100, c: "#7F90A9" }],
-      [{ o: 0, c: "#E6EBF2" }, { o: 50, c: "#D2DBE5" }, { o: 100, c: "#A3B0C2" }],
-      [{ o: 0, c: "#B0BBCA" }, { o: 60, c: "#8A98AB" }, { o: 100, c: "#6C7F9B" }],
-      [{ o: 0, c: "#FFFFFF" }, { o: 40, c: "#F1F5F9" }, { o: 100, c: "#CBD5E1" }],
+      [
+        { o: 0, c: "#FFFFFF" },
+        { o: 50, c: "#E2E8F0" },
+        { o: 100, c: "#CBD5E1" },
+      ],
+      [
+        { o: 0, c: "#F8FAFC" },
+        { o: 40, c: "#CBD5E1" },
+        { o: 100, c: "#94A3B8" },
+      ],
+      [
+        { o: 0, c: "#FFFFFF" },
+        { o: 60, c: "#E2E8F0" },
+        { o: 100, c: "#94A3B8" },
+      ],
+      [
+        { o: 0, c: "#AEB9C9" },
+        { o: 70, c: "#8795A9" },
+        { o: 100, c: "#687C99" },
+      ],
+      [
+        { o: 0, c: "#D2DBE5" },
+        { o: 50, c: "#A3B0C2" },
+        { o: 100, c: "#77879D" },
+      ],
+      [
+        { o: 0, c: "#9AA6B6" },
+        { o: 60, c: "#7F90A9" },
+        { o: 100, c: "#6982A5" },
+      ],
+      [
+        { o: 0, c: "#BBC4D2" },
+        { o: 50, c: "#9AA6B6" },
+        { o: 100, c: "#7F90A9" },
+      ],
+      [
+        { o: 0, c: "#E6EBF2" },
+        { o: 50, c: "#D2DBE5" },
+        { o: 100, c: "#A3B0C2" },
+      ],
+      [
+        { o: 0, c: "#B0BBCA" },
+        { o: 60, c: "#8A98AB" },
+        { o: 100, c: "#6C7F9B" },
+      ],
+      [
+        { o: 0, c: "#FFFFFF" },
+        { o: 40, c: "#F1F5F9" },
+        { o: 100, c: "#CBD5E1" },
+      ],
     ],
     spines: ["#FFFFFF", "#FFFFFF", "#FFFFFF", "#94A3B8", "#CBD5E1"],
     core: "#FFFFFF",
-    },
+  },
   bronze: {
     facets: [
-      [{ o: 0, c: "#FFD1A4" }, { o: 45, c: "#E39252" }, { o: 100, c: "#CD7F32" }],
-      [{ o: 0, c: "#FCE1C5" }, { o: 40, c: "#CD7F32" }, { o: 100, c: "#A55A22" }],
-      [{ o: 0, c: "#FEDBB7" }, { o: 55, c: "#D9823E" }, { o: 100, c: "#A8571E" }],
-      [{ o: 0, c: "#DB7A36" }, { o: 65, c: "#C95F1C" }, { o: 100, c: "#B04B11" }],
-      [{ o: 0, c: "#DE9359" }, { o: 50, c: "#CD6A25" }, { o: 100, c: "#A94F17" }],
-      [{ o: 0, c: "#E2742F" }, { o: 60, c: "#DE5E15" }, { o: 100, c: "#CE5212" }],
-      [{ o: 0, c: "#E48039" }, { o: 50, c: "#EA6E15" }, { o: 100, c: "#D85A0D" }],
-      [{ o: 0, c: "#E7A16A" }, { o: 50, c: "#D4914F" }, { o: 100, c: "#C56522" }],
-      [{ o: 0, c: "#DC7832" }, { o: 60, c: "#CA6019" }, { o: 100, c: "#B34E10" }],
-      [{ o: 0, c: "#FFE0C2" }, { o: 40, c: "#F09F62" }, { o: 100, c: "#CD7F32" }],
+      [
+        { o: 0, c: "#FFD1A4" },
+        { o: 45, c: "#E39252" },
+        { o: 100, c: "#CD7F32" },
+      ],
+      [
+        { o: 0, c: "#FCE1C5" },
+        { o: 40, c: "#CD7F32" },
+        { o: 100, c: "#A55A22" },
+      ],
+      [
+        { o: 0, c: "#FEDBB7" },
+        { o: 55, c: "#D9823E" },
+        { o: 100, c: "#A8571E" },
+      ],
+      [
+        { o: 0, c: "#DB7A36" },
+        { o: 65, c: "#C95F1C" },
+        { o: 100, c: "#B04B11" },
+      ],
+      [
+        { o: 0, c: "#DE9359" },
+        { o: 50, c: "#CD6A25" },
+        { o: 100, c: "#A94F17" },
+      ],
+      [
+        { o: 0, c: "#E2742F" },
+        { o: 60, c: "#DE5E15" },
+        { o: 100, c: "#CE5212" },
+      ],
+      [
+        { o: 0, c: "#E48039" },
+        { o: 50, c: "#EA6E15" },
+        { o: 100, c: "#D85A0D" },
+      ],
+      [
+        { o: 0, c: "#E7A16A" },
+        { o: 50, c: "#D4914F" },
+        { o: 100, c: "#C56522" },
+      ],
+      [
+        { o: 0, c: "#DC7832" },
+        { o: 60, c: "#CA6019" },
+        { o: 100, c: "#B34E10" },
+      ],
+      [
+        { o: 0, c: "#FFE0C2" },
+        { o: 40, c: "#F09F62" },
+        { o: 100, c: "#CD7F32" },
+      ],
     ],
     spines: ["#FFE9D6", "#FFD8B5", "#FFE1C7", "#9E511B", "#CD7F32"],
     core: "#FFF3E8",
-    },
+  },
 };
 /* Footer: components/tier/tierTokens.ts */

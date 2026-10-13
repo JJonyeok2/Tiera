@@ -121,9 +121,12 @@ export default async function HomePage({
             <h1 className="text-[26px] font-bold leading-[1.25] tracking-[-0.02em] text-[var(--color-text)] sm:text-[36px]">
               무엇을 하려고 하세요?
             </h1>
-            <p className="mt-2 max-w-[36rem] text-[15px] leading-relaxed text-[var(--color-text-dim)] sm:mt-3 sm:text-[16px]">
-              어떤 AI를 써야 할지 모르겠을 때, 하려는 일부터 고르면 돼요. 돈이
-              드는지, 한국어가 되는지 같이 보여드려요.
+            {/* 두 문장을 줄로 나눈다. 폭에 맡기면 "돈이 / 드는지"처럼 문장 중간에서
+                끊겨 읽는 호흡이 깨졌다. */}
+            <p className="mt-2 text-[15px] leading-relaxed text-[var(--color-text-dim)] sm:mt-3 sm:text-[16px]">
+              어떤 AI를 써야 할지 모르겠을 때, 하려는 일부터 고르면 돼요.
+              <br />
+              돈이 드는지, 한국어가 되는지 같이 보여드려요.
             </p>
             <TaskChooser tools={all} totals={totals} />
           </div>
