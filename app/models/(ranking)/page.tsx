@@ -13,10 +13,16 @@ import Link from "next/link";
 import FilterBar from "@/components/ranking/FilterBar";
 import RankingList from "@/components/ranking/RankingList";
 import ScoreTypeSwitch from "@/components/ranking/ScoreTypeSwitch";
+import ViewSwitch from "@/components/ranking/ViewSwitch";
 import { CompareProvider } from "@/components/ranking/CompareContext";
 import CompareTray from "@/components/ranking/CompareTray";
 import { getRanking, getScoreTypeTotals } from "@/lib/queries";
-import { parseCountry, parseQuery, parseScope, parseScoreType } from "@/lib/params";
+import {
+  parseCountry,
+  parseQuery,
+  parseScope,
+  parseScoreType,
+} from "@/lib/params";
 import { shareMeta } from "@/lib/site";
 
 export const revalidate = 300;
@@ -34,12 +40,14 @@ export async function generateMetadata({
   const q = parseQuery(sp.q);
   return {
     title: "모델 순위",
-    description: "벤치마크 성적과 커뮤니티 평가를 나란히 놓고 보는 AI 모델 순위.",
+    description:
+      "벤치마크 성적과 커뮤니티 평가를 나란히 놓고 보는 AI 모델 순위.",
     alternates: { canonical: "/models" },
     ...shareMeta({
       url: "/models",
       title: "AI 모델 순위 — Tiera",
-      description: "벤치마크 점수와 커뮤니티 체감 평가를 나란히 놓고 본 AI 모델 순위예요.",
+      description:
+        "벤치마크 점수와 커뮤니티 체감 평가를 나란히 놓고 본 AI 모델 순위예요.",
     }),
     ...(q ? { robots: { index: false, follow: true } } : {}),
   };
@@ -67,14 +75,27 @@ export default async function ModelsPage({
 
   return (
     <CompareProvider>
-      <div className="pt-7">
-        <Link href="/" className="text-xs text-[var(--color-text-mute)] hover:underline">
-          ← 도구로 돌아가기
-        </Link>
-        <h1 className="mt-2 text-lg font-bold tracking-tight text-[var(--color-text)]">모델 순위</h1>
-        <p className="mt-1.5 text-xs leading-relaxed text-[var(--color-text-dim)]">
-          API 모델 단위 순위다. 제품을 찾는 거라면 <Link href="/" className="underline">도구 목록</Link>이 맞다.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3 pt-7">
+        <div>
+          <Link
+            href="/"
+            className="text-xs text-[var(--color-text-mute)] hover:underline"
+          >
+            ← 도구로 돌아가기
+          </Link>
+          <h1 className="mt-2 text-lg font-bold tracking-tight text-[var(--color-text)]">
+            모델 순위
+          </h1>
+          <p className="mt-1.5 text-xs leading-relaxed text-[var(--color-text-dim)]">
+            API 모델 단위 순위다. 제품을 찾는 거라면{" "}
+            <Link href="/" className="underline">
+              도구 목록
+            </Link>
+            이 맞다.
+          </p>
+        </div>
+        {/* 같은 점수를 티어표로도 본다(/tiers). 카테고리·점수 종류는 그대로 넘어간다. */}
+        <ViewSwitch current="list" searchParams={sp} />
       </div>
 
       <Suspense>
@@ -88,9 +109,12 @@ export default async function ModelsPage({
       <Suspense>
         {scoreType === "COMMUNITY" && total === 0 && !filtered ? (
           <div className="rounded-xl border border-[var(--color-line)] bg-[var(--color-surface)] px-6 py-16 text-center">
-            <p className="text-sm text-[var(--color-text-dim)]">아직 커뮤니티 평가가 없어요.</p>
+            <p className="text-sm text-[var(--color-text-dim)]">
+              아직 커뮤니티 평가가 없어요.
+            </p>
             <p className="mt-2 text-xs text-[var(--color-text-mute)]">
-              첫 평가를 남겨주세요. 모델 하나에 한 사람이 한 번 평가할 수 있어요.
+              첫 평가를 남겨주세요. 모델 하나에 한 사람이 한 번 평가할 수
+              있어요.
             </p>
             <Link
               href="/models?type=BENCHMARK"

@@ -46,16 +46,17 @@ export default function Header({
       const next = new URLSearchParams(params.toString());
       if (q.trim()) next.set("q", q.trim());
       else next.delete("q");
-      startTransition(() => router.replace(`${pathname}?${next.toString()}`, { scroll: false }));
+      startTransition(() =>
+        router.replace(`${pathname}?${next.toString()}`, { scroll: false }),
+      );
     }, 300);
     return () => clearTimeout(t);
   }, [q, params, router, pathname]);
 
-
-
   // 검색이 의미 있는 두 화면. 상세·비교·소개에서는 입력창을 띄우지 않는다.
   const searchable = pathname === "/" || pathname === "/models";
-  const placeholder = pathname === "/models" ? "모델 또는 개발사 검색" : "도구 검색";
+  const placeholder =
+    pathname === "/models" ? "모델 또는 개발사 검색" : "도구 검색";
 
   return (
     <header className="sticky top-0 z-30 border-b border-[var(--color-line)] bg-[var(--color-bg)]/92 backdrop-blur">
@@ -64,7 +65,9 @@ export default function Header({
           <TierStar tier="prism" size={24} />
           {/* leading-none이 없으면 줄상자(기본 line-height)가 글자보다 커서,
               박스를 기준으로 정렬해도 글자가 별보다 아래로 내려앉아 보인다. */}
-          <span className="text-[17px] font-bold leading-none tracking-tight">Tiera</span>
+          <span className="text-[17px] font-bold leading-none tracking-tight">
+            Tiera
+          </span>
         </Link>
 
         {searchable && (
@@ -88,6 +91,19 @@ export default function Header({
             없는 화면(상세)에서 버튼 위치가 달라졌다. 데스크톱에서는 검색창이
             flex-1로 남은 폭을 먹으므로 ml-auto가 있어도 결과가 같다. */}
         <div className="ml-auto flex shrink-0 items-center gap-3">
+          {/* 티어표는 사이트 이름(Tiera)의 뿌리라 어디서든 한 번에 갈 수 있게 둔다.
+              도구 안내가 첫 화면이 된 뒤로 /models 안쪽에 묻혀 있었다. */}
+          <Link
+            href="/tiers"
+            aria-current={pathname === "/tiers" ? "page" : undefined}
+            className={`text-[13px] transition hover:text-[var(--color-text)] ${
+              pathname === "/tiers"
+                ? "font-semibold text-[var(--color-text)]"
+                : "text-[var(--color-text-mute)]"
+            }`}
+          >
+            티어표
+          </Link>
           {themeToggle}
           {userMenu}
         </div>

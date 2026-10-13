@@ -242,7 +242,13 @@ export default async function HomePage({
       )}
 
       {/* 개발자용 입구. 목록 끝의 마무리라 조용해야 한다. */}
-      <div className="mt-14 border-t border-[var(--color-line-soft)] pt-6">
+      <div className="mt-14 flex flex-wrap gap-x-6 gap-y-2 border-t border-[var(--color-line-soft)] pt-6">
+        <Link
+          href="/tiers"
+          className="text-[13px] text-[var(--color-text-mute)] underline-offset-4 transition hover:text-[var(--color-text-dim)] hover:underline"
+        >
+          AI 모델 티어표 →
+        </Link>
         <Link
           href="/models"
           className="text-[13px] text-[var(--color-text-mute)] underline-offset-4 transition hover:text-[var(--color-text-dim)] hover:underline"

@@ -33,6 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     { url: absoluteUrl("/"), changeFrequency: "daily", priority: 1 },
     { url: absoluteUrl("/models"), changeFrequency: "daily", priority: 0.7 },
+    { url: absoluteUrl("/tiers"), changeFrequency: "daily", priority: 0.7 },
     { url: absoluteUrl("/about"), changeFrequency: "monthly", priority: 0.5 },
   ];
 
@@ -61,7 +62,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const [modelRes, toolRes] = await Promise.race([
       query,
       new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("sitemap db timeout")), DB_TIMEOUT_MS)
+        setTimeout(
+          () => reject(new Error("sitemap db timeout")),
+          DB_TIMEOUT_MS,
+        ),
       ),
     ]);
 
@@ -69,7 +73,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const newest = (toolRes.rows ?? [])[0]?.updated_at;
     return [
       ...staticPages.map((p) =>
-        p.url === absoluteUrl("/") && newest ? { ...p, lastModified: new Date(newest) } : p
+        p.url === absoluteUrl("/") && newest
+          ? { ...p, lastModified: new Date(newest) }
+          : p,
       ),
       // 도구를 모델보다 위·높은 우선순위로 둔다. 이제 이쪽이 사이트의 정면이다.
       ...(toolRes.rows ?? []).map((t) => ({
