@@ -1,0 +1,1 @@
+ALTER TABLE "tool" ADD COLUMN "learn" jsonb DEFAULT '[]'::jsonb NOT NULL;

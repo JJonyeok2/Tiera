@@ -11,6 +11,7 @@ import { describe, expect, it } from "vitest";
 import { DEVELOPER_DEFAULT_TOOL, SEED_TOOLS } from "@/db/seed-tools-data";
 import { DEVELOPERS } from "@/db/seed-data";
 import { toolPurposeEnum } from "@/db/schema";
+import { LEARN_LINKS } from "@/db/seed-tools-learn";
 
 const slugs = SEED_TOOLS.map((t) => t.slug);
 
@@ -63,12 +64,15 @@ describe("도구 시드 — 가격 서술", () => {
     // v0 $90→$30, Copilot 학생 모델 축소가 있었다. 정가는 적는 순간부터 틀린다.
     const MONEY = /(\$\s?\d)|(\d[\d,]*\s?원)|(₩\s?\d)|(\d+\s?달러)/;
     for (const t of SEED_TOOLS) {
-      expect(MONEY.test(t.priceNote), `${t.slug}: "${t.priceNote}"`).toBe(false);
+      expect(MONEY.test(t.priceNote), `${t.slug}: "${t.priceNote}"`).toBe(
+        false,
+      );
     }
   });
 
   it("모든 도구에 가격 서술이 있다", () => {
-    for (const t of SEED_TOOLS) expect(t.priceNote.trim().length).toBeGreaterThan(0);
+    for (const t of SEED_TOOLS)
+      expect(t.priceNote.trim().length).toBeGreaterThan(0);
   });
 
   it("PAID·TRIAL은 무료로 오해할 수 없게 주의사항을 단다", () => {
@@ -76,7 +80,10 @@ describe("도구 시드 — 가격 서술", () => {
     // '무료인 줄 알고 가입'이 그대로 일어난다.
     for (const t of SEED_TOOLS) {
       if (t.pricingKind === "PAID" || t.pricingKind === "TRIAL") {
-        expect(t.caution?.trim(), `${t.slug}에 caution이 필요하다`).toBeTruthy();
+        expect(
+          t.caution?.trim(),
+          `${t.slug}에 caution이 필요하다`,
+        ).toBeTruthy();
       }
     }
   });
@@ -91,12 +98,18 @@ describe("도구 시드 — 한국어 정보", () => {
     // "게을러졌다"인지 "도구가 늘었다"인지 구분이 안 된다. 그래서 비율로 둔다.
     const unknown = SEED_TOOLS.filter((t) => t.koreanLevel === "UNKNOWN");
     const ratio = unknown.length / SEED_TOOLS.length;
-    expect(ratio, `UNKNOWN ${unknown.length}/${SEED_TOOLS.length}`).toBeLessThanOrEqual(0.2);
+    expect(
+      ratio,
+      `UNKNOWN ${unknown.length}/${SEED_TOOLS.length}`,
+    ).toBeLessThanOrEqual(0.2);
 
     // 그리고 UNKNOWN이면 왜 모르는지를 반드시 적는다. 빈칸으로 두면
     // "확인 중"이 화면에 나가는데 확인한 흔적이 코드 어디에도 남지 않는다.
     for (const t of unknown) {
-      expect(t.koreanNote?.trim(), `${t.slug}: 왜 모르는지 koreanNote에 적을 것`).toBeTruthy();
+      expect(
+        t.koreanNote?.trim(),
+        `${t.slug}: 왜 모르는지 koreanNote에 적을 것`,
+      ).toBeTruthy();
     }
   });
 
@@ -106,7 +119,10 @@ describe("도구 시드 — 한국어 정보", () => {
       if (t.koreanLevel === "UNKNOWN" || t.koreanLevel === "NONE") {
         // 스냅덱이 여기 걸린다. 한국 팀이 만들었지만 한글 슬라이드 품질을
         // 확인하지 못했다. 국산이라는 이유로 NATIVE라고 적으면 그게 추측이다.
-        expect(t.koreanNote?.trim(), `${t.slug}: 왜 모르는지 koreanNote에 적을 것`).toBeTruthy();
+        expect(
+          t.koreanNote?.trim(),
+          `${t.slug}: 왜 모르는지 koreanNote에 적을 것`,
+        ).toBeTruthy();
       }
     }
   });
@@ -115,14 +131,18 @@ describe("도구 시드 — 한국어 정보", () => {
 describe("도구 시드 — 모델 매핑 규칙 (SPEC 23.4)", () => {
   it("규칙이 가리키는 도구가 전부 실재한다", () => {
     for (const toolSlug of Object.values(DEVELOPER_DEFAULT_TOOL)) {
-      expect(slugs, `규칙이 없는 도구 '${toolSlug}'를 가리킨다`).toContain(toolSlug);
+      expect(slugs, `규칙이 없는 도구 '${toolSlug}'를 가리킨다`).toContain(
+        toolSlug,
+      );
     }
   });
 
   it("규칙이 가리키는 개발사가 전부 실재한다", () => {
     const devSlugs = DEVELOPERS.map((d) => d.slug);
     for (const devSlug of Object.keys(DEVELOPER_DEFAULT_TOOL)) {
-      expect(devSlugs, `규칙이 없는 개발사 '${devSlug}'를 가리킨다`).toContain(devSlug);
+      expect(devSlugs, `규칙이 없는 개발사 '${devSlug}'를 가리킨다`).toContain(
+        devSlug,
+      );
     }
   });
 
@@ -154,7 +174,14 @@ describe("도구 시드 — 용도", () => {
   it("도구가 아닌 모델 이름이 목록에 섞이지 않았다", () => {
     // SPEC 23.3의 핵심 구분. Seedance는 Dreamina 안의 모델이고
     // 나노 바나나는 Gemini 안의 모델이다. 사람이 여는 것만 도구다.
-    const MODEL_NAMES = ["seedance", "seedream", "nano-banana", "gpt-image", "veo", "gemini-3"];
+    const MODEL_NAMES = [
+      "seedance",
+      "seedream",
+      "nano-banana",
+      "gpt-image",
+      "veo",
+      "gemini-3",
+    ];
     for (const s of slugs) {
       for (const m of MODEL_NAMES) {
         expect(s === m, `'${s}'는 도구가 아니라 모델 이름이다`).toBe(false);
@@ -181,6 +208,57 @@ describe("도구 시드 — 한국 제작", () => {
       if (t.origin === "KR") {
         expect(KR_MAKERS, `${t.slug}의 maker '${t.maker}'`).toContain(t.maker);
       }
+    }
+  });
+});
+describe("도구 시드 — 배우는 곳 (SPEC 23.21)", () => {
+  const entries = Object.entries(LEARN_LINKS);
+
+  it("모든 도구에 항목이 있다 — 비워 둔 것도 일부러 비웠다는 표시다", () => {
+    // 키가 없으면 '안 찾아봤다'인지 '찾았는데 없었다'인지 구분이 안 된다.
+    for (const s of slugs) expect(Object.keys(LEARN_LINKS), s).toContain(s);
+  });
+
+  it("없는 도구를 가리키지 않는다", () => {
+    for (const [slug] of entries) expect(slugs, slug).toContain(slug);
+  });
+
+  it("도구당 3개 이하, 한 도구 안에서 같은 주소가 겹치지 않는다", () => {
+    for (const [slug, links] of entries) {
+      expect(links.length, slug).toBeLessThanOrEqual(3);
+      expect(new Set(links.map((l) => l.url)).size, slug).toBe(links.length);
+    }
+  });
+
+  it("주소는 https이고, 링크 줄임 서비스를 쓰지 않는다", () => {
+    for (const [slug, links] of entries) {
+      for (const l of links) {
+        expect(l.url, slug).toMatch(/^https:\/\//);
+        expect(l.url, slug).not.toMatch(
+          /bit\.ly|tinyurl|han\.gl|me2\.do|vo\.la/,
+        );
+      }
+    }
+  });
+
+  it("제목·만든 곳·설명이 비어 있지 않고, 종류·언어가 정해진 값이다", () => {
+    for (const [slug, links] of entries) {
+      for (const l of links) {
+        expect(l.title.trim(), slug).not.toBe("");
+        expect(l.by.trim(), slug).not.toBe("");
+        expect(l.note.trim(), slug).not.toBe("");
+        expect(["OFFICIAL", "COURSE", "VIDEO"], slug).toContain(l.kind);
+        expect(["ko", "en"], slug).toContain(l.lang);
+      }
+    }
+  });
+
+  it("한국어 자료가 있으면 영어 자료보다 앞에 온다 (공식·강의 구분 없이)", () => {
+    for (const [slug, links] of entries) {
+      const firstEn = links.findIndex((l) => l.lang === "en");
+      const lastKo = links.map((l) => l.lang).lastIndexOf("ko");
+      if (firstEn >= 0 && lastKo >= 0)
+        expect(lastKo, slug).toBeLessThan(firstEn);
     }
   });
 });

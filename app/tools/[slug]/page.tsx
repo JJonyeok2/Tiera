@@ -3,7 +3,7 @@
  *
  * 첫 화면은 고르는 데 필요한 것만: 뭘 해주나요(한 줄 소개) → 용도 칩 → 가격·한국어·
  * 쓸 곳 요약 판 → 주의사항 → 써보러 가기. 그 아래가 질문 순서대로의 자세한 설명이다:
- *   어떻게 시작하나요 → 돈이 드나요 → 한국어가 되나요 → 어디서 쓰나요 → 이게 쓰는 모델
+ *   어떻게 시작하나요 → 어디서 배우나요(공식 가이드·무료 강의) → 돈이 드나요 → 한국어가 되나요 → 어디서 쓰나요 → 이게 쓰는 모델
  *
  * "이 도구가 쓰는 모델" 섹션이 일반인 층과 개발자 층을 잇는 유일한 지점이다.
  * 일반인은 안 눌러도 되고, 궁금한 사람은 거기서 벤치마크까지 내려간다.
@@ -32,6 +32,7 @@ import {
   TOOL_AXIS_QUESTION,
 } from "@/lib/labels";
 import { shareMeta } from "@/lib/site";
+import type { LearnLink } from "@/db/schema";
 
 // 후기는 로그인 사용자마다 "내 후기"가 다르므로 페이지 단위 캐시를 쓰지 않는다.
 export const dynamic = "force-dynamic";
@@ -245,6 +246,14 @@ export default async function ToolPage({
         </Section>
       )}
 
+      {/* 시작법 바로 다음에 둔다. "어떻게 시작하나요"를 읽고 더 알고 싶어진 사람이
+          스크롤을 멈추는 자리다. 링크가 없는 도구는 섹션 자체를 그리지 않는다. */}
+      {tool.learn.length > 0 && (
+        <Section title="어디서 배우나요">
+          <LearnList links={tool.learn} />
+        </Section>
+      )}
+
       <Section title="돈이 드나요">
         <p>
           <strong className="font-semibold text-[var(--color-text)]">
@@ -360,6 +369,48 @@ function Fact({
         {children}
       </dd>
     </div>
+  );
+}
+
+const LEARN_KIND_LABEL: Record<LearnLink["kind"], string> = {
+  OFFICIAL: "공식",
+  COURSE: "무료 강의",
+  VIDEO: "영상",
+};
+
+/**
+ * 배우는 곳 링크 목록. 제목이 링크이고, 아래 줄에 "공식·한국어·만든 곳"과 한 줄 설명.
+ * 영어 자료는 영어라고 먼저 밝힌다 — 눌러 보고 나서 알면 헛걸음이다.
+ */
+function LearnList({ links }: { links: LearnLink[] }) {
+  return (
+    <ul className="space-y-3.5" data-testid="learn-links">
+      {links.map((l) => (
+        <li key={l.url}>
+          <a
+            href={l.url}
+            target="_blank"
+            // nofollow: 남의 강의 페이지에 검색 점수를 몰아주려는 링크가 아니다.
+            rel="noopener noreferrer nofollow"
+            className="font-semibold text-[var(--color-text)] underline decoration-[var(--color-line)] underline-offset-4 transition hover:decoration-[var(--color-text-mute)]"
+          >
+            {l.title}
+            <span
+              aria-hidden="true"
+              className="ml-1 text-[13px] text-[var(--color-text-mute)]"
+            >
+              ↗
+            </span>
+          </a>
+          <div className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[13px] text-[var(--color-text-mute)]">
+            <Badge>{LEARN_KIND_LABEL[l.kind]}</Badge>
+            <Badge>{l.lang === "ko" ? "한국어" : "영어"}</Badge>
+            <span>{l.by}</span>
+          </div>
+          <p className="mt-1 text-[14px] leading-relaxed">{l.note}</p>
+        </li>
+      ))}
+    </ul>
   );
 }
 

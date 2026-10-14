@@ -13,6 +13,7 @@ import type {
   Category,
   Country,
   KoreanLevel,
+  LearnLink,
   Platform,
   PricingKind,
   ScoreScope,
@@ -64,9 +65,12 @@ export interface RankingResult {
  * "중국 모델만" 필터를 걸었을 때 1·2·3위로 다시 번호를 매기면
  * 전체에서 몇 위인지가 사라져 필터의 의미가 없어진다.
  */
-export async function getRanking(params: RankingParams): Promise<RankingResult> {
+export async function getRanking(
+  params: RankingParams,
+): Promise<RankingResult> {
   const { scoreType, scope, country, q, limit = 20, offset = 0 } = params;
-  const otherType: ScoreType = scoreType === "COMMUNITY" ? "BENCHMARK" : "COMMUNITY";
+  const otherType: ScoreType =
+    scoreType === "COMMUNITY" ? "BENCHMARK" : "COMMUNITY";
   const like = q && q.trim() ? `%${q.trim().toLowerCase()}%` : null;
   const countryParam: Country | null = country ?? null;
 
@@ -149,13 +153,14 @@ export async function getRanking(params: RankingParams): Promise<RankingResult> 
       tier: r.tier,
       reviewCount: Number(r.review_count),
       rank: Number(r.rank),
-      rankChange: r.prev_rank === null ? null : Number(r.prev_rank) - Number(r.rank),
+      rankChange:
+        r.prev_rank === null ? null : Number(r.prev_rank) - Number(r.rank),
       gap: gapOf(
         r.community_rank === null ? null : Number(r.community_rank),
         r.benchmark_rank === null ? null : Number(r.benchmark_rank),
         r.community_score === null || r.benchmark_score === null
           ? null
-          : Number(r.community_score) - Number(r.benchmark_score)
+          : Number(r.community_score) - Number(r.benchmark_score),
       ),
     })),
   };
@@ -208,18 +213,29 @@ export interface ModelDetail {
   benchmarks: BenchmarkRow[];
 }
 
-export async function getModelDetail(slug: string): Promise<ModelDetail | null> {
+export async function getModelDetail(
+  slug: string,
+): Promise<ModelDetail | null> {
   // 네 쿼리는 서로 의존하지 않는다. 순차로 돌리면 왕복이 네 번이라,
   // 함수와 DB가 멀리 떨어져 있을 때 그대로 지연으로 쌓인다.
   const [base, scores, ranks, bench] = await Promise.all([
     db.execute<{
-    id: string; slug: string; name: string; description: string | null;
-    developer_name: string; developer_slug: string; developer_site_url: string | null;
-    country: Country; status: "CERTIFIED" | "PROVISIONAL";
-    released_at: string | null; context_window: number | null;
-    input_price_per_m: string | null; output_price_per_m: string | null;
-    modalities: string[] | string; is_open_weight: boolean;
-  }>(sql`
+      id: string;
+      slug: string;
+      name: string;
+      description: string | null;
+      developer_name: string;
+      developer_slug: string;
+      developer_site_url: string | null;
+      country: Country;
+      status: "CERTIFIED" | "PROVISIONAL";
+      released_at: string | null;
+      context_window: number | null;
+      input_price_per_m: string | null;
+      output_price_per_m: string | null;
+      modalities: string[] | string;
+      is_open_weight: boolean;
+    }>(sql`
     SELECT m.id, m.slug, m.name, m.description, m.status, m.released_at, m.context_window,
            m.input_price_per_m, m.output_price_per_m, m.modalities, m.is_open_weight,
            d.name AS developer_name, d.slug AS developer_slug, d.site_url AS developer_site_url,
@@ -230,9 +246,13 @@ export async function getModelDetail(slug: string): Promise<ModelDetail | null> 
   `),
 
     db.execute<{
-    score_type: ScoreType; scope: ScoreScope;
-    score: number; raw: number; tier: TierName; sample_count: number;
-  }>(sql`
+      score_type: ScoreType;
+      scope: ScoreScope;
+      score: number;
+      raw: number;
+      tier: TierName;
+      sample_count: number;
+    }>(sql`
     SELECT ms.score_type, ms.scope, ms.score, ms.raw, ms.tier, ms.sample_count
     FROM model_score ms JOIN model mm ON mm.id = ms.model_id
     WHERE mm.slug = ${slug}
@@ -251,9 +271,17 @@ export async function getModelDetail(slug: string): Promise<ModelDetail | null> 
     `),
 
     db.execute<{
-      name: string; category: ScoreScope | null; unit: string; value: number;
-      measured_at: string; source_name: string; source_url: string;
-      min_v: number; max_v: number; cnt: number; higher_is_better: boolean;
+      name: string;
+      category: ScoreScope | null;
+      unit: string;
+      value: number;
+      measured_at: string;
+      source_name: string;
+      source_url: string;
+      min_v: number;
+      max_v: number;
+      cnt: number;
+      higher_is_better: boolean;
     }>(sql`
       SELECT b.name, b.category::text AS category, b.unit, br.value,
              br.measured_at, b.source_name, b.source_url, b.higher_is_better,
@@ -277,7 +305,10 @@ export async function getModelDetail(slug: string): Promise<ModelDetail | null> 
   const benchmark: Partial<Record<ScoreScope, ScoreCell>> = {};
   for (const s of scores.rows ?? []) {
     const cell: ScoreCell = {
-      score: Number(s.score), raw: Number(s.raw), tier: s.tier, sampleCount: Number(s.sample_count),
+      score: Number(s.score),
+      raw: Number(s.raw),
+      tier: s.tier,
+      sampleCount: Number(s.sample_count),
     };
     (s.score_type === "COMMUNITY" ? community : benchmark)[s.scope] = cell;
   }
@@ -306,19 +337,32 @@ export async function getModelDetail(slug: string): Promise<ModelDetail | null> 
   }));
 
   return {
-    id: m.id, slug: m.slug, name: m.name, description: m.description,
-    developerName: m.developer_name, developerSlug: m.developer_slug,
-    developerSiteUrl: m.developer_site_url, country: m.country, status: m.status,
+    id: m.id,
+    slug: m.slug,
+    name: m.name,
+    description: m.description,
+    developerName: m.developer_name,
+    developerSlug: m.developer_slug,
+    developerSiteUrl: m.developer_site_url,
+    country: m.country,
+    status: m.status,
     releasedAt: m.released_at ? String(m.released_at).slice(0, 10) : null,
     contextWindow: m.context_window === null ? null : Number(m.context_window),
-    inputPricePerM: m.input_price_per_m, outputPricePerM: m.output_price_per_m,
+    inputPricePerM: m.input_price_per_m,
+    outputPricePerM: m.output_price_per_m,
     // enum 배열은 드라이버가 파싱해 주지 않아 '{TEXT,IMAGE}' 문자열로 올 수 있다.
     modalities: parsePgArray(m.modalities),
     isOpenWeight: m.is_open_weight,
-    community, benchmark, communityRank, benchmarkRank,
+    community,
+    benchmark,
+    communityRank,
+    benchmarkRank,
     gap: gapOf(
-      communityRank, benchmarkRank,
-      community.OVERALL && benchmark.OVERALL ? community.OVERALL.score - benchmark.OVERALL.score : null
+      communityRank,
+      benchmarkRank,
+      community.OVERALL && benchmark.OVERALL
+        ? community.OVERALL.score - benchmark.OVERALL.score
+        : null,
     ),
     benchmarks,
   };
@@ -336,12 +380,17 @@ export async function getModelDetail(slug: string): Promise<ModelDetail | null> 
 function parsePgArray(v: string[] | string | null | undefined): string[] {
   if (Array.isArray(v)) return v;
   if (typeof v !== "string") return [];
-  return v.replace(/^\{|\}$/g, "").split(",").map((x) => x.trim().replace(/^"|"$/g, "")).filter(Boolean);
+  return v
+    .replace(/^\{|\}$/g, "")
+    .split(",")
+    .map((x) => x.trim().replace(/^"|"$/g, ""))
+    .filter(Boolean);
 }
 
-
 export async function getAllModelSlugs(): Promise<string[]> {
-  const r = await db.execute<{ slug: string }>(sql`SELECT slug FROM model WHERE is_published`);
+  const r = await db.execute<{ slug: string }>(
+    sql`SELECT slug FROM model WHERE is_published`,
+  );
   return (r.rows ?? []).map((x) => x.slug);
 }
 
@@ -382,7 +431,10 @@ export async function getScoreTypeTotals(opts: {
 }
 
 export async function getCompare(slugs: string[]): Promise<ModelDetail[]> {
-  const unique = [...new Set(slugs.map((s) => s.trim()).filter(Boolean))].slice(0, MAX_COMPARE_MODELS);
+  const unique = [...new Set(slugs.map((s) => s.trim()).filter(Boolean))].slice(
+    0,
+    MAX_COMPARE_MODELS,
+  );
   const found = await Promise.all(unique.map((s) => getModelDetail(s)));
   return found.filter((m): m is ModelDetail => m !== null);
 }
@@ -433,7 +485,9 @@ export interface ToolListParams {
  * 용도 필터는 purpose와 also_for를 **함께** 본다. ChatGPT는 대표 용도가 대화지만
  * 이미지 탭에도 떠야 한다 — 일반인에게 가장 쓸모 있는 답이 "이미 쓰는 걸로도 된다"다.
  */
-export async function getTools(params: ToolListParams = {}): Promise<ToolListRow[]> {
+export async function getTools(
+  params: ToolListParams = {},
+): Promise<ToolListRow[]> {
   const { purpose, origin, q } = params;
   const like = q && q.trim() ? `%${q.trim().toLowerCase()}%` : null;
 
@@ -508,7 +562,7 @@ export async function getTools(params: ToolListParams = {}): Promise<ToolListRow
  * 탭 숫자가 전체 개수를 보여주면, 탭을 눌러도 그 숫자가 안 나온다.
  */
 export async function getPurposeTotals(
-  opts: { origin?: ToolOrigin; q?: string } = {}
+  opts: { origin?: ToolOrigin; q?: string } = {},
 ): Promise<Record<ToolPurpose, number>> {
   const { origin, q } = opts;
   const like = q && q.trim() ? `%${q.trim().toLowerCase()}%` : null;
@@ -524,7 +578,10 @@ export async function getPurposeTotals(
     GROUP BY p
   `);
 
-  const out = Object.fromEntries(PURPOSES.map((p) => [p, 0])) as Record<ToolPurpose, number>;
+  const out = Object.fromEntries(PURPOSES.map((p) => [p, 0])) as Record<
+    ToolPurpose,
+    number
+  >;
   for (const r of rows.rows ?? []) out[r.purpose] = Number(r.n) || 0;
   return out;
 }
@@ -538,11 +595,35 @@ export interface ToolDetail extends ToolListRow {
   siteUrl: string;
   platforms: Platform[];
   /** 이 도구가 쓰는 모델. 두 층을 잇는 지점이다(SPEC 23.5). */
-  models: { slug: string; name: string; score: number | null; tier: TierName | null }[];
+  models: {
+    slug: string;
+    name: string;
+    score: number | null;
+    tier: TierName | null;
+  }[];
   /** 축별 점수. 후기가 없으면 빈 객체다 — 0이 아니라 "아직 없음"이다. */
   axisScores: Partial<Record<ToolAxis, { score: number; sampleCount: number }>>;
   /** 검색용 다른 이름. 화면 본문에는 안 나오고 메타데이터(keywords·JSON-LD)에만 쓴다. */
   aliases: string[];
+  /** 배우는 곳 — 공식 가이드·무료 강의. 없으면 빈 배열이고 화면에서 섹션이 빠진다. */
+  learn: LearnLink[];
+}
+
+/**
+ * jsonb로 받은 배우는 곳 링크를 화면에 내보내도 되는 것만 남긴다.
+ * 시드에서만 들어오는 값이지만, href에 그대로 꽂히는 문자열이라 https가 아닌
+ * 주소(javascript: 등)는 여기서 버린다. 형식이 깨진 항목도 조용히 뺀다.
+ */
+function safeLearn(raw: unknown): LearnLink[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.filter(
+    (l): l is LearnLink =>
+      !!l &&
+      typeof l === "object" &&
+      typeof (l as LearnLink).title === "string" &&
+      typeof (l as LearnLink).url === "string" &&
+      (l as LearnLink).url.startsWith("https://"),
+  );
 }
 
 /**
@@ -552,55 +633,57 @@ export interface ToolDetail extends ToolListRow {
  * 감싸지 않으면 한 번 볼 때마다 같은 쿼리 묶음이 두 번 돈다.
  * cache()는 요청 하나 안에서만 결과를 공유하므로 사용자 사이에 섞일 일은 없다.
  */
-export const getToolDetail = cache(async (slug: string): Promise<ToolDetail | null> => {
-  const rows = await db.execute<{
-    id: string;
-    slug: string;
-    name: string;
-    maker: string;
-    purpose: ToolPurpose;
-    also_for: ToolPurpose[] | string;
-    origin: ToolOrigin;
-    summary: string;
-    how_to_start: string | null;
-    pricing_kind: PricingKind;
-    price_note: string | null;
-    student_free: boolean;
-    korean_level: KoreanLevel;
-    korean_note: string | null;
-    site_url: string;
-    logo_url: string | null;
-    platforms: Platform[] | string;
-    caution: string | null;
-    aliases: string[] | string;
-    score: number | null;
-    tier: TierName | null;
-    review_count: number;
-  }>(sql`
+export const getToolDetail = cache(
+  async (slug: string): Promise<ToolDetail | null> => {
+    const rows = await db.execute<{
+      id: string;
+      slug: string;
+      name: string;
+      maker: string;
+      purpose: ToolPurpose;
+      also_for: ToolPurpose[] | string;
+      origin: ToolOrigin;
+      summary: string;
+      how_to_start: string | null;
+      pricing_kind: PricingKind;
+      price_note: string | null;
+      student_free: boolean;
+      korean_level: KoreanLevel;
+      korean_note: string | null;
+      site_url: string;
+      logo_url: string | null;
+      platforms: Platform[] | string;
+      caution: string | null;
+      aliases: string[] | string;
+      learn: unknown;
+      score: number | null;
+      tier: TierName | null;
+      review_count: number;
+    }>(sql`
     SELECT t.*, ts.score, ts.tier, COALESCE(ts.sample_count, 0) AS review_count
     FROM tool t
     LEFT JOIN tool_score ts ON ts.tool_id = t.id AND ts.scope = 'OVERALL'
     WHERE t.slug = ${slug} AND t.is_published
     LIMIT 1
   `);
-  const t = rows.rows?.[0];
-  if (!t) return null;
+    const t = rows.rows?.[0];
+    if (!t) return null;
 
-  // 아래 두 쿼리는 서로 기다릴 이유가 없어서 같이 보낸다.
-  const [axes, models] = await Promise.all([
-    // 축별 점수. OVERALL은 위에서 이미 조인했으므로 나머지 4축만 가져온다.
-    db.execute<{ scope: ToolAxis; score: number; sample_count: number }>(sql`
+    // 아래 두 쿼리는 서로 기다릴 이유가 없어서 같이 보낸다.
+    const [axes, models] = await Promise.all([
+      // 축별 점수. OVERALL은 위에서 이미 조인했으므로 나머지 4축만 가져온다.
+      db.execute<{ scope: ToolAxis; score: number; sample_count: number }>(sql`
       SELECT scope, score, sample_count
       FROM tool_score
       WHERE tool_id = ${t.id} AND scope <> 'OVERALL'
     `),
-    // 이 도구가 쓰는 모델. 벤치마크 점수가 있는 것만, 높은 순으로.
-    db.execute<{
-      slug: string;
-      name: string;
-      score: number | null;
-      tier: TierName | null;
-    }>(sql`
+      // 이 도구가 쓰는 모델. 벤치마크 점수가 있는 것만, 높은 순으로.
+      db.execute<{
+        slug: string;
+        name: string;
+        score: number | null;
+        tier: TierName | null;
+      }>(sql`
       SELECT m.slug, m.name, ms.score, ms.tier
       FROM model m
       LEFT JOIN model_score ms
@@ -609,40 +692,46 @@ export const getToolDetail = cache(async (slug: string): Promise<ToolDetail | nu
       ORDER BY ms.score DESC NULLS LAST, m.name ASC
       LIMIT 12
     `),
-  ]);
-  const axisScores: Partial<Record<ToolAxis, { score: number; sampleCount: number }>> = {};
-  for (const a of axes.rows ?? []) {
-    axisScores[a.scope] = { score: Number(a.score), sampleCount: Number(a.sample_count) };
-  }
+    ]);
+    const axisScores: Partial<
+      Record<ToolAxis, { score: number; sampleCount: number }>
+    > = {};
+    for (const a of axes.rows ?? []) {
+      axisScores[a.scope] = {
+        score: Number(a.score),
+        sampleCount: Number(a.sample_count),
+      };
+    }
 
-
-  return {
-    id: t.id,
-    slug: t.slug,
-    name: t.name,
-    maker: t.maker,
-    purpose: t.purpose,
-    alsoFor: parsePgArray(t.also_for) as ToolPurpose[],
-    origin: t.origin,
-    summary: t.summary,
-    howToStart: t.how_to_start,
-    pricingKind: t.pricing_kind,
-    priceNote: t.price_note,
-    studentFree: t.student_free,
-    koreanLevel: t.korean_level,
-    koreanNote: t.korean_note,
-    siteUrl: t.site_url,
-    logoUrl: t.logo_url,
-    platforms: parsePgArray(t.platforms) as Platform[],
-    caution: t.caution,
-    aliases: parsePgArray(t.aliases),
-    score: t.score,
-    tier: t.tier,
-    reviewCount: Number(t.review_count) || 0,
-    models: models.rows ?? [],
-    axisScores,
-  };
-});
+    return {
+      id: t.id,
+      slug: t.slug,
+      name: t.name,
+      maker: t.maker,
+      purpose: t.purpose,
+      alsoFor: parsePgArray(t.also_for) as ToolPurpose[],
+      origin: t.origin,
+      summary: t.summary,
+      howToStart: t.how_to_start,
+      pricingKind: t.pricing_kind,
+      priceNote: t.price_note,
+      studentFree: t.student_free,
+      koreanLevel: t.korean_level,
+      koreanNote: t.korean_note,
+      siteUrl: t.site_url,
+      logoUrl: t.logo_url,
+      platforms: parsePgArray(t.platforms) as Platform[],
+      caution: t.caution,
+      aliases: parsePgArray(t.aliases),
+      learn: safeLearn(t.learn),
+      score: t.score,
+      tier: t.tier,
+      reviewCount: Number(t.review_count) || 0,
+      models: models.rows ?? [],
+      axisScores,
+    };
+  },
+);
 
 export async function getAllToolSlugs(): Promise<string[]> {
   const r = await db.execute<{ slug: string }>(sql`

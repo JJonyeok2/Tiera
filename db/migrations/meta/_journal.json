@@ -50,6 +50,13 @@
       "when": 1791201718555,
       "tag": "0006_sour_harry_osborn",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791984137387,
+      "tag": "0007_gifted_prodigy",
+      "breakpoints": true
     }
   ]
 }

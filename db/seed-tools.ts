@@ -18,6 +18,7 @@ import { createHash } from "node:crypto";
 import { eq, isNull, sql } from "drizzle-orm";
 import { developers, models, tools } from "@/db/schema";
 import { DEVELOPER_DEFAULT_TOOL, SEED_TOOLS } from "@/db/seed-tools-data";
+import { LEARN_LINKS } from "@/db/seed-tools-learn";
 import { explainError } from "./explain-error";
 
 /**
@@ -30,7 +31,9 @@ import { explainError } from "./explain-error";
 type Db = typeof import("@/db").db;
 
 async function upsertTools(db: Db): Promise<Map<string, string>> {
-  const devRows = await db.select({ id: developers.id, slug: developers.slug }).from(developers);
+  const devRows = await db
+    .select({ id: developers.id, slug: developers.slug })
+    .from(developers);
   const devIdBySlug = new Map(devRows.map((d) => [d.slug, d.id]));
 
   const idBySlug = new Map<string, string>();
@@ -44,7 +47,7 @@ async function upsertTools(db: Db): Promise<Map<string, string>> {
     if (t.developerSlug && !devIdBySlug.has(t.developerSlug)) {
       throw new Error(
         `도구 '${t.slug}'가 가리키는 개발사 '${t.developerSlug}'가 developer 테이블에 없습니다. ` +
-          `seed-data.ts의 DEVELOPERS를 먼저 넣었는지 확인하세요.`
+          `seed-data.ts의 DEVELOPERS를 먼저 넣었는지 확인하세요.`,
       );
     }
 
@@ -68,9 +71,13 @@ async function upsertTools(db: Db): Promise<Map<string, string>> {
       platforms: t.platforms,
       caution: t.caution ?? null,
       aliases: t.aliases ?? [],
+      // 배울 곳은 링크가 자주 바뀌어서 도구 설명과 다른 파일에 둔다(seed-tools-learn.ts).
+      learn: LEARN_LINKS[t.slug] ?? [],
     };
     // 화면·검색에 나가는 내용의 지문. 이게 달라졌을 때만 updated_at을 올린다.
-    const contentHash = createHash("sha1").update(JSON.stringify(values)).digest("hex");
+    const contentHash = createHash("sha1")
+      .update(JSON.stringify(values))
+      .digest("hex");
 
     const [row] = await db
       .insert(tools)
@@ -98,6 +105,7 @@ async function upsertTools(db: Db): Promise<Map<string, string>> {
           platforms: values.platforms,
           caution: values.caution,
           aliases: values.aliases,
+          learn: values.learn,
           contentHash,
           // Postgres의 SET은 전부 **바뀌기 전** 행을 본다. 그래서 같은 문장에서
           // content_hash를 새 값으로 덮어써도 여기 비교는 옛 해시와 한다.
@@ -113,7 +121,9 @@ async function upsertTools(db: Db): Promise<Map<string, string>> {
     else updated += 1;
   }
 
-  console.log(`도구 ${SEED_TOOLS.length}개 — 신규 ${inserted} / 갱신 ${updated}`);
+  console.log(
+    `도구 ${SEED_TOOLS.length}개 — 신규 ${inserted} / 갱신 ${updated}`,
+  );
   return idBySlug;
 }
 
@@ -146,10 +156,13 @@ async function mapModelsToTools(db: Db, idBySlug: Map<string, string>) {
     const res = await db
       .update(models)
       .set({ toolId })
-      .where(sql`${models.developerId} = ${dev.id} AND ${models.toolId} IS NULL`)
+      .where(
+        sql`${models.developerId} = ${dev.id} AND ${models.toolId} IS NULL`,
+      )
       .returning({ id: models.id });
 
-    if (res.length > 0) console.log(`  ${devSlug} → ${toolSlug}: ${res.length}개`);
+    if (res.length > 0)
+      console.log(`  ${devSlug} → ${toolSlug}: ${res.length}개`);
     total += res.length;
   }
 
@@ -169,21 +182,26 @@ export async function seedTools(db: Db) {
   const idBySlug = await upsertTools(db);
 
   const byPurpose = new Map<string, number>();
-  for (const t of SEED_TOOLS) byPurpose.set(t.purpose, (byPurpose.get(t.purpose) ?? 0) + 1);
+  for (const t of SEED_TOOLS)
+    byPurpose.set(t.purpose, (byPurpose.get(t.purpose) ?? 0) + 1);
   console.log(
     "용도별: " +
-      [...byPurpose.entries()].map(([p, n]) => `${p} ${n}`).join(" · ")
+      [...byPurpose.entries()].map(([p, n]) => `${p} ${n}`).join(" · "),
   );
-  console.log(`한국 제작 ${SEED_TOOLS.filter((t) => t.origin === "KR").length}개`);
+  console.log(
+    `한국 제작 ${SEED_TOOLS.filter((t) => t.origin === "KR").length}개`,
+  );
   console.log(
     `한국어 미확인 ${SEED_TOOLS.filter((t) => t.koreanLevel === "UNKNOWN").length}개 ` +
-      `(화면에 "확인 중"으로 나갑니다)`
+      `(화면에 "확인 중"으로 나갑니다)`,
   );
   console.log();
 
   await mapModelsToTools(db, idBySlug);
 
-  console.log("\n완료. 도구 점수는 후기가 쌓여야 생깁니다 — 지금은 tool_score가 비어 있습니다.");
+  console.log(
+    "\n완료. 도구 점수는 후기가 쌓여야 생깁니다 — 지금은 tool_score가 비어 있습니다.",
+  );
 }
 
 /** 직접 실행됐을 때만 CLI로 동작한다. import만으로는 아무 일도 하지 않는다. */

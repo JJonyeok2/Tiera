@@ -388,4 +388,32 @@ test("움직임 줄이기 설정이면 목록을 숨기지 않는다", async ({ 
     .toBe("1");
   await ctx.close();
 });
+test("상세에 '어디서 배우나요'가 있고, 링크는 새 탭으로 안전하게 열린다", async ({
+  page,
+}) => {
+  // SPEC 23.21. 링크 목록은 시드(db/seed-tools-learn.ts)와 같아야 한다.
+  const { LEARN_LINKS } = await import("@/db/seed-tools-learn");
+  await page.goto("/tools/chatgpt");
+  const box = main(page).getByTestId("learn-links");
+  await expect(main(page)).toContainText("어디서 배우나요");
+  const links = box.locator("a");
+  await expect(links).toHaveCount(LEARN_LINKS.chatgpt.length);
+  for (let i = 0; i < LEARN_LINKS.chatgpt.length; i++) {
+    await expect(links.nth(i)).toHaveAttribute(
+      "href",
+      LEARN_LINKS.chatgpt[i].url,
+    );
+    await expect(links.nth(i)).toHaveAttribute("target", "_blank");
+    await expect(links.nth(i)).toHaveAttribute("rel", /noopener/);
+  }
+  // 영어 자료인지 누르기 전에 알 수 있어야 한다.
+  await expect(box).toContainText("한국어");
+});
+
+test("배울 곳을 확인 못 한 도구는 섹션 자체가 없다", async ({ page }) => {
+  // 빈 제목만 덩그러니 있으면 고장난 화면처럼 보인다.
+  await page.goto("/tools/papago");
+  await expect(main(page)).toContainText("어떻게 시작하나");
+  await expect(main(page)).not.toContainText("어디서 배우나요");
+});
 /* Footer: tests/e2e/tools.spec.ts */

@@ -13,6 +13,7 @@ import {
   doublePrecision,
   index,
   integer,
+  jsonb,
   numeric,
   pgEnum,
   pgTable,
@@ -22,6 +23,19 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+
+/** 도구 상세 "배우는 곳"의 링크 한 줄. db/seed-tools-learn.ts에서 채운다. */
+export interface LearnLink {
+  title: string;
+  url: string;
+  /** OFFICIAL: 만든 회사의 가이드·아카데미 / COURSE: 무료 한국어 강의 / VIDEO: 영상 */
+  kind: "OFFICIAL" | "COURSE" | "VIDEO";
+  lang: "ko" | "en";
+  /** 만든 곳(회사·플랫폼·채널) */
+  by: string;
+  /** 무엇을 배우는지 한 줄 */
+  note: string;
+}
 
 // --- Enums -----------------------------------------------------------------
 
@@ -49,8 +63,16 @@ export const scoreTypeEnum = pgEnum("score_type", ["COMMUNITY", "BENCHMARK"]);
 export const tierEnum = pgEnum("tier", ["PRISM", "GOLD", "SILVER", "BRONZE"]);
 
 /** CERTIFIED(공인) = 종합 평가 수가 신뢰 임계 m 이상. 미만이면 PROVISIONAL(평가 중). */
-export const modelStatusEnum = pgEnum("model_status", ["CERTIFIED", "PROVISIONAL"]);
-export const modalityEnum = pgEnum("modality", ["TEXT", "IMAGE", "AUDIO", "VIDEO"]);
+export const modelStatusEnum = pgEnum("model_status", [
+  "CERTIFIED",
+  "PROVISIONAL",
+]);
+export const modalityEnum = pgEnum("modality", [
+  "TEXT",
+  "IMAGE",
+  "AUDIO",
+  "VIDEO",
+]);
 export const roleEnum = pgEnum("role", ["USER", "ADMIN"]);
 
 // --- 도구(tool) 축 — SPEC 23 -----------------------------------------------
@@ -145,7 +167,9 @@ export const toolScopeEnum = pgEnum("tool_scope", [
 // --- Auth.js ---------------------------------------------------------------
 
 export const users = pgTable("user", {
-  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
   name: text("name"),
   email: text("email").notNull().unique(),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
@@ -171,7 +195,7 @@ export const accounts = pgTable(
     id_token: text("id_token"),
     session_state: text("session_state"),
   },
-  (t) => [primaryKey({ columns: [t.provider, t.providerAccountId] })]
+  (t) => [primaryKey({ columns: [t.provider, t.providerAccountId] })],
 );
 
 export const sessions = pgTable("session", {
@@ -189,13 +213,15 @@ export const verificationTokens = pgTable(
     token: text("token").notNull(),
     expires: timestamp("expires", { mode: "date" }).notNull(),
   },
-  (t) => [primaryKey({ columns: [t.identifier, t.token] })]
+  (t) => [primaryKey({ columns: [t.identifier, t.token] })],
 );
 
 // --- 도메인 ----------------------------------------------------------------
 
 export const developers = pgTable("developer", {
-  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
   slug: text("slug").notNull().unique(),
   name: text("name").notNull(),
   country: countryEnum("country").notNull(),
@@ -205,7 +231,9 @@ export const developers = pgTable("developer", {
 export const models = pgTable(
   "model",
   {
-    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
     slug: text("slug").notNull().unique(),
     name: text("name").notNull(),
     developerId: text("developer_id")
@@ -217,7 +245,9 @@ export const models = pgTable(
      * 302개를 손으로 붙이지 않는다 — 수집 때 개발사 → 기본 도구 규칙으로
      * 채우고 예외만 손본다(SPEC 23.4). 사람이 채운 값은 수집이 덮어쓰지 않는다.
      */
-    toolId: text("tool_id").references(() => tools.id, { onDelete: "set null" }),
+    toolId: text("tool_id").references(() => tools.id, {
+      onDelete: "set null",
+    }),
     description: text("description"),
     releasedAt: date("released_at", { mode: "date" }),
     contextWindow: integer("context_window"),
@@ -233,13 +263,15 @@ export const models = pgTable(
     index("model_developer_idx").on(t.developerId),
     index("model_published_idx").on(t.isPublished),
     index("model_tool_idx").on(t.toolId),
-  ]
+  ],
 );
 
 export const reviews = pgTable(
   "review",
   {
-    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
@@ -257,13 +289,15 @@ export const reviews = pgTable(
     // 1인 1모델 1리뷰 — 어뷰징 방지의 1차 방어선. 앱 로직이 아니라 DB 제약으로 건다.
     uniqueIndex("review_user_model_uq").on(t.userId, t.modelId),
     index("review_model_created_idx").on(t.modelId, t.createdAt),
-  ]
+  ],
 );
 
 export const reviewRatings = pgTable(
   "review_rating",
   {
-    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
     reviewId: text("review_id")
       .notNull()
       .references(() => reviews.id, { onDelete: "cascade" }),
@@ -271,7 +305,7 @@ export const reviewRatings = pgTable(
     /** 1~5 정수. "평가 안 함"은 행을 만들지 않는 것으로 표현한다. */
     score: integer("score").notNull(),
   },
-  (t) => [uniqueIndex("review_rating_uq").on(t.reviewId, t.category)]
+  (t) => [uniqueIndex("review_rating_uq").on(t.reviewId, t.category)],
 );
 
 /** 집계 캐시. 리뷰/벤치마크 변경 시 갱신된다. */
@@ -295,11 +329,13 @@ export const modelScores = pgTable(
   (t) => [
     primaryKey({ columns: [t.modelId, t.scoreType, t.scope] }),
     index("model_score_rank_idx").on(t.scoreType, t.scope, t.score),
-  ]
+  ],
 );
 
 export const benchmarks = pgTable("benchmark", {
-  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
   slug: text("slug").notNull().unique(),
   name: text("name").notNull(),
   /** null이면 특정 카테고리에 속하지 않고 종합에만 반영된다. */
@@ -314,7 +350,9 @@ export const benchmarks = pgTable("benchmark", {
 export const benchmarkResults = pgTable(
   "benchmark_result",
   {
-    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
     modelId: text("model_id")
       .notNull()
       .references(() => models.id, { onDelete: "cascade" }),
@@ -325,14 +363,16 @@ export const benchmarkResults = pgTable(
     measuredAt: date("measured_at", { mode: "date" }).notNull(),
     sourceUrl: text("source_url"),
   },
-  (t) => [uniqueIndex("benchmark_result_uq").on(t.modelId, t.benchmarkId)]
+  (t) => [uniqueIndex("benchmark_result_uq").on(t.modelId, t.benchmarkId)],
 );
 
 /** 순위 변동(▲2/▼1) 계산용 일일 스냅샷. */
 export const rankSnapshots = pgTable(
   "rank_snapshot",
   {
-    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
     modelId: text("model_id")
       .notNull()
       .references(() => models.id, { onDelete: "cascade" }),
@@ -345,7 +385,7 @@ export const rankSnapshots = pgTable(
   (t) => [
     uniqueIndex("rank_snapshot_uq").on(t.modelId, t.scoreType, t.scope, t.date),
     index("rank_snapshot_date_idx").on(t.date, t.scoreType, t.scope),
-  ]
+  ],
 );
 
 // --- 도구 ------------------------------------------------------------------
@@ -361,7 +401,9 @@ export const rankSnapshots = pgTable(
 export const tools = pgTable(
   "tool",
   {
-    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
     slug: text("slug").notNull().unique(),
     name: text("name").notNull(),
 
@@ -440,6 +482,12 @@ export const tools = pgTable(
     /** 카드에 크게 띄울 주의사항. 무료로 오해하기 쉬운 것 등. */
     caution: text("caution"),
 
+    /**
+     * 배우는 곳 — 이 도구를 잘 쓰게 도와주는 공식 가이드·무료 강의 링크. SPEC 23.21.
+     * 도구마다 0~3개라 별도 테이블 대신 jsonb로 둔다. 조회는 상세 페이지에서만 한다.
+     */
+    learn: jsonb("learn").$type<LearnLink[]>().notNull().default([]),
+
     status: modelStatusEnum("status").notNull().default("PROVISIONAL"),
     isPublished: boolean("is_published").notNull().default(true),
     createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -463,13 +511,15 @@ export const tools = pgTable(
     index("tool_purpose_idx").on(t.purpose),
     index("tool_published_idx").on(t.isPublished),
     index("tool_origin_idx").on(t.origin),
-  ]
+  ],
 );
 
 export const toolReviews = pgTable(
   "tool_review",
   {
-    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
@@ -485,13 +535,15 @@ export const toolReviews = pgTable(
   (t) => [
     uniqueIndex("tool_review_user_tool_uq").on(t.userId, t.toolId),
     index("tool_review_tool_created_idx").on(t.toolId, t.createdAt),
-  ]
+  ],
 );
 
 export const toolReviewRatings = pgTable(
   "tool_review_rating",
   {
-    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
     reviewId: text("review_id")
       .notNull()
       .references(() => toolReviews.id, { onDelete: "cascade" }),
@@ -499,7 +551,7 @@ export const toolReviewRatings = pgTable(
     /** 1~5 정수. "평가 안 함"은 행을 만들지 않는 것으로 표현한다. */
     score: integer("score").notNull(),
   },
-  (t) => [uniqueIndex("tool_review_rating_uq").on(t.reviewId, t.axis)]
+  (t) => [uniqueIndex("tool_review_rating_uq").on(t.reviewId, t.axis)],
 );
 
 /**
@@ -529,7 +581,7 @@ export const toolScores = pgTable(
   (t) => [
     primaryKey({ columns: [t.toolId, t.scope] }),
     index("tool_score_rank_idx").on(t.scope, t.score),
-  ]
+  ],
 );
 
 // --- Relations -------------------------------------------------------------
@@ -540,7 +592,10 @@ export const developersRelations = relations(developers, ({ many }) => ({
 }));
 
 export const toolsRelations = relations(tools, ({ one, many }) => ({
-  developer: one(developers, { fields: [tools.developerId], references: [developers.id] }),
+  developer: one(developers, {
+    fields: [tools.developerId],
+    references: [developers.id],
+  }),
   models: many(models),
   reviews: many(toolReviews),
   scores: many(toolScores),
@@ -552,16 +607,25 @@ export const toolReviewsRelations = relations(toolReviews, ({ one, many }) => ({
   ratings: many(toolReviewRatings),
 }));
 
-export const toolReviewRatingsRelations = relations(toolReviewRatings, ({ one }) => ({
-  review: one(toolReviews, { fields: [toolReviewRatings.reviewId], references: [toolReviews.id] }),
-}));
+export const toolReviewRatingsRelations = relations(
+  toolReviewRatings,
+  ({ one }) => ({
+    review: one(toolReviews, {
+      fields: [toolReviewRatings.reviewId],
+      references: [toolReviews.id],
+    }),
+  }),
+);
 
 export const toolScoresRelations = relations(toolScores, ({ one }) => ({
   tool: one(tools, { fields: [toolScores.toolId], references: [tools.id] }),
 }));
 
 export const modelsRelations = relations(models, ({ one, many }) => ({
-  developer: one(developers, { fields: [models.developerId], references: [developers.id] }),
+  developer: one(developers, {
+    fields: [models.developerId],
+    references: [developers.id],
+  }),
   tool: one(tools, { fields: [models.toolId], references: [tools.id] }),
   reviews: many(reviews),
   scores: many(modelScores),
@@ -575,17 +639,32 @@ export const reviewsRelations = relations(reviews, ({ one, many }) => ({
 }));
 
 export const reviewRatingsRelations = relations(reviewRatings, ({ one }) => ({
-  review: one(reviews, { fields: [reviewRatings.reviewId], references: [reviews.id] }),
+  review: one(reviews, {
+    fields: [reviewRatings.reviewId],
+    references: [reviews.id],
+  }),
 }));
 
 export const modelScoresRelations = relations(modelScores, ({ one }) => ({
-  model: one(models, { fields: [modelScores.modelId], references: [models.id] }),
+  model: one(models, {
+    fields: [modelScores.modelId],
+    references: [models.id],
+  }),
 }));
 
-export const benchmarkResultsRelations = relations(benchmarkResults, ({ one }) => ({
-  model: one(models, { fields: [benchmarkResults.modelId], references: [models.id] }),
-  benchmark: one(benchmarks, { fields: [benchmarkResults.benchmarkId], references: [benchmarks.id] }),
-}));
+export const benchmarkResultsRelations = relations(
+  benchmarkResults,
+  ({ one }) => ({
+    model: one(models, {
+      fields: [benchmarkResults.modelId],
+      references: [models.id],
+    }),
+    benchmark: one(benchmarks, {
+      fields: [benchmarkResults.benchmarkId],
+      references: [benchmarks.id],
+    }),
+  }),
+);
 
 export type Country = (typeof countryEnum.enumValues)[number];
 export type Category = (typeof categoryEnum.enumValues)[number];
