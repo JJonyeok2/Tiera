@@ -24,6 +24,7 @@ import type {
   ToolPurpose,
 } from "@/db/schema";
 import { PURPOSES } from "@/lib/params";
+import { toolSearchCondition, toolSearchRank } from "@/lib/search";
 import { TOOL_MIN_REVIEWS_FOR_TIER } from "@/lib/scoring/constants";
 import { GAP_RANK_THRESHOLD } from "@/lib/scoring/constants";
 import { gapOf, normalizeWithRange, type Gap } from "@/lib/scoring/score";
@@ -489,7 +490,6 @@ export async function getTools(
   params: ToolListParams = {},
 ): Promise<ToolListRow[]> {
   const { purpose, origin, q } = params;
-  const like = q && q.trim() ? `%${q.trim().toLowerCase()}%` : null;
 
   const rows = await db.execute<{
     slug: string;
@@ -518,8 +518,10 @@ export async function getTools(
     WHERE t.is_published
       ${purpose ? sql`AND (t.purpose = ${purpose}::tool_purpose OR ${purpose}::tool_purpose = ANY(t.also_for))` : sql``}
       ${origin ? sql`AND t.origin = ${origin}::tool_origin` : sql``}
-      ${like ? sql`AND (LOWER(t.name) LIKE ${like} OR LOWER(t.maker) LIKE ${like} OR LOWER(t.summary) LIKE ${like} OR LOWER(array_to_string(t.aliases, ' ')) LIKE ${like})` : sql``}
+      ${toolSearchCondition(q)}
     ORDER BY
+      -- 검색 중이면 이름이 직접 맞은 도구가 먼저다(lib/search.ts).
+      ${toolSearchRank(q)}
       -- 티어를 띄울 만큼 후기가 쌓인 것만 위로 올린다.
       -- 단순히 "점수가 있으면" 으로 하면 후기 1개짜리가 나머지 전부 위에 앉는다.
       (ts.sample_count IS NULL OR ts.sample_count < ${TOOL_MIN_REVIEWS_FOR_TIER}),
@@ -565,7 +567,6 @@ export async function getPurposeTotals(
   opts: { origin?: ToolOrigin; q?: string } = {},
 ): Promise<Record<ToolPurpose, number>> {
   const { origin, q } = opts;
-  const like = q && q.trim() ? `%${q.trim().toLowerCase()}%` : null;
 
   const rows = await db.execute<{ purpose: ToolPurpose; n: number }>(sql`
     SELECT p AS purpose, COUNT(*)::int AS n
@@ -574,7 +575,7 @@ export async function getPurposeTotals(
     CROSS JOIN LATERAL unnest(ARRAY[t.purpose] || t.also_for) AS p
     WHERE t.is_published
       ${origin ? sql`AND t.origin = ${origin}::tool_origin` : sql``}
-      ${like ? sql`AND (LOWER(t.name) LIKE ${like} OR LOWER(t.maker) LIKE ${like} OR LOWER(t.summary) LIKE ${like} OR LOWER(array_to_string(t.aliases, ' ')) LIKE ${like})` : sql``}
+      ${toolSearchCondition(q)}
     GROUP BY p
   `);
 

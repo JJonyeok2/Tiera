@@ -12,6 +12,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import PurposeTabs from "@/components/tool/PurposeTabs";
 import TaskChooser from "@/components/tool/TaskChooser";
+import LabelGuide from "@/components/tool/LabelGuide";
+import HowToSteps from "@/components/site/HowToSteps";
+import { purposesForQuery } from "@/lib/search";
 import ToolList from "@/components/tool/ToolList";
 import { getPurposeTotals, getTools } from "@/lib/queries";
 import { parseQuery, parseToolOrigin, parseToolPurpose } from "@/lib/params";
@@ -25,6 +28,16 @@ import { websiteJsonLd } from "@/lib/structured-data";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, shareMeta } from "@/lib/site";
 
 export const revalidate = 300;
+
+/** 빈 검색 결과에서 보여 줄 예시 검색어. 전부 lib/search.ts 키워드로 결과가 나오는 말이다. */
+const SEARCH_EXAMPLES = [
+  "PPT",
+  "번역",
+  "영상 편집",
+  "회의록",
+  "포트폴리오",
+  "노래",
+];
 
 export async function generateMetadata({
   searchParams,
@@ -94,6 +107,8 @@ export default async function HomePage({
   // 첫 화면(아무것도 고르지 않은 상태)과 고른 뒤의 화면은 할 일이 다르다.
   // 첫 화면은 "무엇을 하려는지" 고르게 하고, 고른 뒤에는 비교 목록이 주인공이다.
   const landing = !filtered;
+  // 검색어가 가리키는 용도("ppt" → 발표자료). 결과 머리말과 빈 결과 안내에 쓴다.
+  const matchedPurposes = purposesForQuery(q);
   const heading = q
     ? null
     : purpose
@@ -128,6 +143,9 @@ export default async function HomePage({
               <br />
               돈이 드는지, 한국어가 되는지 같이 보여드려요.
             </p>
+            {/* 사용법을 세 단계로 한 줄에. 읽지 않아도 칸을 누르면 되지만, 이 사이트에서
+                무엇을 얻어 가는지(비교·써보기·배울 곳)를 처음 1초에 알게 한다. */}
+            <HowToSteps />
             <TaskChooser tools={all} totals={totals} />
           </div>
           {/* 아래에 목록이 더 있다는 걸 알려 주는 떠 있는 버튼. 목록이 보이면 사라진다. */}
@@ -144,7 +162,27 @@ export default async function HomePage({
               </strong>{" "}
               검색 결과 <span className="tabular-nums">{tools.length}</span>개
             </p>
-          ) : (
+          ) : null}
+          {q && matchedPurposes.length > 0 ? (
+            // 이름이 아니라 하려는 일로 걸려 온 결과가 섞여 있다는 걸 알린다. 안 그러면
+            // "ppt"를 쳤는데 이름에 ppt가 없는 미리캔버스가 왜 나왔는지 의아해한다.
+            <p className="mt-1.5 text-[14px] text-[var(--color-text-mute)]">
+              하려는 일{" "}
+              {matchedPurposes.map((p, i) => (
+                <span key={p}>
+                  {i > 0 && ", "}
+                  <Link
+                    href={`/?for=${p}`}
+                    className="font-medium text-[var(--color-text-dim)] underline underline-offset-2"
+                  >
+                    {PURPOSE_LABEL[p]}
+                  </Link>
+                </span>
+              ))}
+              에 맞는 도구도 함께 보여드려요.
+            </p>
+          ) : null}
+          {q ? null : (
             <>
               <Link
                 href="/"
@@ -178,36 +216,45 @@ export default async function HomePage({
         className={`mt-6 flex scroll-mt-20 flex-wrap items-center gap-x-3 gap-y-2 ${landing ? "scroll-grow" : ""}`}
       >
         {landing ? (
-          <h2 className="text-[20px] font-bold tracking-tight text-[var(--color-text)]">
-            전체 도구
-          </h2>
+          <>
+            <h2 className="text-[20px] font-bold tracking-tight text-[var(--color-text)]">
+              전체 도구
+            </h2>
+            <div className="ml-auto">
+              <LabelGuide />
+            </div>
+          </>
         ) : (
-          <Link
-            href={
-              origin === "KR"
-                ? purpose
-                  ? `/?for=${purpose}`
-                  : "/"
-                : `/?origin=KR${purpose ? `&for=${purpose}` : ""}`
-            }
-            aria-pressed={origin === "KR"}
-            className={`ml-auto flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[13px] transition ${
-              origin === "KR"
-                ? "bg-[var(--color-tier-prism)]/12 text-[var(--color-tier-prism)]"
-                : "text-[var(--color-text-mute)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text-dim)]"
-            }`}
-          >
-            <span
-              aria-hidden="true"
-              className={`h-1.5 w-1.5 rounded-full ${
+          <>
+            {/* 가격·한국어 표시를 처음 보는 사람을 위한 풀이. 목록 바로 위에 둔다. */}
+            <LabelGuide />
+            <Link
+              href={
                 origin === "KR"
-                  ? "bg-[var(--color-tier-prism)]"
-                  : "bg-[var(--color-text-mute)]/50"
+                  ? purpose
+                    ? `/?for=${purpose}`
+                    : "/"
+                  : `/?origin=KR${purpose ? `&for=${purpose}` : ""}`
+              }
+              aria-pressed={origin === "KR"}
+              className={`ml-auto flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[13px] transition ${
+                origin === "KR"
+                  ? "bg-[var(--color-tier-prism)]/12 text-[var(--color-tier-prism)]"
+                  : "text-[var(--color-text-mute)] hover:bg-[var(--color-surface)] hover:text-[var(--color-text-dim)]"
               }`}
-            />
-            한국에서 만든 것만
-            <span className="tabular-nums opacity-70">{krCount}</span>
-          </Link>
+            >
+              <span
+                aria-hidden="true"
+                className={`h-1.5 w-1.5 rounded-full ${
+                  origin === "KR"
+                    ? "bg-[var(--color-tier-prism)]"
+                    : "bg-[var(--color-text-mute)]/50"
+                }`}
+              />
+              한국에서 만든 것만
+              <span className="tabular-nums opacity-70">{krCount}</span>
+            </Link>
+          </>
         )}
       </div>
 
@@ -218,12 +265,36 @@ export default async function HomePage({
               ? "찾으시는 조건에 맞는 도구가 없어요."
               : "아직 등록된 도구가 없어요."}
           </p>
+          {q && (
+            // 빈 결과에서 끝내지 않는다. 사람들이 실제로 치는 말을 예로 보여 주고,
+            // 이름을 몰라도 되는 길(하려는 일 고르기)로 돌려보낸다.
+            <div className="mt-4">
+              <p className="text-[13px] text-[var(--color-text-mute)]">
+                도구 이름을 몰라도 돼요. 하려는 일로 찾아보세요.
+              </p>
+              <ul
+                className="mt-3 flex flex-wrap justify-center gap-1.5"
+                aria-label="검색 예시"
+              >
+                {SEARCH_EXAMPLES.map((ex) => (
+                  <li key={ex}>
+                    <Link
+                      href={`/?q=${encodeURIComponent(ex)}`}
+                      className="inline-block rounded-full border border-[var(--color-line)] px-3 py-1 text-[13px] text-[var(--color-text-dim)] hover:border-[var(--color-text-mute)]"
+                    >
+                      {ex}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {filtered && (
             <Link
               href="/"
-              className="mt-4 inline-block rounded-lg border border-[var(--color-line)] px-4 py-2 text-[13px] text-[var(--color-text-dim)] hover:border-[var(--color-text-mute)]"
+              className="mt-5 inline-block rounded-lg border border-[var(--color-line)] px-4 py-2 text-[13px] text-[var(--color-text-dim)] hover:border-[var(--color-text-mute)]"
             >
-              처음으로
+              하려는 일 고르기로 돌아가기
             </Link>
           )}
         </div>

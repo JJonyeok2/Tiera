@@ -65,7 +65,7 @@ function ToolRow({ tool }: { tool: ToolListRow }) {
       // 대표 용도. 화면에는 안 보이지만 "본업 도구가 겸업 도구보다 먼저" 정렬을
       // 테스트가 확인하는 근거다(tests/e2e/tools.spec.ts).
       data-purpose={tool.purpose}
-      className={`group grid grid-cols-[2.5rem_minmax(0,1fr)] gap-x-3.5 gap-y-2.5 px-5 py-4 transition-colors hover:bg-[var(--color-surface-2)]/45 lg:items-start lg:gap-6 lg:py-4.5 ${COLS}`}
+      className={`group relative grid grid-cols-[2.5rem_minmax(0,1fr)] gap-x-3.5 gap-y-2.5 py-4 pl-5 pr-10 transition-colors lg:pr-5 hover:bg-[var(--color-surface-2)]/45 lg:items-start lg:gap-6 lg:py-4.5 ${COLS}`}
     >
       {/* 1열: 로고·이름·제작사 */}
       <div className="contents lg:flex lg:min-w-0 lg:items-start lg:gap-3.5">
@@ -147,6 +147,14 @@ function ToolRow({ tool }: { tool: ToolListRow }) {
           </span>
         )}
       </div>
+      {/* 좁은 화면에서 이 줄이 눌린다는 표시. 넓은 화면은 마우스를 올리면 이름에 밑줄이
+          생기고 열 머리가 있어 표 모양으로 읽히지만, 휴대폰의 카드는 그냥 글 상자로 보였다. */}
+      <span
+        aria-hidden="true"
+        className="absolute right-4 top-1/2 -translate-y-1/2 text-[18px] text-[var(--color-text-mute)] lg:hidden"
+      >
+        ›
+      </span>
     </Link>
   );
 }

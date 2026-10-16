@@ -416,4 +416,50 @@ test("배울 곳을 확인 못 한 도구는 섹션 자체가 없다", async ({ 
   await expect(main(page)).toContainText("어떻게 시작하나");
   await expect(main(page)).not.toContainText("어디서 배우나요");
 });
+test("이름을 몰라도 하려는 일로 검색된다 (ppt → 발표자료 도구들)", async ({
+  page,
+}) => {
+  // SPEC 23.22. 예전엔 'ppt'가 감마·젠스파크 둘만 나왔다.
+  await page.goto("/?q=ppt");
+  const rows = main(page).locator("ul > li a[data-purpose]");
+  await expect(main(page)).toContainText("발표자료에 맞는 도구도 함께");
+  const purposes = await rows.evaluateAll((els) =>
+    els.map((e) => e.getAttribute("data-purpose")),
+  );
+  expect(purposes.filter((p) => p === "SLIDES").length).toBeGreaterThanOrEqual(
+    5,
+  );
+  // 본업 도구가 먼저다.
+  expect(purposes[0]).toBe("SLIDES");
+  await expect(main(page)).toContainText("미리캔버스");
+});
+
+test("검색 결과가 없으면 예시 검색어와 돌아갈 길을 보여준다", async ({
+  page,
+}) => {
+  await page.goto("/?q=zzzz");
+  const examples = main(page).locator('ul[aria-label="검색 예시"] a');
+  expect(await examples.count()).toBeGreaterThan(3);
+  await examples.first().click();
+  await expect(page).toHaveURL(/q=PPT/);
+  await expect(
+    main(page).locator("ul > li a[data-purpose]").first(),
+  ).toBeVisible();
+});
+
+test("첫 화면에 사용법 세 단계가 있다", async ({ page }) => {
+  await page.goto("/");
+  const steps = main(page).locator('ol[aria-label="사용법"] > li');
+  await expect(steps).toHaveCount(3);
+});
+
+test("목록 위 '표시 보는 법'을 열면 가격 표시의 뜻이 나온다", async ({
+  page,
+}) => {
+  // '무료로 시작'과 '체험만 무료'는 처음 보는 사람에게 같은 말로 읽힌다.
+  await page.goto("/?for=VIDEO");
+  await main(page).locator("summary", { hasText: "표시 보는 법" }).click();
+  await expect(main(page)).toContainText("처음 몇 번만 무료예요");
+  await expect(main(page)).toContainText("아직 직접 확인하지 못했어요");
+});
 /* Footer: tests/e2e/tools.spec.ts */

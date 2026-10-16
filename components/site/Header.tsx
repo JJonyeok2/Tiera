@@ -55,8 +55,12 @@ export default function Header({
 
   // 검색이 의미 있는 두 화면. 상세·비교·소개에서는 입력창을 띄우지 않는다.
   const searchable = pathname === "/" || pathname === "/models";
+  // 홈 검색은 이름만이 아니라 하려는 일도 찾는다(lib/search.ts). 예시를 placeholder에
+  // 넣어 둬야 "이름을 알아야 검색할 수 있다"고 생각하지 않는다.
   const placeholder =
-    pathname === "/models" ? "모델 또는 개발사 검색" : "도구 검색";
+    pathname === "/models"
+      ? "모델 또는 개발사 검색"
+      : "도구 이름이나 하려는 일 (예: PPT, 번역)";
 
   return (
     <header className="sticky top-0 z-30 border-b border-[var(--color-line)] bg-[var(--color-bg)]/92 backdrop-blur">
