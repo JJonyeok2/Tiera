@@ -329,6 +329,12 @@ export default async function HomePage({
         >
           모델 단위로 보기 — 벤치마크·커뮤니티 순위 →
         </Link>
+        <Link
+          href="/dev"
+          className="text-[13px] text-[var(--color-text-mute)] underline-offset-4 transition hover:text-[var(--color-text-dim)] hover:underline"
+        >
+          개발자용 — 하네스·스킬·MCP →
+        </Link>
       </div>
     </>
   );

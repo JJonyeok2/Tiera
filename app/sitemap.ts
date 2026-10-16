@@ -35,6 +35,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absoluteUrl("/models"), changeFrequency: "daily", priority: 0.7 },
     { url: absoluteUrl("/tiers"), changeFrequency: "daily", priority: 0.7 },
     { url: absoluteUrl("/about"), changeFrequency: "monthly", priority: 0.5 },
+    // 개발자 섹션은 코드에 든 정적 내용이라 DB 없이도 항상 올린다. SPEC 23.24
+    ...["/dev", "/dev/harness", "/dev/skills", "/dev/mcp", "/dev/guide"].map((p) => ({
+      url: absoluteUrl(p),
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    })),
   ];
 
   try {
