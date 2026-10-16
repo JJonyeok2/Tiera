@@ -1643,3 +1643,35 @@ tsc / ESLint 0 errors / 단위 **86** / E2E **50**.
 ### 테스트
 - `tests/search.test.ts` 13개: 실제 검색어 → 용도, 도구 이름·빈 검색어는 용도로 안 감, 한 글자·흔한 말 과잉 매칭 없음.
 - E2E 4개: ppt 검색에 발표자료 도구 5개 이상·본업 먼저, 빈 결과 예시 칩 → 결과, 사용법 3단계, 표시 보는 법 열기.
+
+## 23.23 보완점 수리와 점검 스크립트 `npm run doctor` (2026-10-16)
+
+**요청:** "지금 나온 취약점들? 보완점들 파악해서 수정하는 스크립트줘"
+
+### 바로 고친 것
+- **lock 파일**: `hyparquet`이 package.json에만 있어 `npm ci`가 실패했다. `npm install`로 다시 맞췄다.
+- **배포 의존성 취약점 high 3·moderate 1 → 0**:
+  - `npm audit fix`로 sharp(librsvg CVE)·source-map-js를 올렸다.
+  - Next 15가 자체로 묶어 둔 postcss 8.4.31(XSS·소스맵 경로 탐색)은 `overrides.postcss = ^8.5.28`로 올렸다.
+    `--force`가 제안한 Next 16 메이저 업그레이드는 하지 않는다. 빌드·테스트 전부 통과를 확인했다.
+  - 남은 건 개발 도구 쪽(eslint-config-next의 braces, drizzle-kit의 esbuild)뿐이다. 배포 번들에 들어가지 않고,
+    고치려면 메이저 다운그레이드가 필요해 그대로 둔다.
+- **클로드 코드 가격 정정**: FREEMIUM → PAID. 공식 빠른 시작의 요구 조건이 "Claude 구독(Pro, Max, Team 또는
+  Enterprise), Claude Console 계정 …"이다. caution에 "무료 플랜으로는 쓸 수 없어요"를 넣었다.
+- 클로바노트는 확인해 보니 시드가 이미 맞았다("개인용 유료 상품 자체가 없어요").
+
+### `scripts/doctor.ts`
+- `npm run doctor`는 점검만, `npm run doctor:fix`는 안전한 수리까지 한다. FAIL이 있으면 종료 코드 1(CI에 붙일 수 있음).
+
+| 점검 | --fix |
+|---|---|
+| lock 파일 동기화 | `npm install --package-lock-only` |
+| 배포 의존성 취약점(high·critical) | `npm audit fix`(`--force` 없이) |
+| env 파일이 git에 올라갔는지, 필수 키(DATABASE_URL·AUTH_SECRET) | 알림만 |
+| 커밋된 파일 속 비밀값(API 키·토큰·개인 키·원격 DB 비밀번호) | 알림만, **값은 출력하지 않음** |
+| "배우는 곳" 링크 생존(동시 6개, 12초 제한, 429·403은 정상 취급) | 알림만 |
+| 시드·검색 규칙 테스트 | 알림만 |
+
+- 링크가 절반 넘게 실패하면 개별 목록 대신 "네트워크·프록시 문제"로 알린다. 클라우드 작업 환경에서는 외부
+  사이트 접속이 막혀 이렇게 나왔고, 일반 PC에서 돌리면 실제 링크 상태가 나온다.
+- 검증: tsc·ESLint, vitest 135, Playwright 81 전부 통과, `npm run build` 성공.

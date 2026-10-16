@@ -939,13 +939,17 @@ export const SEED_TOOLS: SeedTool[] = [
     summary:
       "터미널에서 '이 버그 고쳐줘'라고 말하면 파일을 직접 읽고 고쳐요. 자동완성이 아니라 대신 일해주는 쪽에 가까워요.",
     howToStart: "터미널에 설치 명령 한 줄을 붙여넣으면 돼요. 웹이나 편집기 확장으로도 쓸 수 있어요.",
-    pricingKind: "FREEMIUM",
-    priceNote: "Claude 유료 구독에 포함돼 있어서 따로 결제하지 않아도 돼요.",
+    // 2026-10-16 정정: 예전엔 FREEMIUM("무료로 시작")이었는데, 공식 빠른 시작 문서의 요구 조건이
+    // "Claude 구독(Pro, Max, Team 또는 Enterprise), Claude Console 계정 …"이다. 무료 플랜으로는 못 쓴다.
+    pricingKind: "PAID",
+    priceNote:
+      "Claude 무료 플랜으로는 못 써요. Pro 이상 구독에 포함돼 있거나, API 크레딧을 충전해서 써요.",
     koreanLevel: "GOOD",
     siteUrl: "https://www.claude.com/product/claude-code",
     logoUrl: "/logos/claude-code.png",
     platforms: ["DESKTOP", "WEB", "PLUGIN", "IOS", "ANDROID"],
-    caution: "터미널을 처음 써보시는 분한테는 진입 장벽이 있어요. 코딩을 두세 달쯤 해본 뒤가 좋아요.",
+    caution:
+      "Claude 무료 플랜으로는 쓸 수 없어요. 터미널을 처음 써보시는 분한테는 진입 장벽도 있어요 — 코딩을 두세 달쯤 해본 뒤가 좋아요.",
     aliases: ["claude code", "클코", "cc", "클로드코드"],
   },
   {
