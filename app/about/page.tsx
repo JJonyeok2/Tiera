@@ -26,6 +26,7 @@ import {
 } from "@/lib/scoring/constants";
 import { CATEGORY_LABEL, TOOL_AXIS_LABEL, TOOL_AXIS_QUESTION } from "@/lib/labels";
 import { shareMeta } from "@/lib/site";
+import { POPULARITY, POPULARITY_SOURCES } from "@/db/seed-tools-popularity";
 
 export const metadata: Metadata = {
   // 레이아웃 템플릿이 " | Tiera"를 붙인다. 여기서 또 붙이면 "Tiera | Tiera"가 된다.
@@ -94,6 +95,54 @@ export default function AboutPage() {
           후기가 <strong>{TOOL_MIN_REVIEWS_FOR_TIER}개</strong> 쌓이기 전에는 티어와 종합 점수를
           카드에 띄우지 않아요. 후기 한두 개로는 &ldquo;이 도구는 골드&rdquo;가 아니라 &ldquo;한
           사람이 그렇게 말했다&rdquo;에 가깝기 때문이에요.
+        </p>
+      </section>
+
+      {/* 도구 목록 순서의 근거. 홈의 "많이 쓰는 순" 링크가 여기로 온다(SPEC 24.4).
+          숫자와 출처는 db/seed-tools-popularity.ts에서 가져온다 — 여기 따로 적으면
+          순위를 갱신했을 때 설명만 옛 조사로 남는다. */}
+      <section id="tool-order" className="scroll-mt-20 space-y-3">
+        <h2 className="text-base font-semibold text-[var(--color-text)]">도구 목록의 순서</h2>
+        <p>
+          도구는 <strong className="text-[var(--color-text)]">많이 쓰는 순</strong>으로 보여드려요.
+          위에 있다고 추천하는 건 아니에요. 처음 오신 분이 이름을 들어 본 도구부터 찾을 수 있게
+          하려는 거예요.
+        </p>
+        <ol className="ml-4 list-decimal space-y-1.5">
+          <li>
+            한국에서 쓰는 사람 수를 먼저 봐요 —{" "}
+            <a
+              href={POPULARITY_SOURCES.kr.url}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="underline underline-offset-2"
+            >
+              {POPULARITY_SOURCES.kr.name}
+            </a>
+            가 발표한 {POPULARITY_SOURCES.kr.what}예요.
+          </li>
+          <li>
+            한국 수치가 없는 도구는 세계 순위로 자리를 잡아요 —{" "}
+            <a
+              href={POPULARITY_SOURCES.global.url}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="underline underline-offset-2"
+            >
+              {POPULARITY_SOURCES.global.name}
+            </a>
+            의 {POPULARITY_SOURCES.global.what}예요.
+          </li>
+          <li>
+            두 곳 어디에서도 수치를 찾지 못한 도구는 순서를 매기지 않고 그 뒤에 둬요. 짐작으로
+            앞에 세우지 않아요.
+          </li>
+        </ol>
+        <p className="text-xs text-[var(--color-text-mute)]">
+          지금 순서가 매겨진 도구는 <strong>{POPULARITY.length}개</strong>예요 (
+          {POPULARITY_SOURCES.checkedAt} 확인). 한국 조사는 휴대폰 앱만 세서 PC로만 쓰는 사람은
+          빠져 있고, 파파고처럼 한국 수치를 아직 찾지 못한 국산 도구는 실제보다 아래에 있을 수
+          있어요. 서로 다른 조사를 이어 붙인 순서라 &ldquo;몇 위&rdquo;라고 적지는 않아요.
         </p>
       </section>
 

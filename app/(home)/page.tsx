@@ -220,6 +220,7 @@ export default async function HomePage({
             <h2 className="text-[20px] font-bold tracking-tight text-[var(--color-text)]">
               전체 도구
             </h2>
+            <SortNote />
             <div className="ml-auto">
               <LabelGuide />
             </div>
@@ -228,6 +229,8 @@ export default async function HomePage({
           <>
             {/* 가격·한국어 표시를 처음 보는 사람을 위한 풀이. 목록 바로 위에 둔다. */}
             <LabelGuide />
+            {/* 검색 중에는 이름이 맞은 도구가 먼저라(lib/search.ts) 이 말이 틀린다. */}
+            {q ? null : <SortNote />}
             <Link
               href={
                 origin === "KR"
@@ -337,6 +340,24 @@ export default async function HomePage({
         </Link>
       </div>
     </>
+  );
+}
+
+/**
+ * 목록이 어떤 순서인지 한마디. SPEC 24.4.
+ *
+ * 순서에 기준이 있다는 걸 말하지 않으면 위에 있는 도구가 "추천"으로 읽힌다.
+ * 추천이 아니라 많이 쓰는 순이고, 근거는 /about에 적어 뒀다.
+ */
+function SortNote() {
+  return (
+    <Link
+      href="/about#tool-order"
+      data-testid="sort-note"
+      className="text-[13px] text-[var(--color-text-mute)] underline-offset-4 hover:text-[var(--color-text-dim)] hover:underline"
+    >
+      많이 쓰는 순
+    </Link>
   );
 }
 

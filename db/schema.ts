@@ -506,6 +506,18 @@ export const tools = pgTable(
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
     /** 시드 내용의 해시. updatedAt을 올릴지 판단하는 데만 쓴다. */
     contentHash: text("content_hash"),
+
+    /**
+     * 많이 쓰는 순서. 1이 가장 많이 쓰는 도구다. SPEC 24.
+     *
+     * **공개된 사용량 수치를 확인한 도구만 채운다.** 못 찾은 도구는 null로 두고
+     * 목록에서 순위가 있는 도구 뒤에 놓는다 — 지어낸 순위로 앞에 세우지 않는다.
+     * 값과 근거는 db/seed-tools-popularity.ts 한 곳에서만 관리한다.
+     *
+     * 화면에 숫자로 내보내지 않는다. "12위" 같은 표기는 서로 다른 조사를 이어 붙인
+     * 순서를 하나의 순위표처럼 보이게 만든다. 정렬에만 쓴다.
+     */
+    popularityRank: integer("popularity_rank"),
   },
   (t) => [
     index("tool_purpose_idx").on(t.purpose),

@@ -19,6 +19,7 @@ import { eq, isNull, sql } from "drizzle-orm";
 import { developers, models, tools } from "@/db/schema";
 import { DEVELOPER_DEFAULT_TOOL, SEED_TOOLS } from "@/db/seed-tools-data";
 import { LEARN_LINKS } from "@/db/seed-tools-learn";
+import { POPULARITY_RANK } from "@/db/seed-tools-popularity";
 import { explainError } from "./explain-error";
 
 /**
@@ -79,9 +80,14 @@ async function upsertTools(db: Db): Promise<Map<string, string>> {
       .update(JSON.stringify(values))
       .digest("hex");
 
+    // 많이 쓰는 순서(SPEC 24). **해시에 넣지 않는다.** 순서는 화면에 글자로 나가지
+    // 않는 정렬 값이라, 이게 바뀌었다고 updated_at(sitemap lastmod)을 올리면
+    // 검색엔진에 "내용이 바뀌었다"고 거짓말을 하게 된다.
+    const popularityRank = POPULARITY_RANK[t.slug] ?? null;
+
     const [row] = await db
       .insert(tools)
-      .values({ ...values, contentHash })
+      .values({ ...values, contentHash, popularityRank })
       .onConflictDoUpdate({
         target: tools.slug,
         // status·isPublished·createdAt은 갱신 대상에서 뺀다.
@@ -106,6 +112,8 @@ async function upsertTools(db: Db): Promise<Map<string, string>> {
           caution: values.caution,
           aliases: values.aliases,
           learn: values.learn,
+          // 목록에서 빠진 도구는 null로 되돌린다. 예전 순위가 남아 있으면 안 된다.
+          popularityRank,
           contentHash,
           // Postgres의 SET은 전부 **바뀌기 전** 행을 본다. 그래서 같은 문장에서
           // content_hash를 새 값으로 덮어써도 여기 비교는 옛 해시와 한다.
@@ -190,6 +198,10 @@ export async function seedTools(db: Db) {
   );
   console.log(
     `한국 제작 ${SEED_TOOLS.filter((t) => t.origin === "KR").length}개`,
+  );
+  console.log(
+    `많이 쓰는 순서 확인 ${SEED_TOOLS.filter((t) => POPULARITY_RANK[t.slug] != null).length}개 ` +
+      `(나머지는 순위 없이 뒤에 놓입니다)`,
   );
   console.log(
     `한국어 미확인 ${SEED_TOOLS.filter((t) => t.koreanLevel === "UNKNOWN").length}개 ` +

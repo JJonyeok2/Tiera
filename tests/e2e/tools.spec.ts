@@ -4,6 +4,7 @@
    화면이라, 검증 대상은 **잘 모르는 사람이 필요한 정보를 다 보는가**다. */
 import { expect, test } from "@playwright/test";
 import { SEED_TOOLS } from "@/db/seed-tools-data";
+import { POPULARITY_RANK } from "@/db/seed-tools-popularity";
 
 /**
  * 로케이터는 반드시 main 안으로 좁힌다.
@@ -284,6 +285,60 @@ test("용도 탭에서는 그 용도가 본업인 도구가 겸하는 도구보�
     "겸하는 도구도 있어야 정렬을 확인할 수 있다",
   ).toBeGreaterThan(0);
   expect(lastHome, purposes.join(" / ")).toBeLessThan(firstGuest);
+});
+test("용도 탭 안에서는 많이 쓰는 도구가 먼저 나온다 (SPEC 24)", async ({
+  page,
+}) => {
+  // 예전에는 용도 순·이름 순이라 영상 탭 맨 위가 브루였다. 처음 온 사람이 제일 먼저
+  // 찾는 캡컷이 그 아래에 있었다.
+  await page.goto("/?for=VIDEO");
+  const rows = page.locator("main ul > li a[data-purpose]");
+  const list = await rows.evaluateAll((els) =>
+    els.map((e) => ({
+      slug: (e.getAttribute("href") ?? "").replace("/tools/", ""),
+      purpose: e.getAttribute("data-purpose"),
+    })),
+  );
+  // 본업 도구만 본다. 겸하는 도구는 순위가 높아도 뒤에 오는 게 맞다(위 테스트).
+  const home = list.filter((r) => r.purpose === "VIDEO").map((r) => r.slug);
+  expect(home.length).toBeGreaterThan(2);
+  expect(home[0]).toBe("capcut");
+
+  // 순위 있는 도구가 전부 순위 없는 도구보다 앞이고, 자기들끼리는 순위 순이다.
+  const ranks = home.map((s) => POPULARITY_RANK[s] ?? Infinity);
+  expect(ranks, home.join(" / ")).toEqual([...ranks].sort((a, b) => a - b));
+  expect(ranks.some((r) => r === Infinity), "순위 없는 도구도 목록에 남아야 한다").toBe(
+    true,
+  );
+});
+test("목록 순서의 기준을 밝히고, 근거 설명으로 이어진다 (SPEC 24)", async ({
+  page,
+}) => {
+  await page.goto("/?for=CHAT");
+  const note = main(page).getByTestId("sort-note");
+  await expect(note).toHaveText("많이 쓰는 순");
+  await note.click();
+  await expect(page).toHaveURL(/\/about#tool-order$/);
+  const section = main(page).locator("#tool-order");
+  await expect(section).toContainText("많이 쓰는 순");
+  // 출처 없이 "많이 쓴다"고만 하면 근거가 없는 말이다. 바깥 링크는 안전하게 연다.
+  const links = section.locator('a[target="_blank"]');
+  expect(await links.count()).toBe(2);
+  for (const a of await links.all()) {
+    await expect(a).toHaveAttribute("rel", /noopener/);
+    await expect(a).toHaveAttribute("href", /^https:\/\//);
+  }
+  // 순위 사이트로 읽히면 안 된다. 홈 목록에 "N위"를 찍지 않는다.
+  await page.goto("/?for=CHAT");
+  await expect(main(page).locator("ul > li").first()).not.toContainText(/\d+위/);
+});
+test("검색 중에는 '많이 쓰는 순'이라고 말하지 않는다 (SPEC 24)", async ({
+  page,
+}) => {
+  // 검색 결과는 이름이 맞은 도구가 먼저다. 그 화면에 이 말이 있으면 틀린 말이 된다.
+  await page.goto("/?q=ppt");
+  await expect(main(page).locator("ul > li").first()).toBeVisible();
+  await expect(main(page).getByTestId("sort-note")).toHaveCount(0);
 });
 test("첫 화면에는 고르기 칸만 보이고, 목록은 스크롤하면 떠오른다", async ({
   page,

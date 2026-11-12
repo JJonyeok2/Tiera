@@ -12,6 +12,12 @@ import { DEVELOPER_DEFAULT_TOOL, SEED_TOOLS } from "@/db/seed-tools-data";
 import { DEVELOPERS } from "@/db/seed-data";
 import { toolPurposeEnum } from "@/db/schema";
 import { LEARN_LINKS } from "@/db/seed-tools-learn";
+import {
+  POPULARITY,
+  POPULARITY_RANK,
+  POPULARITY_SOURCES,
+  bestGlobalRank,
+} from "@/db/seed-tools-popularity";
 
 const slugs = SEED_TOOLS.map((t) => t.slug);
 
@@ -260,6 +266,75 @@ describe("도구 시드 — 배우는 곳 (SPEC 23.21)", () => {
       if (firstEn >= 0 && lastKo >= 0)
         expect(lastKo, slug).toBeLessThan(firstEn);
     }
+  });
+});
+
+describe("많이 쓰는 순 — SPEC 24", () => {
+  // 순서는 손으로 적는 배열이라, 줄 하나를 잘못 옮기면 아무도 모르게 틀린다.
+  // 파일 헤더의 규칙을 여기서 강제한다.
+
+  it("시드에 있는 도구만 가리키고, 같은 도구가 두 번 나오지 않는다", () => {
+    const listed = POPULARITY.map((e) => e.slug);
+    expect(new Set(listed).size).toBe(listed.length);
+    for (const s of listed) expect(slugs, s).toContain(s);
+  });
+
+  it("근거 없는 항목이 없다 — 국내 수치나 세계 순위 중 하나는 있어야 한다", () => {
+    for (const e of POPULARITY) {
+      const hasKr = e.kr !== undefined;
+      const hasGlobal = bestGlobalRank(e) !== undefined;
+      expect(hasKr || hasGlobal, e.slug).toBe(true);
+    }
+  });
+
+  it("수치가 말이 되는 범위다", () => {
+    for (const e of POPULARITY) {
+      if (e.kr) {
+        expect(e.kr.manUsers, e.slug).toBeGreaterThan(0);
+        // 한국 인구보다 많을 수 없다.
+        expect(e.kr.manUsers, e.slug).toBeLessThan(5200);
+        expect(e.kr.month, e.slug).toMatch(/^20\d{2}-(0[1-9]|1[0-2])$/);
+      }
+      for (const r of [e.global?.web, e.global?.mobile]) {
+        if (r === undefined) continue;
+        expect(Number.isInteger(r), e.slug).toBe(true);
+        expect(r, e.slug).toBeGreaterThanOrEqual(1);
+        expect(r, e.slug).toBeLessThanOrEqual(50);
+      }
+    }
+  });
+
+  it("국내 수치가 있는 도구끼리는 이용자가 많은 쪽이 앞이다 (규칙 2)", () => {
+    const kr = POPULARITY.filter((e) => e.kr);
+    for (let i = 1; i < kr.length; i++) {
+      expect(
+        kr[i - 1].kr!.manUsers,
+        `${kr[i - 1].slug} → ${kr[i].slug}`,
+      ).toBeGreaterThanOrEqual(kr[i].kr!.manUsers);
+    }
+  });
+
+  it("세계 순위만 있는 도구끼리는 순위가 높은 쪽이 앞이다 (규칙 3)", () => {
+    const globalOnly = POPULARITY.filter((e) => !e.kr);
+    for (let i = 1; i < globalOnly.length; i++) {
+      expect(
+        bestGlobalRank(globalOnly[i - 1])!,
+        `${globalOnly[i - 1].slug} → ${globalOnly[i].slug}`,
+      ).toBeLessThanOrEqual(bestGlobalRank(globalOnly[i])!);
+    }
+  });
+
+  it("순위는 1부터 빈 번호 없이 이어진다", () => {
+    const ranks = POPULARITY.map((e) => POPULARITY_RANK[e.slug]);
+    expect(ranks).toEqual(POPULARITY.map((_, i) => i + 1));
+  });
+
+  it("출처 링크는 https이고 조사 시점이 적혀 있다", () => {
+    for (const src of [POPULARITY_SOURCES.kr, POPULARITY_SOURCES.global]) {
+      expect(src.url).toMatch(/^https:\/\//);
+      expect(src.month).toMatch(/^20\d{2}-(0[1-9]|1[0-2])$/);
+    }
+    expect(POPULARITY_SOURCES.checkedAt).toMatch(/^20\d{2}-\d{2}-\d{2}$/);
   });
 });
 /* Footer: tests/seed-tools.test.ts */

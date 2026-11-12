@@ -1,0 +1,1 @@
+ALTER TABLE "tool" ADD COLUMN IF NOT EXISTS "popularity_rank" integer;
