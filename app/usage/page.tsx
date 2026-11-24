@@ -113,7 +113,15 @@ export default async function UsagePage() {
             : "",
           when: `${api.usage.start.slice(5).replace("-", ".")}~${api.usage.end.slice(5).replace("-", ".")} 7일`,
         }
-      : { id: "api", label: "개발자 API", top: "–", value: "", second: "", when: "" },
+      : {
+          id: "api",
+          label: "개발자 API",
+          top: "–",
+          // "아직 안 모였다"와 "못 불러왔다"는 다른 상황이다. 첫 배포 직후는 전자다.
+          value: api.status === "empty" ? "데이터를 모으는 중이에요" : "지금은 불러오지 못했어요",
+          second: "",
+          when: "",
+        },
   ];
 
   const months = WEB_SHARE.map((m) => m.month);
@@ -153,7 +161,7 @@ export default async function UsagePage() {
             >
               <span className="text-[12.5px] text-[var(--color-text-mute)]">{t.label}</span>
               {t.top === "–" ? (
-                <span className="text-[14px] text-[var(--color-text-dim)]">지금은 불러오지 못했어요</span>
+                <span className="text-[14px] text-[var(--color-text-dim)]">{t.value}</span>
               ) : (
                 <>
                   <span className="text-[22px] font-bold text-[var(--color-text)]">{t.top}</span>
