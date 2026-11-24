@@ -19,6 +19,14 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import TierStar from "@/components/tier/TierStar";
 
+/** 헤더 링크. 순서가 곧 화면 순서다 */
+const NAV: { href: string; label: string; match: (path: string) => boolean }[] = [
+  { href: "/usage", label: "사용량", match: (p) => p === "/usage" },
+  { href: "/local", label: "내 PC로", match: (p) => p.startsWith("/local") },
+  { href: "/dev", label: "개발자", match: (p) => p.startsWith("/dev") },
+  { href: "/tiers", label: "티어표", match: (p) => p === "/tiers" },
+];
+
 export default function Header({
   userMenu,
   themeToggle,
@@ -95,55 +103,35 @@ export default function Header({
             없는 화면(상세)에서 버튼 위치가 달라졌다. 데스크톱에서는 검색창이
             flex-1로 남은 폭을 먹으므로 ml-auto가 있어도 결과가 같다. */}
         <div className="ml-auto flex shrink-0 items-center gap-3">
-          {/* 티어표는 사이트 이름(Tiera)의 뿌리라 어디서든 한 번에 갈 수 있게 둔다.
-              도구 안내가 첫 화면이 된 뒤로 /models 안쪽에 묻혀 있었다. */}
-          {/* 사용량(/usage)은 "누가 제일 많이 쓰이나" — 일반 사용자가 가장 궁금해하는 질문이라 맨 앞. SPEC 26 */}
-          <Link
-            href="/usage"
-            aria-current={pathname === "/usage" ? "page" : undefined}
-            className={`text-[13px] transition hover:text-[var(--color-text)] ${
-              pathname === "/usage"
-                ? "font-semibold text-[var(--color-text)]"
-                : "text-[var(--color-text-mute)]"
-            }`}
+          {/* 페이지 링크 묶음과 유틸(테마·계정)을 눈으로 나눈다. 예전에는 링크 네 개와 버튼이
+              같은 간격으로 한 줄에 늘어서 어디까지가 메뉴인지 안 보였다(2026-11-24 피드백).
+              - 링크는 테두리 있는 알약 하나로 묶고, 현재 페이지는 칸을 채운다.
+              - 그 오른쪽에 세로 구분선을 두고 테마·로그인을 놓는다.
+              링크 순서의 근거: 사용량(SPEC 26)·내 PC로(SPEC 25)는 일반 사용자용이라 앞,
+              개발자(SPEC 23.24)·티어표(사이트 이름의 뿌리)는 뒤. */}
+          <nav
+            aria-label="주요 메뉴"
+            className="flex items-center rounded-full border border-[var(--color-line)] p-0.5"
           >
-            사용량
-          </Link>
-          {/* 로컬 AI(/local)는 "공짜로 내 컴퓨터에서"를 찾는 일반 사용자용이라 개발자 앞에 둔다. SPEC 25 */}
-          <Link
-            href="/local"
-            aria-current={pathname.startsWith("/local") ? "page" : undefined}
-            className={`text-[13px] transition hover:text-[var(--color-text)] ${
-              pathname.startsWith("/local")
-                ? "font-semibold text-[var(--color-text)]"
-                : "text-[var(--color-text-mute)]"
-            }`}
-          >
-            내 PC로
-          </Link>
-          {/* 개발자 섹션(/dev)은 일반 사용자 흐름과 분리했지만, 찾을 수는 있어야 한다. SPEC 23.24 */}
-          <Link
-            href="/dev"
-            aria-current={pathname.startsWith("/dev") ? "page" : undefined}
-            className={`text-[13px] transition hover:text-[var(--color-text)] ${
-              pathname.startsWith("/dev")
-                ? "font-semibold text-[var(--color-text)]"
-                : "text-[var(--color-text-mute)]"
-            }`}
-          >
-            개발자
-          </Link>
-          <Link
-            href="/tiers"
-            aria-current={pathname === "/tiers" ? "page" : undefined}
-            className={`text-[13px] transition hover:text-[var(--color-text)] ${
-              pathname === "/tiers"
-                ? "font-semibold text-[var(--color-text)]"
-                : "text-[var(--color-text-mute)]"
-            }`}
-          >
-            티어표
-          </Link>
+            {NAV.map((n) => {
+              const on = n.match(pathname);
+              return (
+                <Link
+                  key={n.href}
+                  href={n.href}
+                  aria-current={on ? "page" : undefined}
+                  className={`whitespace-nowrap rounded-full px-2.5 py-1 text-[13px] transition hover:text-[var(--color-text)] ${
+                    on
+                      ? "bg-[var(--color-surface-2)] font-semibold text-[var(--color-text)]"
+                      : "text-[var(--color-text-mute)]"
+                  }`}
+                >
+                  {n.label}
+                </Link>
+              );
+            })}
+          </nav>
+          <span aria-hidden className="h-5 w-px bg-[var(--color-line)]" />
           {themeToggle}
           {userMenu}
         </div>
