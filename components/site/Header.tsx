@@ -97,6 +97,18 @@ export default function Header({
         <div className="ml-auto flex shrink-0 items-center gap-3">
           {/* 티어표는 사이트 이름(Tiera)의 뿌리라 어디서든 한 번에 갈 수 있게 둔다.
               도구 안내가 첫 화면이 된 뒤로 /models 안쪽에 묻혀 있었다. */}
+          {/* 로컬 AI(/local)는 "공짜로 내 컴퓨터에서"를 찾는 일반 사용자용이라 개발자 앞에 둔다. SPEC 25 */}
+          <Link
+            href="/local"
+            aria-current={pathname.startsWith("/local") ? "page" : undefined}
+            className={`text-[13px] transition hover:text-[var(--color-text)] ${
+              pathname.startsWith("/local")
+                ? "font-semibold text-[var(--color-text)]"
+                : "text-[var(--color-text-mute)]"
+            }`}
+          >
+            내 PC로
+          </Link>
           {/* 개발자 섹션(/dev)은 일반 사용자 흐름과 분리했지만, 찾을 수는 있어야 한다. SPEC 23.24 */}
           <Link
             href="/dev"

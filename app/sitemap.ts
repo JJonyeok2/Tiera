@@ -23,6 +23,7 @@
 import type { MetadataRoute } from "next";
 import { sql } from "drizzle-orm";
 import { absoluteUrl } from "@/lib/site";
+import { VRAM_CLASSES } from "@/lib/local/data";
 
 export const revalidate = 3600;
 
@@ -38,6 +39,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // 개발자 섹션은 코드에 든 정적 내용이라 DB 없이도 항상 올린다. SPEC 23.24
     ...["/dev", "/dev/harness", "/dev/skills", "/dev/mcp", "/dev/guide"].map((p) => ({
       url: absoluteUrl(p),
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    })),
+    // 로컬 모델도 코드에 든 정적 내용이다. 등급 페이지만 올린다 — 카드별 URL(?gpu=)은
+    // 같은 문서의 강조 표시일 뿐이라 canonical이 등급 페이지다. SPEC 25.6
+    { url: absoluteUrl("/local"), changeFrequency: "weekly" as const, priority: 0.7 },
+    ...VRAM_CLASSES.map((c) => ({
+      url: absoluteUrl(`/local/${c.slug}`),
       changeFrequency: "weekly" as const,
       priority: 0.6,
     })),

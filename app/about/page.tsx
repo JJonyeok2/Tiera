@@ -27,6 +27,14 @@ import {
 import { CATEGORY_LABEL, TOOL_AXIS_LABEL, TOOL_AXIS_QUESTION } from "@/lib/labels";
 import { shareMeta } from "@/lib/site";
 import { POPULARITY, POPULARITY_SOURCES } from "@/db/seed-tools-popularity";
+import {
+  OS_RESERVED_GB,
+  RUNTIME_OVERHEAD_GB,
+  UNIFIED_USABLE,
+  USE_CASES,
+  VRAM_USABLE,
+  formatContext as formatLocalContext,
+} from "@/lib/local/vram";
 
 export const metadata: Metadata = {
   // 레이아웃 템플릿이 " | Tiera"를 붙인다. 여기서 또 붙이면 "Tiera | Tiera"가 된다.
@@ -143,6 +151,43 @@ export default function AboutPage() {
           {POPULARITY_SOURCES.checkedAt} 확인). 한국 조사는 휴대폰 앱만 세서 PC로만 쓰는 사람은
           빠져 있고, 파파고처럼 한국 수치를 아직 찾지 못한 국산 도구는 실제보다 아래에 있을 수
           있어요. 서로 다른 조사를 이어 붙인 순서라 &ldquo;몇 위&rdquo;라고 적지는 않아요.
+        </p>
+      </section>
+
+      {/* 로컬 모델 메모리 계산(SPEC 25.4). 상수는 lib/local/vram.ts에서 그대로 읽는다. */}
+      <section id="local" className="scroll-mt-20 space-y-3">
+        <h2 className="text-base font-semibold text-[var(--color-text)]">
+          <Link href="/local" className="hover:underline">내 컴퓨터로 돌릴 수 있는 AI</Link>의 메모리 계산
+        </h2>
+        <p>
+          실제로 돌려서 잰 값이 아니라 <strong className="text-[var(--color-text)]">계산한 추정치</strong>예요.
+          속도는 계산으로 알 수 없어서 적지 않았어요.
+        </p>
+        <ol className="ml-4 list-decimal space-y-1.5">
+          <li>
+            필요 메모리 = 모델 파일 크기 + 대화 기억(KV 캐시) + 실행 프로그램 몫 {RUNTIME_OVERHEAD_GB}GB.
+            파일 크기는 Ollama에 올라온 값 그대로예요.
+          </li>
+          <li>
+            대화 기억은 한 번에 기억하는 길이에 비례해요. 대화는 {formatLocalContext(USE_CASES[0].context)},
+            긴 문서는 {formatLocalContext(USE_CASES[1].context)}, 에이전트는 {formatLocalContext(USE_CASES[2].context)} 토큰으로 계산해요.
+            최근 모델은 일부 층만 긴 기억을 쓰는 구조라, 모델이 공개한 구조 값(config.json)대로 층마다 따로 계산해요.
+          </li>
+          <li>
+            그래픽카드는 화면 출력에도 쓰이니 {Math.round(VRAM_USABLE * 100)}%만 AI 몫으로 봐요. Mac은 메모리를
+            운영체제와 나눠 써서 {Math.round(UNIFIED_USABLE * 100)}%로 봐요.
+          </li>
+          <li>
+            시스템 RAM을 알려주시면, 그래픽카드에 안 들어가는 만큼을 RAM으로 넘길 수 있는지도 봐요
+            ({OS_RESERVED_GB}GB는 운영체제 몫으로 남겨요). 넘기면 돌아가긴 하지만 많이 느려져요.
+          </li>
+          <li>
+            한 번에 일부만 쓰는 모델(MoE, 예: 30B-A3B)도 메모리에는 전체가 올라가요. 그래서 전체 크기로 계산해요.
+          </li>
+        </ol>
+        <p className="text-xs text-[var(--color-text-mute)]">
+          그래픽카드는 VRAM 용량으로 묶어서 보여줘요. 메모리만 계산하는 지금은 VRAM이 같으면 결과가 같아서예요.
+          카드마다 다른 속도는 실측 데이터가 생기면 붙일게요.
         </p>
       </section>
 

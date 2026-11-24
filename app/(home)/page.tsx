@@ -321,6 +321,12 @@ export default async function HomePage({
       {/* 개발자용 입구. 목록 끝의 마무리라 조용해야 한다. */}
       <div className="mt-14 flex flex-wrap gap-x-6 gap-y-2 border-t border-[var(--color-line-soft)] pt-6">
         <Link
+          href="/local"
+          className="text-[13px] text-[var(--color-text-mute)] underline-offset-4 transition hover:text-[var(--color-text-dim)] hover:underline"
+        >
+          내 컴퓨터로 돌릴 수 있는 AI — 그래픽카드별 →
+        </Link>
+        <Link
           href="/tiers"
           className="text-[13px] text-[var(--color-text-mute)] underline-offset-4 transition hover:text-[var(--color-text-dim)] hover:underline"
         >
