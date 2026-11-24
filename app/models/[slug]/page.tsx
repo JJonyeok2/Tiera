@@ -15,6 +15,7 @@ import ReviewSection from "@/components/review/ReviewSection";
 import { auth } from "@/auth";
 import { getMyReview, listReviews } from "@/lib/reviews";
 import { shareMeta } from "@/lib/site";
+import LocalRunSection from "@/components/local/LocalRunSection";
 
 // 세션(로그인 여부)에 따라 리뷰 영역이 달라지므로 정적 캐시를 쓰지 않는다.
 export const dynamic = "force-dynamic";
@@ -131,6 +132,8 @@ export default async function ModelPage({ params }: { params: Promise<{ slug: st
           />
         </dl>
       </Section>
+
+      <LocalRunSection modelSlug={model.slug} />
 
       <Section title="벤치마크 원본">
         {model.benchmarks.length === 0 ? (

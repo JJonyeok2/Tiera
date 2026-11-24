@@ -32,6 +32,7 @@ import {
   TOOL_AXIS_QUESTION,
 } from "@/lib/labels";
 import { shareMeta } from "@/lib/site";
+import { toolUsageLine } from "@/lib/usage/summary";
 import type { LearnLink } from "@/db/schema";
 
 // 후기는 로그인 사용자마다 "내 후기"가 다르므로 페이지 단위 캐시를 쓰지 않는다.
@@ -283,6 +284,19 @@ export default async function ToolPage({
           공식 사이트 열기 ↗
         </a>
       </Section>
+
+      {/* 사용량 대시보드(SPEC 26)와 잇는 한 줄. 코드 데이터만 읽는다 — DB 호출을 늘리지 않는다. */}
+      {(() => {
+        const usage = toolUsageLine(tool.slug);
+        return usage ? (
+          <Section title="얼마나 많이 쓰나요">
+            <p data-testid="tool-usage">{usage}</p>
+            <Link href="/usage" className="mt-1.5 inline-block text-[13px] text-[var(--color-text-mute)] underline underline-offset-4">
+              다른 AI와 잣대별로 비교하기 →
+            </Link>
+          </Section>
+        ) : null;
+      })()}
 
       {/* 두 층을 잇는 지점. 모델이 없는 도구가 대부분이라 있을 때만 그린다. */}
       {tool.models.length > 0 && (

@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/snapshot",
       "schedule": "20 15 * * *"
+    },
+    {
+      "path": "/api/cron/usage",
+      "schedule": "40 15 * * *"
     }
   ],
   "regions": [

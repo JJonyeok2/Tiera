@@ -64,6 +64,13 @@
       "when": 1794498950002,
       "tag": "0008_parched_the_executioner",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1795526215391,
+      "tag": "0009_jazzy_vivisector",
+      "breakpoints": true
     }
   ]
 }
