@@ -321,6 +321,12 @@ export default async function HomePage({
       {/* 개발자용 입구. 목록 끝의 마무리라 조용해야 한다. */}
       <div className="mt-14 flex flex-wrap gap-x-6 gap-y-2 border-t border-[var(--color-line-soft)] pt-6">
         <Link
+          href="/usage"
+          className="text-[13px] text-[var(--color-text-mute)] underline-offset-4 transition hover:text-[var(--color-text-dim)] hover:underline"
+        >
+          지금 누가 제일 많이 쓰이나 — 잣대별 1등 →
+        </Link>
+        <Link
           href="/local"
           className="text-[13px] text-[var(--color-text-mute)] underline-offset-4 transition hover:text-[var(--color-text-dim)] hover:underline"
         >

@@ -75,6 +75,11 @@
   --c-bronze: #a05a1c;
 
   --c-up: #0f9d63;
+  /* 사용량 대시보드 3강 색(SPEC 26). dataviz 기본 팔레트 1~3번, 검증기 통과값.
+     라이트 아쿠아는 바탕 대비 2.8:1이라 항상 글자 라벨·표와 함께 쓴다. */
+  --c-brand-chatgpt: #2a78d6;
+  --c-brand-gemini: #eb6834;
+  --c-brand-claude: #1baf7a;
   --c-down: #d64545;
 
   /* 별 마크 뒤 글로우 세기 — 밝은 배경에서는 약하게 */
@@ -112,6 +117,9 @@
     --c-bronze: #e0913f;
 
     --c-up: #5fcf9d;
+    --c-brand-chatgpt: #3987e5;
+    --c-brand-gemini: #d95926;
+    --c-brand-claude: #199e70;
     --c-down: #ef8a8a;
 
     --star-glow: 1;
@@ -141,6 +149,9 @@
   --c-bronze: #e0913f;
 
   --c-up: #5fcf9d;
+  --c-brand-chatgpt: #3987e5;
+  --c-brand-gemini: #d95926;
+  --c-brand-claude: #199e70;
   --c-down: #ef8a8a;
 
   --star-glow: 1;

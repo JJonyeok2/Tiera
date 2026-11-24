@@ -8,6 +8,7 @@
  * ------------------------------------------------------------------------- */
 
 import {
+  bigint,
   boolean,
   date,
   doublePrecision,
@@ -386,6 +387,23 @@ export const rankSnapshots = pgTable(
     uniqueIndex("rank_snapshot_uq").on(t.modelId, t.scoreType, t.scope, t.date),
     index("rank_snapshot_date_idx").on(t.date, t.scoreType, t.scope),
   ],
+);
+
+// --- 사용량 (SPEC 26) ---------------------------------------------------------
+// OpenRouter rankings-daily를 개발사(author) 단위로 묶어 날짜별로 쌓는다.
+// 점유율이 아니라 원래 토큰 수를 저장한다 — 점유율은 기간을 어떻게 자르느냐에 따라
+// 달라지므로 화면이 계산한다. 모델 단위로 저장하지 않는 이유: 화면은 개발사 단위만
+// 보여주고, 모델 50개 × 365일을 쌓을 이유가 없다.
+export const usageDaily = pgTable(
+  "usage_daily",
+  {
+    source: text("source").notNull(), // "openrouter"
+    date: date("date", { mode: "string" }).notNull(), // UTC 날짜
+    author: text("author").notNull(), // permaslug 앞부분. 상위 50 밖 합계는 "other"
+    tokens: bigint("tokens", { mode: "number" }).notNull(),
+    fetchedAt: timestamp("fetched_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.source, t.date, t.author] })],
 );
 
 // --- 도구 ------------------------------------------------------------------

@@ -1917,3 +1917,60 @@ KV 캐시    = Σ(레이어 묶음) 2 × 레이어 × KV헤드 × 헤드차원 �
 - 도구 시드에 Ollama·LM Studio·Hermes Agent 추가 — `tool_purpose`에 `LOCAL` 값 추가(마이그레이션) 필요. 지금은 `/local`에서 공식 사이트로만 연결한다
 - 더 새 오픈 모델(Qwen3.6·3.8 27B, EXAONE 4.x)의 Ollama 태그·구조 확인 후 추가
 - v2: LocalScore 등 실측 속도를 등급 페이지 안 카드별 행으로
+
+---
+
+# 26. 지금 누가 제일 많이 쓰이나 — 사용량 대시보드 (2026-11-24)
+
+"ChatGPT, Gemini, Claude 중 누가 이기나"는 SNS 설전의 단골인데, 끝나지 않는 이유는
+대개 **서로 다른 잣대**를 들고 싸우기 때문이다. `/usage`는 잣대 세 개를 나란히 놓고
+"잣대마다 1등이 다르다"를 보여준다. 기획 원문은 프로젝트 문서 `spec-26-usage-dashboard.md`.
+
+## 26.1 잣대
+
+| 잣대 | 출처 | 단위 | 수집 |
+|---|---|---|---|
+| A 국내 앱 사용자 | 와이즈앱·리테일 — `db/seed-tools-popularity.ts` 값을 그대로 가져온다 | 만 명 | 수동(코드) |
+| B 세계 웹 방문 | Similarweb 월간 공개 수치 — 인용 보도에서 옮김(`secondHand`) | % | 수동(코드, `lib/usage/monthly.ts`) |
+| C 개발자 API | OpenRouter `rankings-daily` (CC BY 4.0) | 토큰 % | 자동(크론) |
+
+원칙: **잣대끼리 합치지 않는다**(종합 순위 없음, 24장과 같은 이유). 숫자마다 기준 시점과 출처.
+승패 말투 대신 "이 잣대에서는 1등".
+
+## 26.2 C — OpenRouter
+
+- `GET /api/v1/datasets/rankings-daily` — OpenRouter API 키 필요. 날마다 상위 50개 모델 + `other` 합계.
+- `lib/data-sources/openrouter.ts`: 파싱(모양이 다르면 던진다) → 개발사 단위 일별 합계로 접기.
+- `usage_daily(source, date, author, tokens, fetched_at)` — 점유율이 아니라 **원래 토큰 수**를 쌓는다.
+  점유율은 기간을 어떻게 자르느냐에 달려 있어 화면이 계산한다. `fetched_at`에는 응답의 `meta.as_of`.
+- 크론 `/api/cron/usage` 매일 00:40 KST. 최근 15일을 받아 한 트랜잭션으로 upsert. 실패하면 아무것도 안 쓴다.
+  `CRON_SECRET` 미설정 503 / 불일치 401, `OPENROUTER_API_KEY` 없으면 503.
+- 점유율(`lib/usage/share.ts`): 최근 7일, 직전 7일 대비 %p. **7일이 다 차지 않으면 내지 않는다.**
+  분모에 `other`를 넣고(빼면 상위 몫이 부풀려진다) 순위에서는 뺀다.
+  표에 없는 개발사는 "기타"에 묻지 않고 이름 그대로 — 새로 치고 올라온 회사가 이 화면의 핵심 정보다.
+- 출처 표기: "Source: OpenRouter (openrouter.ai/rankings), as of <as_of>. Licensed under CC BY 4.0."
+- 한계 문구 상시 노출: OpenRouter를 거친 요청만, 성능 순위 아님.
+
+## 26.3 화면
+
+- `/usage`: 잣대별 1등 → 3강 비교(잣대마다 따로 축) → B 추이 선 그래프 → C 상위 8 → 잣대 설명·출처.
+- 추이 그래프: 확인된 달에만 점, 점 사이는 점선("그 사이 값은 모른다"). x축은 달 사이 실제 간격.
+  호버 툴팁 + 표 보기. 3강 색은 dataviz 기본 팔레트 1~3번을 검증기로 확인했다(라이트 아쿠아는
+  바탕 대비 2.8:1이라 직접 라벨·표 보기와 함께만 쓴다). 색은 브랜드를 따라가고 순위를 따라가지 않는다.
+- DB가 없어도 A·B로 뜨고 C만 "불러오지 못했어요". ISR 1시간.
+- 진입: 헤더 "사용량", 홈 하단 링크, 도구 상세 "얼마나 많이 쓰나요"(코드 데이터만, DB 호출 추가 없음).
+
+## 26.4 확인한 것
+
+- 7개 사이트 점유율을 더하면 99% 남짓이다. 처음엔 "7곳 안에서의 비율"로 적었다가 테스트가 잡았다 —
+  Similarweb 분모는 생성형 AI 웹 전체이고 나머지는 목록 밖 사이트 몫이다. 문구와 테스트를 고쳤다.
+- 단위 테스트 15개(`tests/usage.test.ts`), E2E 6개(`tests/e2e/usage.spec.ts`).
+  전체: tsc / ESLint(기존 경고 2) / vitest 189 / Playwright 106 통과.
+
+## 26.5 남은 것 (사람이 해야 하는 부분)
+
+1. **OpenRouter API 키 발급 → Vercel `OPENROUTER_API_KEY`(Sensitive) 등록.** 없으면 C 칸이 비어 있다.
+2. 배포 후 크론을 한 번 수동 호출해 15일치를 채운다(7일이 차야 C가 뜬다).
+3. Vercel 요금제의 크론 개수 제한 확인 — 이번에 3번째 크론을 추가했다.
+4. Similarweb 원 게시물(X) 링크 확보 시 `secondHand` 해제. 매달 10일 전후 새 수치 추가.
+5. v2: "잣대별 1등" OG 이미지, Tiera 자체 투표(4번째 잣대).

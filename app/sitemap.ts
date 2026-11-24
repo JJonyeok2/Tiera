@@ -44,6 +44,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
     // 로컬 모델도 코드에 든 정적 내용이다. 등급 페이지만 올린다 — 카드별 URL(?gpu=)은
     // 같은 문서의 강조 표시일 뿐이라 canonical이 등급 페이지다. SPEC 25.6
+    { url: absoluteUrl("/usage"), changeFrequency: "daily" as const, priority: 0.7 },
     { url: absoluteUrl("/local"), changeFrequency: "weekly" as const, priority: 0.7 },
     ...VRAM_CLASSES.map((c) => ({
       url: absoluteUrl(`/local/${c.slug}`),
