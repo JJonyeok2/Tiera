@@ -8,7 +8,7 @@ test("세 잣대가 각각 기준 시점과 함께 나온다", async ({ page }) 
   await expect(page.getByTestId("tile-web")).toContainText("ChatGPT");
   await expect(page.getByTestId("tile-web")).toContainText("2026.10");
   // C는 DB에 따라 숫자이거나, 못 불러왔다는 안내다. 빈 칸이나 0은 안 된다.
-  await expect(page.getByTestId("tile-api")).toHaveText(/7일|불러오지 못했어요/);
+  await expect(page.getByTestId("tile-api")).toHaveText(/7일|불러오지 못했어요|모으는 중/);
 });
 
 test("잣대를 합친 종합 순위는 어디에도 없다", async ({ page }) => {

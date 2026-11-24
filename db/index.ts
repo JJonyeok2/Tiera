@@ -37,9 +37,23 @@ function getPool(): Pool {
 
   const connectionString = resolveDatabaseUrl();
   if (!connectionString) {
-    throw new Error(
-      "DB 접속 주소가 없습니다. DATABASE_URL 또는 POSTGRES_URL 중 하나를 설정하세요."
-    );
+    // 주소가 없으면 **던지지 않고** "쿼리하면 실패하는 풀"을 돌려준다.
+    // 여기서 던지면 drizzle()이 생성 시점에 프로퍼티를 읽는 순간(=import) 터져서,
+    // 쿼리를 한 번도 안 하는 라우트까지 빌드의 "page data 수집" 단계에서 죽는다.
+    // Preview 배포가 정확히 이렇게 매번 실패했다(운영 DB 주소는 Production에만 둔다).
+    //
+    // 가짜 객체가 아니라 진짜 Pool 인스턴스를 쓰는 이유: drizzle이 판별용으로 읽은
+    // 값을 실제로 쓰기 때문에, 모양만 흉내 낸 객체는 다른 곳에서 깨진다(아래 주석).
+    // 연결은 query/connect 때만 일어나므로 둘만 막으면 접속 시도 자체가 없다.
+    //
+    // 프로덕션에서 주소가 빠지는 사고는 빌드 단계의 db/migrate-deploy.ts가 막는다(SPEC 19.2).
+    // 캐시하지 않는다 — 실행 중에 환경변수가 생길 일은 없지만, 가짜 풀을 붙잡아 둘 이유도 없다.
+    const missing = () =>
+      new Error("DB 접속 주소가 없습니다. DATABASE_URL 또는 POSTGRES_URL 중 하나를 설정하세요.");
+    const unavailable = new Pool({ max: 1 });
+    unavailable.query = (() => Promise.reject(missing())) as unknown as Pool["query"];
+    unavailable.connect = (() => Promise.reject(missing())) as unknown as Pool["connect"];
+    return unavailable;
   }
 
   pool = new Pool({
@@ -59,13 +73,13 @@ function getPool(): Pool {
  *
  * 주의: "import만으로는 아무 일도 안 난다"가 아니다.
  * drizzle()은 인자가 설정 객체인지 판별하려고 생성 시점에 프로퍼티를 읽고,
- * 그 접근이 여기서 풀 생성을 트리거한다. 즉 **주소가 없으면 import에서 던진다.**
+ * 그 접근이 여기서 풀 생성을 트리거한다. (예전에는 그래서 주소가 없으면 import에서 던졌다.)
  * 판별용 접근에 undefined를 돌려주는 식으로 우회해봤지만, drizzle이 그 값을
  * 실제로 쓰기 때문에 빌드가 다른 곳에서 깨진다. 그대로 두는 편이 낫다.
  *
- * 그래서 이 모듈을 import하는 쪽은 "주소가 없으면 빌드가 실패한다"를 전제로 한다.
- * 요청 시점의 DB 장애를 감내해야 하는 코드(app/sitemap.ts)는 최상단에서
- * import하지 말고 try 안에서 동적 import할 것 — 그래야 fallback이 실제로 동작한다.
+ * 그래서 getPool()은 주소가 없을 때 던지지 않고 "쿼리하면 실패하는 풀"을 돌려준다
+ * (2026-11-24, Preview 빌드 실패 수정). import는 이제 항상 안전하고, 실패는 쿼리
+ * 시점의 거부된 Promise로 나온다 — 각 호출부의 try/catch·에러 경계가 받는다.
  */
 const lazyPool = new Proxy({} as Pool, {
   get(_target, prop) {
